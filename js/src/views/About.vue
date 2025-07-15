@@ -69,46 +69,50 @@
 </template>
 
 <script>
-import { ref, reactive, onMounted } from 'vue'
+import { reactive, onMounted } from 'vue'
 
 export default {
   name: 'About',
-  setup: function() {
-    var techStack = reactive([
-      { name: 'Vue', version: '3.4.0' },
-      { name: 'Vue Router', version: '4.2.5' },
-      { name: 'Vite', version: '5.0.0' },
-      { name: 'JavaScript', version: 'ES5' }
-    ]);
-
-    var modules = reactive([
-      { name: '算法学习', description: '算法可视化与学习平台' },
-      { name: '特性配置', description: '系统特性管理工具' },
-      { name: 'ES查询', description: 'Elasticsearch查询工具' },
-      { name: '数据管理', description: '用户数据CRUD操作' }
-    ]);
-
-    var stats = reactive({
-      components: 8,
-      features: 12,
-      lines: 5000
+  setup() {
+    // 使用reactive()管理响应式状态
+    var state = reactive({
+      techStack: [
+        { name: 'Vue', version: '3.4.0' },
+        { name: 'Vue Router', version: '4.2.5' },
+        { name: 'Vite', version: '5.0.0' },
+        { name: 'JavaScript', version: 'ES5' }
+      ],
+      modules: [
+        { name: '算法学习', description: '算法可视化与学习平台' },
+        { name: '特性配置', description: '系统特性管理工具' },
+        { name: 'ES查询', description: 'Elasticsearch查询工具' },
+        { name: '数据管理', description: '用户数据CRUD操作' }
+      ],
+      stats: {
+        components: 8,
+        features: 12,
+        lines: 5000
+      }
     });
 
+    // 方法定义
     function updateStats() {
       // 模拟数据更新
       setTimeout(function() {
-        stats.components = 10;
+        state.stats.components = 10;
       }, 2000);
     }
 
+    // 生命周期钩子
     onMounted(function() {
       updateStats();
     });
 
+    // 返回响应式数据
     return {
-      techStack: techStack,
-      modules: modules,
-      stats: stats
+      techStack: state.techStack,
+      modules: state.modules,
+      stats: state.stats
     }
   }
 }

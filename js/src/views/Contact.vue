@@ -98,7 +98,8 @@ import { reactive, ref } from 'vue'
 
 export default {
   name: 'Contact',
-  setup: function() {
+  setup() {
+    // 使用reactive()管理表单数据
     var form = reactive({
       name: '',
       email: '',
@@ -106,11 +107,13 @@ export default {
       message: ''
     });
 
+    // 使用ref()管理简单状态
     var submitting = ref(false);
     var showMessage = ref(false);
     var messageText = ref('');
     var messageType = ref('success');
 
+    // 方法定义
     function submitForm() {
       submitting.value = true;
       
@@ -140,6 +143,7 @@ export default {
       }, 1000);
     }
 
+    // 返回响应式数据和方法
     return {
       form: form,
       submitting: submitting,

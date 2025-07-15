@@ -44,7 +44,12 @@
 import { defineComponent } from 'vue'
 
 export default defineComponent({
-  name: 'App'
+  name: 'App',
+  setup() {
+    // 使用Vue 3的响应式API
+    // 这里可以添加全局状态管理
+    return {}
+  }
 })
 </script>
 

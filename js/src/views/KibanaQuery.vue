@@ -184,12 +184,14 @@ import { ref, reactive, watch } from 'vue'
 export default {
   name: 'KibanaQuery',
   setup() {
+    // 使用ref()管理简单响应式数据
     var activeTab = ref('json');
     var loading = ref(false);
     var availableFilterFields = ref([]);
     var availableAggregationFields = ref([]);
     var tableFields = ref([]);
     
+    // 使用reactive()管理复杂响应式对象
     var queryConfig = reactive({
       indexName: '',
       filters: [],
@@ -246,6 +248,7 @@ export default {
       ];
     }
     
+    // 过滤器相关方法
     function addFilter() {
       queryConfig.filters.push({
         field: '',
@@ -258,6 +261,7 @@ export default {
       queryConfig.filters.splice(index, 1);
     }
     
+    // 聚合相关方法
     function addAggregation() {
       queryConfig.aggregations.push({
         name: '',
@@ -280,6 +284,7 @@ export default {
       }
     }
     
+    // 查询执行方法
     async function executeQuery() {
       if (!queryConfig.indexName) {
         alert('请输入索引名称');
@@ -363,6 +368,7 @@ export default {
       tableFields.value = [];
     }
     
+    // 工具方法
     function formatJson(obj) {
       return JSON.stringify(obj, null, 2);
     }
@@ -377,7 +383,7 @@ export default {
       return String(value);
     }
 
-    // 监听索引名称变化
+    // 使用watch()监听响应式数据变化
     watch(function() { return queryConfig.indexName; }, function(newIndexName) {
       if (newIndexName) {
         getAvailableFields();
@@ -387,6 +393,7 @@ export default {
       }
     });
 
+    // 返回响应式数据和方法
     return {
       activeTab: activeTab,
       loading: loading,

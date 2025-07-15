@@ -27,34 +27,39 @@
 </template>
 
 <script>
-import { ref, reactive } from 'vue'
+import { reactive, ref } from 'vue'
 
 export default {
   name: 'Home',
-  setup: function() {
+  setup() {
+    // 使用ref()管理简单响应式数据
     var count = ref(0);
     
-    var actions = reactive([
-      {
-        icon: '📊',
-        title: '算法学习',
-        desc: '可视化算法学习平台',
-        link: '/algorithms'
-      },
-      {
-        icon: '⚙️',
-        title: '特性配置',
-        desc: '系统特性管理工具',
-        link: '/feature-config'
-      },
-      {
-        icon: '🔍',
-        title: 'ES查询',
-        desc: 'Elasticsearch查询工具',
-        link: '/kibana-query'
-      }
-    ]);
+    // 使用reactive()管理复杂响应式对象
+    var state = reactive({
+      actions: [
+        {
+          icon: '📊',
+          title: '算法学习',
+          desc: '可视化算法学习平台',
+          link: '/algorithms'
+        },
+        {
+          icon: '⚙️',
+          title: '特性配置',
+          desc: '系统特性管理工具',
+          link: '/feature-config'
+        },
+        {
+          icon: '🔍',
+          title: 'ES查询',
+          desc: 'Elasticsearch查询工具',
+          link: '/kibana-query'
+        }
+      ]
+    });
 
+    // 方法定义
     function increment() {
       count.value = count.value + 1;
     }
@@ -63,9 +68,10 @@ export default {
       count.value = count.value - 1;
     }
 
+    // 返回响应式数据和方法
     return {
       count: count,
-      actions: actions,
+      actions: state.actions,
       increment: increment,
       decrement: decrement
     }
