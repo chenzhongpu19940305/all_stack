@@ -69,41 +69,47 @@
 </template>
 
 <script>
+import { ref, reactive, onMounted } from 'vue'
+
 export default {
   name: 'About',
-  data: function() {
-    return {
-      techStack: [
-        { name: 'Vue', version: '3.4.0' },
-        { name: 'Vue Router', version: '4.2.5' },
-        { name: 'Vite', version: '5.0.0' },
-        { name: 'JavaScript', version: 'ES5' }
-      ],
-      modules: [
-        { name: '算法学习', description: '算法可视化与学习平台' },
-        { name: '特性配置', description: '系统特性管理工具' },
-        { name: 'ES查询', description: 'Elasticsearch查询工具' },
-        { name: '数据管理', description: '用户数据CRUD操作' }
-      ],
-      stats: {
-        components: 8,
-        features: 12,
-        lines: 5000
-      }
-    }
-  },
-  methods: {
-    // ES5兼容的方法定义
-    updateStats: function() {
-      var self = this;
+  setup: function() {
+    var techStack = reactive([
+      { name: 'Vue', version: '3.4.0' },
+      { name: 'Vue Router', version: '4.2.5' },
+      { name: 'Vite', version: '5.0.0' },
+      { name: 'JavaScript', version: 'ES5' }
+    ]);
+
+    var modules = reactive([
+      { name: '算法学习', description: '算法可视化与学习平台' },
+      { name: '特性配置', description: '系统特性管理工具' },
+      { name: 'ES查询', description: 'Elasticsearch查询工具' },
+      { name: '数据管理', description: '用户数据CRUD操作' }
+    ]);
+
+    var stats = reactive({
+      components: 8,
+      features: 12,
+      lines: 5000
+    });
+
+    function updateStats() {
       // 模拟数据更新
       setTimeout(function() {
-        self.stats.components = 10;
+        stats.components = 10;
       }, 2000);
     }
-  },
-  mounted: function() {
-    this.updateStats();
+
+    onMounted(function() {
+      updateStats();
+    });
+
+    return {
+      techStack: techStack,
+      modules: modules,
+      stats: stats
+    }
   }
 }
 </script>

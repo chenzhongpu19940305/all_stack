@@ -94,51 +94,59 @@
 </template>
 
 <script>
+import { reactive, ref } from 'vue'
+
 export default {
   name: 'Contact',
-  data: function() {
-    return {
-      form: {
-        name: '',
-        email: '',
-        subject: '',
-        message: ''
-      },
-      submitting: false,
-      showMessage: false,
-      messageText: '',
-      messageType: 'success'
-    }
-  },
-  methods: {
-    submitForm: function() {
-      var self = this;
-      self.submitting = true;
+  setup: function() {
+    var form = reactive({
+      name: '',
+      email: '',
+      subject: '',
+      message: ''
+    });
+
+    var submitting = ref(false);
+    var showMessage = ref(false);
+    var messageText = ref('');
+    var messageType = ref('success');
+
+    function submitForm() {
+      submitting.value = true;
       
       // 模拟表单提交
-      console.log('表单数据：', self.form);
+      console.log('表单数据：', form);
       
       setTimeout(function() {
         // 显示成功消息
-        self.messageText = '消息发送成功！我们会尽快回复您。';
-        self.messageType = 'success';
-        self.showMessage = true;
+        messageText.value = '消息发送成功！我们会尽快回复您。';
+        messageType.value = 'success';
+        showMessage.value = true;
         
         // 重置表单
-        self.form = {
+        Object.assign(form, {
           name: '',
           email: '',
           subject: '',
           message: ''
-        };
+        });
         
-        self.submitting = false;
+        submitting.value = false;
         
         // 3秒后隐藏消息
         setTimeout(function() {
-          self.showMessage = false;
+          showMessage.value = false;
         }, 3000);
       }, 1000);
+    }
+
+    return {
+      form: form,
+      submitting: submitting,
+      showMessage: showMessage,
+      messageText: messageText,
+      messageType: messageType,
+      submitForm: submitForm
     }
   }
 }

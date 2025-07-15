@@ -179,55 +179,56 @@
 </template>
 
 <script>
+import { ref, reactive, watch } from 'vue'
+
 export default {
   name: 'KibanaQuery',
-  data() {
-    return {
-      activeTab: 'json',
-      loading: false,
-      availableFilterFields: [],
-      availableAggregationFields: [],
-      queryConfig: {
-        indexName: '',
-        filters: [],
-        aggregations: []
-      },
-      queryResult: {
-        data: null,
-        total: 0,
-        took: 0,
-        hits: []
-      },
-      tableFields: []
-    }
-  },
-  methods: {
+  setup() {
+    var activeTab = ref('json');
+    var loading = ref(false);
+    var availableFilterFields = ref([]);
+    var availableAggregationFields = ref([]);
+    var tableFields = ref([]);
+    
+    var queryConfig = reactive({
+      indexName: '',
+      filters: [],
+      aggregations: []
+    });
+    
+    var queryResult = reactive({
+      data: null,
+      total: 0,
+      took: 0,
+      hits: []
+    });
+
     // 获取可用字段
-    async getAvailableFields() {
-      if (!this.queryConfig.indexName) {
-        return
+    async function getAvailableFields() {
+      if (!queryConfig.indexName) {
+        return;
       }
       
       try {
-        const response = await fetch(`/api/elasticsearch/fields?index=${this.queryConfig.indexName}`)
+        var response = await fetch('/api/elasticsearch/fields?index=' + queryConfig.indexName);
         if (response.ok) {
-          const data = await response.json()
-          this.availableFilterFields = data.filterFields || []
-          this.availableAggregationFields = data.aggregationFields || []
+          var data = await response.json();
+          availableFilterFields.value = data.filterFields || [];
+          availableAggregationFields.value = data.aggregationFields || [];
         } else {
           // 如果API返回错误，使用模拟数据
-          this.loadMockFields()
+          loadMockFields();
         }
       } catch (error) {
-        console.error('获取字段失败:', error)
+        console.error('获取字段失败:', error);
         // 如果API不可用，使用模拟数据
-        this.loadMockFields()
+        loadMockFields();
       }
-    },
+    }
     
     // 加载模拟字段数据
-    loadMockFields() {
-      this.availableFilterFields = [
+    function loadMockFields() {
+      availableFilterFields.value = [
         'timestamp',
         'level',
         'message',
@@ -236,235 +237,177 @@ export default {
         'ip',
         'status_code',
         'response_time'
-      ]
-      this.availableAggregationFields = [
+      ];
+      availableAggregationFields.value = [
         'level',
         'service',
         'status_code',
         'user_id'
-      ]
-    },
+      ];
+    }
     
-    addFilter() {
-      this.queryConfig.filters.push({
+    function addFilter() {
+      queryConfig.filters.push({
         field: '',
         operator: 'equals',
         value: ''
-      })
-    },
-    removeFilter(index) {
-      this.queryConfig.filters.splice(index, 1)
-    },
-    addAggregation() {
-      this.queryConfig.aggregations.push({
+      });
+    }
+    
+    function removeFilter(index) {
+      queryConfig.filters.splice(index, 1);
+    }
+    
+    function addAggregation() {
+      queryConfig.aggregations.push({
         name: '',
         type: 'terms',
         fields: [],
         field: '' // 用于存储选中的字段
-      })
-    },
-    removeAggregation(index) {
-      this.queryConfig.aggregations.splice(index, 1)
-    },
-    updateAggregationField(agg) {
+      });
+    }
+    
+    function removeAggregation(index) {
+      queryConfig.aggregations.splice(index, 1);
+    }
+    
+    function updateAggregationField(agg) {
       // 当复选框改变时，更新聚合的字段
       if (agg.fields && agg.fields.length > 0) {
-        agg.field = agg.fields[0] // 取第一个选中的字段
+        agg.field = agg.fields[0]; // 取第一个选中的字段
       } else {
-        agg.field = ''
+        agg.field = '';
       }
-    },
-    async executeQuery() {
-      if (!this.queryConfig.indexName) {
-        alert('请输入索引名称')
-        return
+    }
+    
+    async function executeQuery() {
+      if (!queryConfig.indexName) {
+        alert('请输入索引名称');
+        return;
       }
 
-      this.loading = true
+      loading.value = true;
       
       try {
         // 构建请求数据
-        const requestData = {
-          index: this.queryConfig.indexName,
-                  filters: this.queryConfig.filters.filter(function(f) { return f.field && f.value; }),
-        aggregations: this.queryConfig.aggregations.filter(function(a) { return a.name && a.field; })
-        }
+        var requestData = {
+          index: queryConfig.indexName,
+          filters: queryConfig.filters.filter(function(f) { return f.field && f.value; }),
+          aggregations: queryConfig.aggregations.filter(function(a) { return a.name && a.field; })
+        };
 
-        console.log('发送请求数据:', requestData)
+        console.log('发送请求数据:', requestData);
         
         // 调用后端接口
-        const response = await this.callBackendAPI(requestData)
+        var response = await callBackendAPI(requestData);
         
         // 处理返回结果
-        this.handleQueryResult(response)
+        handleQueryResult(response);
         
       } catch (error) {
-        console.error('查询失败:', error)
-        alert('查询失败: ' + error.message)
+        console.error('查询失败:', error);
+        alert('查询失败: ' + error.message);
       } finally {
-        this.loading = false
+        loading.value = false;
       }
-    },
+    }
     
-    async callBackendAPI(requestData) {
+    async function callBackendAPI(requestData) {
       // 调用真实的后端API
-      console.log('调用后端API，请求数据:', requestData)
+      console.log('调用后端API，请求数据:', requestData);
       
-      const apiUrl = '/api/elasticsearch/query'
+      var apiUrl = '/api/elasticsearch/query';
       
-      const response = await fetch(apiUrl, {
+      var response = await fetch(apiUrl, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
         },
         body: JSON.stringify(requestData)
-      })
+      });
       
       if (!response.ok) {
-        throw new Error('HTTP error! status: ' + response.status)
+        throw new Error('HTTP error! status: ' + response.status);
       }
       
-      return await response.json()
-      
-      // 模拟数据部分已注释掉
-      /*
-      // 模拟网络延迟
-              await new Promise(function(resolve) { setTimeout(resolve, 1000); })
-      
-      // 返回模拟数据
-      return {
-        "took": 15,
-        "timed_out": false,
-        "_shards": {
-          "total": 5,
-          "successful": 5,
-          "skipped": 0,
-          "failed": 0
-        },
-        "hits": {
-          "total": {
-            "value": 1250,
-            "relation": "eq"
-          },
-          "max_score": 1.0,
-          "hits": [
-            {
-              "_index": requestData.index || "logs-2024.01.01",
-              "_id": "1",
-              "_score": 1.0,
-              "_source": {
-                "timestamp": "2024-01-01T10:00:00Z",
-                "level": "INFO",
-                "message": "应用启动成功",
-                "service": "web-server",
-                "user_id": "user123",
-                "ip": "192.168.1.100"
-              }
-            },
-            {
-              "_index": requestData.index || "logs-2024.01.01",
-              "_id": "2",
-              "_score": 1.0,
-              "_source": {
-                "timestamp": "2024-01-01T10:01:00Z",
-                "level": "ERROR",
-                "message": "数据库连接失败",
-                "service": "database",
-                "user_id": "user456",
-                "ip": "192.168.1.101"
-              }
-            },
-            {
-              "_index": requestData.index || "logs-2024.01.01",
-              "_id": "3",
-              "_score": 1.0,
-              "_source": {
-                "timestamp": "2024-01-01T10:02:00Z",
-                "level": "WARN",
-                "message": "内存使用率较高",
-                "service": "monitor",
-                "user_id": "system",
-                "ip": "192.168.1.102"
-              }
-            }
-          ]
-        },
-        "aggregations": requestData.aggregations.length > 0 ? {
-          "level_stats": {
-            "doc_count_error_upper_bound": 0,
-            "sum_other_doc_count": 0,
-            "buckets": [
-              { "key": "INFO", "doc_count": 850 },
-              { "key": "ERROR", "doc_count": 250 },
-              { "key": "WARN", "doc_count": 150 }
-            ]
-          },
-          "service_stats": {
-            "doc_count_error_upper_bound": 0,
-            "sum_other_doc_count": 0,
-            "buckets": [
-              { "key": "web-server", "doc_count": 600 },
-              { "key": "database", "doc_count": 400 },
-              { "key": "monitor", "doc_count": 250 }
-            ]
-          }
-        } : {}
-      }
-      */
-    },
+      return await response.json();
+    }
     
-    handleQueryResult(response) {
+    function handleQueryResult(response) {
       // 处理后端返回的数据
-      this.queryResult = {
+      Object.assign(queryResult, {
         data: response,
         total: (response.hits && response.hits.total && response.hits.total.value) || 0,
         took: response.took || 0,
         hits: (response.hits && response.hits.hits) || []
-      }
+      });
       
       // 更新表格字段
-      if (this.queryResult.hits.length > 0) {
-        this.tableFields = Object.keys(this.queryResult.hits[0]._source || {})
+      if (queryResult.hits.length > 0) {
+        tableFields.value = Object.keys(queryResult.hits[0]._source || {});
       }
-    },
-    clearQuery() {
-      this.queryConfig = {
+    }
+    
+    function clearQuery() {
+      Object.assign(queryConfig, {
         indexName: '',
         filters: [],
         aggregations: []
-      }
-      this.queryResult = {
+      });
+      Object.assign(queryResult, {
         data: null,
         total: 0,
         took: 0,
         hits: []
-      }
-      this.tableFields = []
-    },
-    formatJson(obj) {
-      return JSON.stringify(obj, null, 2)
-    },
-    formatFieldValue(value) {
+      });
+      tableFields.value = [];
+    }
+    
+    function formatJson(obj) {
+      return JSON.stringify(obj, null, 2);
+    }
+    
+    function formatFieldValue(value) {
       if (value === null || value === undefined) {
-        return '-'
+        return '-';
       }
       if (typeof value === 'object') {
-        return JSON.stringify(value)
+        return JSON.stringify(value);
       }
-      return String(value)
+      return String(value);
     }
-  },
-  watch: {
-    'queryConfig.indexName': {
-      handler(newIndexName) {
-        if (newIndexName) {
-          this.getAvailableFields()
-        } else {
-          this.availableFilterFields = []
-          this.availableAggregationFields = []
-        }
-      },
-      immediate: false
+
+    // 监听索引名称变化
+    watch(function() { return queryConfig.indexName; }, function(newIndexName) {
+      if (newIndexName) {
+        getAvailableFields();
+      } else {
+        availableFilterFields.value = [];
+        availableAggregationFields.value = [];
+      }
+    });
+
+    return {
+      activeTab: activeTab,
+      loading: loading,
+      availableFilterFields: availableFilterFields,
+      availableAggregationFields: availableAggregationFields,
+      queryConfig: queryConfig,
+      queryResult: queryResult,
+      tableFields: tableFields,
+      getAvailableFields: getAvailableFields,
+      loadMockFields: loadMockFields,
+      addFilter: addFilter,
+      removeFilter: removeFilter,
+      addAggregation: addAggregation,
+      removeAggregation: removeAggregation,
+      updateAggregationField: updateAggregationField,
+      executeQuery: executeQuery,
+      callBackendAPI: callBackendAPI,
+      handleQueryResult: handleQueryResult,
+      clearQuery: clearQuery,
+      formatJson: formatJson,
+      formatFieldValue: formatFieldValue
     }
   }
 }

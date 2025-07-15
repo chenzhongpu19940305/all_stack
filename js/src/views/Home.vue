@@ -27,39 +27,47 @@
 </template>
 
 <script>
+import { ref, reactive } from 'vue'
+
 export default {
   name: 'Home',
-  data: function() {
-    return {
-      count: 0,
-      actions: [
-        {
-          icon: '📊',
-          title: '算法学习',
-          desc: '可视化算法学习平台',
-          link: '/algorithms'
-        },
-        {
-          icon: '⚙️',
-          title: '特性配置',
-          desc: '系统特性管理工具',
-          link: '/feature-config'
-        },
-        {
-          icon: '🔍',
-          title: 'ES查询',
-          desc: 'Elasticsearch查询工具',
-          link: '/kibana-query'
-        }
-      ]
+  setup: function() {
+    var count = ref(0);
+    
+    var actions = reactive([
+      {
+        icon: '📊',
+        title: '算法学习',
+        desc: '可视化算法学习平台',
+        link: '/algorithms'
+      },
+      {
+        icon: '⚙️',
+        title: '特性配置',
+        desc: '系统特性管理工具',
+        link: '/feature-config'
+      },
+      {
+        icon: '🔍',
+        title: 'ES查询',
+        desc: 'Elasticsearch查询工具',
+        link: '/kibana-query'
+      }
+    ]);
+
+    function increment() {
+      count.value = count.value + 1;
     }
-  },
-  methods: {
-    increment: function() {
-      this.count = this.count + 1;
-    },
-    decrement: function() {
-      this.count = this.count - 1;
+
+    function decrement() {
+      count.value = count.value - 1;
+    }
+
+    return {
+      count: count,
+      actions: actions,
+      increment: increment,
+      decrement: decrement
     }
   }
 }
