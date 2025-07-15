@@ -11,6 +11,7 @@ C:\all_stack\springboot\src\main\java\com\example\demo\entity\AlgorithmImage.jav
 C:\all_stack\springboot\src\main\java\com\example\demo\dto\AlgorithmDTO.java
 C:\all_stack\springboot\src\main\java\com\example\demo\service\UserService.java
 C:\all_stack\springboot\src\main\java\com\example\demo\dto\AlgorithmImageDTO.java
+C:\all_stack\springboot\src\main\java\com\example\demo\repository\AlgorithmImageRepository.java
 C:\all_stack\springboot\src\main\java\com\example\demo\controller\AlgorithmController.java
 C:\all_stack\springboot\src\main\java\com\example\demo\entity\Algorithm.java
 C:\all_stack\springboot\src\main\java\com\example\demo\config\CorsConfig.java

@@ -666,7 +666,7 @@ export default {
             throw new Error(result.message || '获取特性失败')
           }
         } else {
-          throw new Error(`获取特性失败: ${response.status}`)
+          throw new Error('获取特性失败: ' + response.status)
         }
       } catch (error) {
         console.error('获取特性失败:', error)
@@ -720,7 +720,7 @@ export default {
             throw new Error(result.message || '查询失败')
           }
         } else {
-          throw new Error(`查询失败: ${response.status}`)
+          throw new Error('查询失败: ' + response.status)
         }
       } catch (error) {
         console.error('查询失败:', error)
@@ -737,10 +737,10 @@ export default {
         return null
       }
       
-      const selectedFeatures = this.filteredFeatures.filter(feature => 
-        this.selectedFeatureIds.includes(feature.id)
-      )
-      return selectedFeatures.map(feature => feature.code).join(',')
+            var selectedFeatures = this.filteredFeatures.filter(function(feature) {
+        return self.selectedFeatureIds.includes(feature.id);
+      });
+      return selectedFeatures.map(function(feature) { return feature.code; }).join(',');
     },
     
     // 获取选中特性的名称
@@ -749,17 +749,17 @@ export default {
         return null
       }
       
-      const selectedFeatures = this.filteredFeatures.filter(feature => 
-        this.selectedFeatureIds.includes(feature.id)
-      )
-      return selectedFeatures.map(feature => feature.name).join(', ')
+            var selectedFeatures = this.filteredFeatures.filter(function(feature) {
+        return self.selectedFeatureIds.includes(feature.id);
+      });
+      return selectedFeatures.map(function(feature) { return feature.name; }).join(', ');
     },
     
     
     
     // 编辑配置
     editConfig(config) {
-      this.editingConfig = { ...config }
+              this.editingConfig = Object.assign({}, config);
       this.showEditModal = true
     },
     
@@ -797,7 +797,7 @@ export default {
             throw new Error(result.message || '保存失败')
           }
         } else {
-          throw new Error(`保存失败: ${response.status}`)
+          throw new Error('保存失败: ' + response.status)
         }
       } catch (error) {
         console.error('保存失败:', error)
@@ -832,7 +832,7 @@ export default {
     
     // 新增配置特性选择变化
     onFeatureChange() {
-      const selectedFeature = this.filteredFeatures.find(feature => feature.code === this.newConfig.featureCode)
+      var selectedFeature = this.filteredFeatures.find(function(feature) { return feature.code === self.newConfig.featureCode; });
       if (selectedFeature) {
         this.newConfig.featureName = selectedFeature.name
       } else {
@@ -842,7 +842,7 @@ export default {
     
     // 编辑配置特性选择变化
     onEditFeatureChange() {
-      const selectedFeature = this.filteredFeatures.find(feature => feature.code === this.editingConfig.featureCode)
+      var selectedFeature = this.filteredFeatures.find(function(feature) { return feature.code === self.editingConfig.featureCode; });
       if (selectedFeature) {
         this.editingConfig.featureName = selectedFeature.name
       } else {
@@ -913,7 +913,7 @@ export default {
             throw new Error(result.message || '新增失败')
           }
         } else {
-          throw new Error(`新增失败: ${response.status}`)
+          throw new Error('新增失败: ' + response.status)
         }
       } catch (error) {
         console.error('新增失败:', error)
@@ -986,7 +986,7 @@ export default {
             throw new Error(result.message || '新增特性失败')
           }
         } else {
-          throw new Error(`新增特性失败: ${response.status}`)
+          throw new Error('新增特性失败: ' + response.status)
         }
       } catch (error) {
         console.error('新增特性失败:', error)
@@ -1000,7 +1000,7 @@ export default {
     
     // 编辑特性
     editFeature(feature) {
-      this.editingFeature = { ...feature }
+              this.editingFeature = Object.assign({}, feature);
       this.showEditFeatureModal = true
     },
     
@@ -1062,7 +1062,7 @@ export default {
             throw new Error(result.message || '修改特性失败')
           }
         } else {
-          throw new Error(`修改特性失败: ${response.status}`)
+          throw new Error('修改特性失败: ' + response.status)
         }
       } catch (error) {
         console.error('修改特性失败:', error)

@@ -14,7 +14,7 @@
           v-for="algorithm in algorithms"
           :key="algorithm.id"
           @click="selectAlgorithm(algorithm)"
-          :class="['algorithm-item', { active: selectedAlgorithm?.id === algorithm.id }]"
+          :class="['algorithm-item', { active: selectedAlgorithm && selectedAlgorithm.id === algorithm.id }]"
         >
           <div class="algorithm-name">{{ algorithm.name }}</div>
           <div class="algorithm-category">{{ algorithm.category }}</div>
@@ -260,40 +260,47 @@ export default {
   },
   methods: {
     // 加载算法数据
-    async loadAlgorithms() {
-      try {
-        const response = await fetch('http://localhost:8080/api/algorithms')
-        if (response.ok) {
-          const algorithms = await response.json()
-          // 转换后端数据格式为前端格式
-          this.algorithms = algorithms.map(alg => ({
-            id: alg.id,
-            name: alg.name,
-            category: alg.category,
-            description: alg.description,
-            code: alg.code,
-            images: alg.images ? alg.images.map(img => ({
-              id: img.id,
-              src: img.src,
-              desc: img.desc
-            })) : []
-          }))
-          if (this.algorithms.length > 0) {
-            this.nextId = Math.max(...this.algorithms.map(a => a.id)) + 1
+    loadAlgorithms: function() {
+      var self = this;
+      fetch('http://localhost:8080/api/algorithms')
+        .then(function(response) {
+          if (response.ok) {
+            return response.json();
+          } else {
+            throw new Error('加载算法数据失败: ' + response.status);
           }
-        } else {
-          console.error('加载算法数据失败:', response.status, response.statusText)
-          this.algorithms = []
-        }
-      } catch (error) {
-        console.error('加载算法数据失败:', error)
-        this.algorithms = []
-      }
+        })
+        .then(function(algorithms) {
+          // 转换后端数据格式为前端格式
+          self.algorithms = algorithms.map(function(alg) {
+            return {
+              id: alg.id,
+              name: alg.name,
+              category: alg.category,
+              description: alg.description,
+              code: alg.code,
+              images: alg.images ? alg.images.map(function(img) {
+                return {
+                  id: img.id,
+                  src: img.src,
+                  desc: img.desc
+                };
+              }) : []
+            };
+          });
+          if (self.algorithms.length > 0) {
+            self.nextId = Math.max.apply(null, self.algorithms.map(function(a) { return a.id; })) + 1;
+          }
+        })
+        .catch(function(error) {
+          console.error('加载算法数据失败:', error);
+          self.algorithms = [];
+        });
     },
 
     // 选择算法
     selectAlgorithm(algorithm) {
-      this.selectedAlgorithm = { ...algorithm }
+      this.selectedAlgorithm = Object.assign({}, algorithm);
       this.currentImageIndex = 0 // Reset image index when selecting a new algorithm
     },
 
@@ -308,7 +315,7 @@ export default {
         images: []
       }
       this.algorithms.push(newAlgorithm)
-      this.selectedAlgorithm = { ...newAlgorithm }
+      this.selectedAlgorithm = Object.assign({}, newAlgorithm);
       this.saveAlgorithm()
     },
 
@@ -324,19 +331,21 @@ export default {
           category: this.selectedAlgorithm.category,
           description: this.selectedAlgorithm.description,
           code: this.selectedAlgorithm.code,
-          images: this.selectedAlgorithm.images ? this.selectedAlgorithm.images.map(img => ({
-            id: img.id,
-            src: img.src,
-            desc: img.desc,
-            sortOrder: img.sortOrder || 0
-          })) : []
+          images: this.selectedAlgorithm.images ? this.selectedAlgorithm.images.map(function(img) {
+            return {
+              id: img.id,
+              src: img.src,
+              desc: img.desc,
+              sortOrder: img.sortOrder || 0
+            };
+          }) : []
         }
 
-        const url = this.selectedAlgorithm.id ? 
-          `http://localhost:8080/api/algorithms/${this.selectedAlgorithm.id}` : 
-          'http://localhost:8080/api/algorithms'
+        var url = this.selectedAlgorithm.id ? 
+          'http://localhost:8080/api/algorithms/' + this.selectedAlgorithm.id : 
+          'http://localhost:8080/api/algorithms';
         
-        const method = this.selectedAlgorithm.id ? 'PUT' : 'POST'
+        var method = this.selectedAlgorithm.id ? 'PUT' : 'POST';
         
         const response = await fetch(url, {
           method: method,
@@ -349,7 +358,7 @@ export default {
         if (response.ok) {
           const savedAlgorithm = await response.json()
           // 更新本地数据
-          const index = this.algorithms.findIndex(a => a.id === this.selectedAlgorithm.id)
+          var index = this.algorithms.findIndex(function(a) { return a.id === self.selectedAlgorithm.id; });
           if (index !== -1) {
             this.algorithms[index] = {
               id: savedAlgorithm.id,
@@ -357,11 +366,13 @@ export default {
               category: savedAlgorithm.category,
               description: savedAlgorithm.description,
               code: savedAlgorithm.code,
-              images: savedAlgorithm.images ? savedAlgorithm.images.map(img => ({
-                id: img.id,
-                src: img.src,
-                desc: img.desc
-              })) : []
+              images: savedAlgorithm.images ? savedAlgorithm.images.map(function(img) {
+                return {
+                  id: img.id,
+                  src: img.src,
+                  desc: img.desc
+                };
+              }) : []
             }
           } else {
             // 如果是新算法，添加到列表
@@ -371,11 +382,13 @@ export default {
               category: savedAlgorithm.category,
               description: savedAlgorithm.description,
               code: savedAlgorithm.code,
-              images: savedAlgorithm.images ? savedAlgorithm.images.map(img => ({
-                id: img.id,
-                src: img.src,
-                desc: img.desc
-              })) : []
+              images: savedAlgorithm.images ? savedAlgorithm.images.map(function(img) {
+                return {
+                  id: img.id,
+                  src: img.src,
+                  desc: img.desc
+                };
+              }) : []
             })
           }
           this.showSaveMessage(true)
@@ -390,177 +403,182 @@ export default {
     },
 
     // 显示保存消息
-    showSaveMessage(success = true) {
+    showSaveMessage: function(success) {
+      success = success !== undefined ? success : true;
       // 创建一个临时的保存提示
-      const saveMessage = document.createElement('div')
-      saveMessage.textContent = success ? '保存成功！' : '保存失败，请重试！'
-      saveMessage.style.cssText = `
-        position: fixed;
-        top: 20px;
-        right: 20px;
-        background: ${success ? '#42b883' : '#e74c3c'};
-        color: white;
-        padding: 10px 20px;
-        border-radius: 6px;
-        z-index: 1000;
-        animation: slideIn 0.3s ease;
-      `
-      document.body.appendChild(saveMessage)
+      var saveMessage = document.createElement('div');
+      saveMessage.textContent = success ? '保存成功！' : '保存失败，请重试！';
+      saveMessage.style.cssText = 
+        'position: fixed;' +
+        'top: 20px;' +
+        'right: 20px;' +
+        'background: ' + (success ? '#42b883' : '#e74c3c') + ';' +
+        'color: white;' +
+        'padding: 10px 20px;' +
+        'border-radius: 6px;' +
+        'z-index: 1000;' +
+        'animation: slideIn 0.3s ease;';
+      document.body.appendChild(saveMessage);
       
-      setTimeout(() => {
-        saveMessage.style.animation = 'slideOut 0.3s ease'
-        setTimeout(() => {
-          document.body.removeChild(saveMessage)
-        }, 300)
-      }, 2000)
+      var self = this;
+      setTimeout(function() {
+        saveMessage.style.animation = 'slideOut 0.3s ease';
+        setTimeout(function() {
+          document.body.removeChild(saveMessage);
+        }, 300);
+      }, 2000);
     },
 
     // 删除算法
-    async deleteAlgorithm() {
-      if (!this.selectedAlgorithm) return
+    deleteAlgorithm: function() {
+      var self = this;
+      if (!this.selectedAlgorithm) return;
 
       if (confirm('确定要删除这个算法吗？')) {
-        try {
-          const response = await fetch(`http://localhost:8080/api/algorithms/${this.selectedAlgorithm.id}`, {
-            method: 'DELETE'
-          })
-
+        fetch('http://localhost:8080/api/algorithms/' + this.selectedAlgorithm.id, {
+          method: 'DELETE'
+        })
+        .then(function(response) {
           if (response.ok) {
-            this.algorithms = this.algorithms.filter(a => a.id !== this.selectedAlgorithm.id)
-            this.selectedAlgorithm = null
-            this.showSaveMessage(true)
+            self.algorithms = self.algorithms.filter(function(a) { return a.id !== self.selectedAlgorithm.id; });
+            self.selectedAlgorithm = null;
+            self.showSaveMessage(true);
           } else {
-            console.error('删除失败:', response.status, response.statusText)
-            this.showSaveMessage(false)
+            console.error('删除失败:', response.status, response.statusText);
+            self.showSaveMessage(false);
           }
-        } catch (error) {
-          console.error('删除算法失败:', error)
-          this.showSaveMessage(false)
-        }
+        })
+        .catch(function(error) {
+          console.error('删除算法失败:', error);
+          self.showSaveMessage(false);
+        });
       }
     },
 
     // 处理图片上传
-    handleImageUpload(event) {
-      const file = event.target.files[0]
+    handleImageUpload: function(event) {
+      var file = event.target.files[0];
+      var self = this;
       if (file && file.type.startsWith('image/')) {
-        const reader = new FileReader()
-        reader.onload = (e) => {
-          if (!this.selectedAlgorithm.images) this.selectedAlgorithm.images = []
-          this.selectedAlgorithm.images.push({ src: e.target.result, desc: '' })
-          this.currentImageIndex = this.selectedAlgorithm.images.length - 1
-          this.saveAlgorithm()
-        }
-        reader.readAsDataURL(file)
+        var reader = new FileReader();
+        reader.onload = function(e) {
+          if (!self.selectedAlgorithm.images) self.selectedAlgorithm.images = [];
+          self.selectedAlgorithm.images.push({ src: e.target.result, desc: '' });
+          self.currentImageIndex = self.selectedAlgorithm.images.length - 1;
+          self.saveAlgorithm();
+        };
+        reader.readAsDataURL(file);
       }
       // 清空input，允许重复选择同一文件
-      event.target.value = ''
+      event.target.value = '';
     },
 
     // 处理拖拽上传
-    handleDrop(event) {
-      event.preventDefault()
-      this.isDragging = false
-      const file = event.dataTransfer.files[0]
+    handleDrop: function(event) {
+      event.preventDefault();
+      this.isDragging = false;
+      var file = event.dataTransfer.files[0];
+      var self = this;
       if (file && file.type.startsWith('image/')) {
-        const reader = new FileReader()
-        reader.onload = (e) => {
-          if (!this.selectedAlgorithm.images) this.selectedAlgorithm.images = []
-          this.selectedAlgorithm.images.push({ src: e.target.result, desc: '' })
-          this.currentImageIndex = this.selectedAlgorithm.images.length - 1
-          this.saveAlgorithm()
-        }
-        reader.readAsDataURL(file)
+        var reader = new FileReader();
+        reader.onload = function(e) {
+          if (!self.selectedAlgorithm.images) self.selectedAlgorithm.images = [];
+          self.selectedAlgorithm.images.push({ src: e.target.result, desc: '' });
+          self.currentImageIndex = self.selectedAlgorithm.images.length - 1;
+          self.saveAlgorithm();
+        };
+        reader.readAsDataURL(file);
       }
     },
 
     // 删除图片
-    removeImage(idx) {
-      this.selectedAlgorithm.images.splice(idx, 1)
+    removeImage: function(idx) {
+      this.selectedAlgorithm.images.splice(idx, 1);
       if (this.currentImageIndex >= this.selectedAlgorithm.images.length) {
-        this.currentImageIndex = this.selectedAlgorithm.images.length - 1
+        this.currentImageIndex = this.selectedAlgorithm.images.length - 1;
       }
-      this.saveAlgorithm()
+      this.saveAlgorithm();
     },
 
     // 上一张图片
-    prevImage() {
+    prevImage: function() {
       if (this.currentImageIndex > 0) {
-        this.currentImageIndex--
+        this.currentImageIndex--;
       }
     },
 
     // 下一张图片
-    nextImage() {
+    nextImage: function() {
       if (this.currentImageIndex < this.selectedAlgorithm.images.length - 1) {
-        this.currentImageIndex++
+        this.currentImageIndex++;
       }
     },
 
     // 全屏展示
-    openFullscreen() {
+    openFullscreen: function() {
       this.showFullscreen = true;
       this.currentFullscreenPage = 0; // 默认显示代码页
       // 计算总页数：代码页(1) + 图片页数
-      const imageCount = this.selectedAlgorithm.images ? this.selectedAlgorithm.images.length : 0;
+      var imageCount = this.selectedAlgorithm.images ? this.selectedAlgorithm.images.length : 0;
       this.totalFullscreenPages = 1 + imageCount;
     },
 
     // 关闭全屏
-    closeFullscreen() {
+    closeFullscreen: function() {
       this.showFullscreen = false;
       this.currentFullscreenPage = 0; // 重置页码
     },
 
     // 上一页全屏
-    prevFullscreenPage() {
-      console.log('上一页按钮被点击，当前页:', this.currentFullscreenPage)
+    prevFullscreenPage: function() {
+      console.log('上一页按钮被点击，当前页:', this.currentFullscreenPage);
       if (this.currentFullscreenPage > 0) {
         this.currentFullscreenPage--;
-        console.log('切换到页面:', this.currentFullscreenPage)
+        console.log('切换到页面:', this.currentFullscreenPage);
       }
     },
 
     // 下一页全屏
-    nextFullscreenPage() {
-      console.log('下一页按钮被点击，当前页:', this.currentFullscreenPage)
+    nextFullscreenPage: function() {
+      console.log('下一页按钮被点击，当前页:', this.currentFullscreenPage);
       if (this.currentFullscreenPage < this.totalFullscreenPages - 1) {
         this.currentFullscreenPage++;
-        console.log('切换到页面:', this.currentFullscreenPage)
+        console.log('切换到页面:', this.currentFullscreenPage);
       }
     },
 
     // 替换图片
-    replaceImage() {
-      const input = document.createElement('input')
-      input.type = 'file'
-      input.accept = 'image/*'
-      input.onchange = (event) => {
-        const file = event.target.files[0]
+    replaceImage: function() {
+      var input = document.createElement('input');
+      input.type = 'file';
+      input.accept = 'image/*';
+      var self = this;
+      input.onchange = function(event) {
+        var file = event.target.files[0];
         if (file && file.type.startsWith('image/')) {
-          const reader = new FileReader()
-          reader.onload = (e) => {
-            if (this.selectedAlgorithm.images) {
-              this.selectedAlgorithm.images[this.currentFullscreenPage - 1].src = e.target.result
-              this.saveAlgorithm()
+          var reader = new FileReader();
+          reader.onload = function(e) {
+            if (self.selectedAlgorithm.images) {
+              self.selectedAlgorithm.images[self.currentFullscreenPage - 1].src = e.target.result;
+              self.saveAlgorithm();
             }
-          }
-          reader.readAsDataURL(file)
+          };
+          reader.readAsDataURL(file);
         }
-        input.remove() // 移除input元素
-      }
-      input.click()
+        input.remove(); // 移除input元素
+      };
+      input.click();
     },
 
     // 处理键盘事件
-    handleKeydown(event) {
+    handleKeydown: function(event) {
       if (this.showFullscreen) {
         if (event.key === 'Escape') {
-          this.closeFullscreen()
+          this.closeFullscreen();
         } else if (event.key === 'ArrowLeft') {
-          this.prevFullscreenPage()
+          this.prevFullscreenPage();
         } else if (event.key === 'ArrowRight') {
-          this.nextFullscreenPage()
+          this.nextFullscreenPage();
         }
       }
     }

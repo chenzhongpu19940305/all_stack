@@ -286,8 +286,8 @@ export default {
         // 构建请求数据
         const requestData = {
           index: this.queryConfig.indexName,
-          filters: this.queryConfig.filters.filter(f => f.field && f.value),
-          aggregations: this.queryConfig.aggregations.filter(a => a.name && a.field)
+                  filters: this.queryConfig.filters.filter(function(f) { return f.field && f.value; }),
+        aggregations: this.queryConfig.aggregations.filter(function(a) { return a.name && a.field; })
         }
 
         console.log('发送请求数据:', requestData)
@@ -321,7 +321,7 @@ export default {
       })
       
       if (!response.ok) {
-        throw new Error(`HTTP error! status: ${response.status}`)
+        throw new Error('HTTP error! status: ' + response.status)
       }
       
       return await response.json()
@@ -329,7 +329,7 @@ export default {
       // 模拟数据部分已注释掉
       /*
       // 模拟网络延迟
-      await new Promise(resolve => setTimeout(resolve, 1000))
+              await new Promise(function(resolve) { setTimeout(resolve, 1000); })
       
       // 返回模拟数据
       return {
@@ -417,9 +417,9 @@ export default {
       // 处理后端返回的数据
       this.queryResult = {
         data: response,
-        total: response.hits?.total?.value || 0,
+        total: (response.hits && response.hits.total && response.hits.total.value) || 0,
         took: response.took || 0,
-        hits: response.hits?.hits || []
+        hits: (response.hits && response.hits.hits) || []
       }
       
       // 更新表格字段

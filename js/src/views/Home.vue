@@ -1,22 +1,27 @@
 <template>
   <div class="home">
-    <h1 class="title">欢迎来到Vue应用</h1>
-    <p class="subtitle">这是一个使用Vue 3和JavaScript构建的简单应用</p>
+    <div class="hero">
+      <h1 class="title">欢迎使用</h1>
+      <p class="subtitle">现代化Web应用开发平台</p>
+    </div>
     
-    <div class="features">
-      <div class="feature-card" v-for="feature in features" :key="feature.id">
-        <h3>{{ feature.title }}</h3>
-        <p>{{ feature.description }}</p>
+    <div class="quick-actions">
+      <div class="action-card" v-for="action in actions">
+        <div class="action-icon">{{ action.icon }}</div>
+        <h3>{{ action.title }}</h3>
+        <p>{{ action.desc }}</p>
+        <router-link :to="action.link" class="action-btn">开始使用</router-link>
       </div>
     </div>
     
-    <div class="counter-section">
-      <h2>计数器示例</h2>
-      <div class="counter">
-        <button @click="decrement" class="btn">-</button>
-        <span class="count">{{ count }}</span>
-        <button @click="increment" class="btn">+</button>
+    <div class="demo-section">
+      <h2>快速体验</h2>
+      <div class="counter-demo">
+        <button @click="decrement" class="demo-btn">-</button>
+        <span class="demo-count">{{ count }}</span>
+        <button @click="increment" class="demo-btn">+</button>
       </div>
+      <p class="demo-tip">点击按钮体验响应式数据绑定</p>
     </div>
   </div>
 </template>
@@ -24,34 +29,37 @@
 <script>
 export default {
   name: 'Home',
-  data() {
+  data: function() {
     return {
       count: 0,
-      features: [
+      actions: [
         {
-          id: 1,
-          title: 'Vue 3',
-          description: '使用最新的Vue 3框架，享受更好的性能和开发体验'
+          icon: '📊',
+          title: '算法学习',
+          desc: '可视化算法学习平台',
+          link: '/algorithms'
         },
         {
-          id: 2,
-          title: 'JavaScript',
-          description: '纯JavaScript开发，无需TypeScript，简单易学'
+          icon: '⚙️',
+          title: '特性配置',
+          desc: '系统特性管理工具',
+          link: '/feature-config'
         },
         {
-          id: 3,
-          title: 'Vue Router',
-          description: '单页应用路由管理，流畅的页面切换体验'
+          icon: '🔍',
+          title: 'ES查询',
+          desc: 'Elasticsearch查询工具',
+          link: '/kibana-query'
         }
       ]
     }
   },
   methods: {
-    increment() {
-      this.count++
+    increment: function() {
+      this.count = this.count + 1;
     },
-    decrement() {
-      this.count--
+    decrement: function() {
+      this.count = this.count - 1;
     }
   }
 }
@@ -59,85 +67,153 @@ export default {
 
 <style scoped>
 .home {
+  max-width: 1200px;
+  margin: 0 auto;
+  padding: 2rem;
+}
+
+.hero {
   text-align: center;
+  margin-bottom: 3rem;
+  padding: 3rem 0;
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  color: white;
+  border-radius: 12px;
 }
 
 .title {
-  font-size: 2.5rem;
-  color: #2c3e50;
+  font-size: 3rem;
   margin-bottom: 1rem;
+  font-weight: 700;
 }
 
 .subtitle {
   font-size: 1.2rem;
-  color: #7f8c8d;
-  margin-bottom: 3rem;
+  opacity: 0.9;
 }
 
-.features {
+.quick-actions {
   display: grid;
   grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
   gap: 2rem;
   margin-bottom: 3rem;
 }
 
-.feature-card {
+.action-card {
   background: white;
   padding: 2rem;
-  border-radius: 8px;
-  box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+  border-radius: 12px;
+  box-shadow: 0 4px 20px rgba(0,0,0,0.1);
+  text-align: center;
   transition: transform 0.3s ease;
+  border: 1px solid #f0f0f0;
 }
 
-.feature-card:hover {
+.action-card:hover {
   transform: translateY(-5px);
 }
 
-.feature-card h3 {
-  color: #42b883;
+.action-icon {
+  font-size: 3rem;
   margin-bottom: 1rem;
 }
 
-.counter-section {
+.action-card h3 {
+  color: #2c3e50;
+  margin-bottom: 1rem;
+  font-size: 1.5rem;
+}
+
+.action-card p {
+  color: #666;
+  margin-bottom: 1.5rem;
+  line-height: 1.6;
+}
+
+.action-btn {
+  display: inline-block;
+  background: #42b883;
+  color: white;
+  padding: 0.75rem 1.5rem;
+  border-radius: 6px;
+  text-decoration: none;
+  font-weight: 500;
+  transition: background-color 0.3s ease;
+}
+
+.action-btn:hover {
+  background: #3aa876;
+}
+
+.demo-section {
   background: white;
   padding: 2rem;
-  border-radius: 8px;
-  box-shadow: 0 2px 10px rgba(0,0,0,0.1);
-  max-width: 400px;
+  border-radius: 12px;
+  box-shadow: 0 4px 20px rgba(0,0,0,0.1);
+  text-align: center;
+  max-width: 500px;
   margin: 0 auto;
 }
 
-.counter-section h2 {
-  margin-bottom: 1rem;
+.demo-section h2 {
   color: #2c3e50;
+  margin-bottom: 1.5rem;
+  font-size: 1.8rem;
 }
 
-.counter {
+.counter-demo {
   display: flex;
   align-items: center;
   justify-content: center;
   gap: 1rem;
+  margin-bottom: 1rem;
 }
 
-.btn {
+.demo-btn {
   background: #42b883;
   color: white;
   border: none;
-  padding: 0.5rem 1rem;
-  border-radius: 4px;
+  padding: 0.75rem 1rem;
+  border-radius: 6px;
   cursor: pointer;
   font-size: 1.2rem;
   transition: background-color 0.3s ease;
+  min-width: 50px;
 }
 
-.btn:hover {
+.demo-btn:hover {
   background: #3aa876;
 }
 
-.count {
-  font-size: 2rem;
+.demo-count {
+  font-size: 2.5rem;
   font-weight: bold;
   color: #2c3e50;
-  min-width: 3rem;
+  min-width: 4rem;
+  display: inline-block;
+}
+
+.demo-tip {
+  color: #666;
+  font-size: 0.9rem;
+  margin-top: 1rem;
+}
+
+@media (max-width: 768px) {
+  .home {
+    padding: 1rem;
+  }
+  
+  .title {
+    font-size: 2rem;
+  }
+  
+  .quick-actions {
+    grid-template-columns: 1fr;
+  }
+  
+  .action-card {
+    padding: 1.5rem;
+  }
 }
 </style> 
