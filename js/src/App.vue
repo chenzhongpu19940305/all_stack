@@ -27,6 +27,10 @@
           <span class="nav-icon">⚙️</span>
           特性配置
         </router-link>
+        <router-link to="/feature-module" class="nav-link" active-class="active">
+          <span class="nav-icon">📦</span>
+          特性模块
+        </router-link>
         <router-link to="/kibana-query" class="nav-link" active-class="active">
           <span class="nav-icon">🔍</span>
           ES查询

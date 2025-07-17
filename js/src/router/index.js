@@ -4,6 +4,7 @@ import About from '../views/About.vue'
 import Contact from '../views/Contact.vue'
 import KibanaQuery from '../views/KibanaQuery.vue'
 import FeatureConfig from '../views/FeatureConfig.vue'
+import FeatureModule from '../views/FeatureModule.vue'
 import Algorithms from '../views/Algorithms.vue'
 import Bilibili from '../views/Bilibili.vue'
 
@@ -32,6 +33,11 @@ const routes = [
     path: '/feature-config',
     name: 'FeatureConfig',
     component: FeatureConfig
+  },
+  {
+    path: '/feature-module',
+    name: 'FeatureModule',
+    component: FeatureModule
   },
   {
     path: '/algorithms',

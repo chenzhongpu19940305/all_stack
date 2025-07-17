@@ -23,6 +23,8 @@
       </div>
     </div>
 
+
+
     <!-- 分类标签 -->
     <div class="category-tabs">
       <button 
@@ -51,7 +53,18 @@
         </div>
         
         <div class="videos-grid">
+          <div v-if="loading" class="loading-container">
+            <div class="loading-spinner"></div>
+            <p>加载中...</p>
+          </div>
           <div 
+            v-else-if="filteredVideos.length === 0"
+            class="no-videos"
+          >
+            <p>暂无视频</p>
+          </div>
+          <div 
+            v-else
             v-for="video in filteredVideos" 
             :key="video.id"
             @click="playVideo(video)"
@@ -173,6 +186,7 @@
 
 <script>
 import { ref, reactive, computed, onMounted } from 'vue'
+import bilibiliAPI from '../api/bilibili.js'
 
 export default {
   name: 'Bilibili',
@@ -183,102 +197,23 @@ export default {
     const showVideoModal = ref(false)
     const showUploadModal = ref(false)
     const currentVideo = ref({})
+    const loading = ref(false)
     
     // 分类数据
     const categories = ref([
       { id: 'all', name: '全部' },
-      { id: 'game', name: '游戏' },
-      { id: 'music', name: '音乐' },
-      { id: 'animation', name: '动画' },
-      { id: 'knowledge', name: '知识' },
-      { id: 'life', name: '生活' },
-      { id: 'tech', name: '科技' },
-      { id: 'food', name: '美食' }
+      { id: 'business', name: '业务' },
+      { id: 'frontend', name: '前端' },
+      { id: 'backend', name: '后端' },
+      { id: 'test', name: '测试' },
+      { id: 'ops', name: '运维' },
+      { id: 'requirement', name: '需求' }
     ])
     
     const selectedCategory = ref(categories.value[0])
     
-    // 视频数据
-    const videos = ref([
-      {
-        id: 1,
-        title: 'Vue.js 3.0 完整教程',
-        author: '前端大师',
-        views: 125000,
-        likes: 3200,
-        duration: '15:30',
-        uploadTime: '2024-01-15',
-        category: 'tech',
-        thumbnail: 'https://via.placeholder.com/300x200/42b883/ffffff?text=Vue.js',
-        description: '从零开始学习Vue.js 3.0，包含响应式原理、组合式API等核心概念。',
-        isLiked: false
-      },
-      {
-        id: 2,
-        title: 'Spring Boot 实战开发',
-        author: 'Java工程师',
-        views: 89000,
-        likes: 2100,
-        duration: '22:15',
-        uploadTime: '2024-01-14',
-        category: 'tech',
-        thumbnail: 'https://via.placeholder.com/300x200/ff6b6b/ffffff?text=Spring',
-        description: '使用Spring Boot快速构建Web应用，包含数据库操作、REST API等。',
-        isLiked: true
-      },
-      {
-        id: 3,
-        title: '算法可视化演示',
-        author: '算法达人',
-        views: 156000,
-        likes: 4500,
-        duration: '18:45',
-        uploadTime: '2024-01-13',
-        category: 'knowledge',
-        thumbnail: 'https://via.placeholder.com/300x200/4ecdc4/ffffff?text=算法',
-        description: '通过动画演示各种经典算法的工作原理，让算法学习变得简单有趣。',
-        isLiked: false
-      },
-      {
-        id: 4,
-        title: '美食制作教程',
-        author: '美食博主',
-        views: 234000,
-        likes: 6700,
-        duration: '12:30',
-        uploadTime: '2024-01-12',
-        category: 'food',
-        thumbnail: 'https://via.placeholder.com/300x200/ffa726/ffffff?text=美食',
-        description: '教你制作各种美味佳肴，从家常菜到高级料理，应有尽有。',
-        isLiked: false
-      },
-      {
-        id: 5,
-        title: '游戏实况解说',
-        author: '游戏主播',
-        views: 345000,
-        likes: 8900,
-        duration: '25:20',
-        uploadTime: '2024-01-11',
-        category: 'game',
-        thumbnail: 'https://via.placeholder.com/300x200/9c27b0/ffffff?text=游戏',
-        description: '最新游戏实况，精彩操作和搞笑解说，让你笑到停不下来。',
-        isLiked: true
-      },
-      {
-        id: 6,
-        title: '音乐翻唱合集',
-        author: '音乐人',
-        views: 178000,
-        likes: 5200,
-        duration: '20:15',
-        uploadTime: '2024-01-10',
-        category: 'music',
-        thumbnail: 'https://via.placeholder.com/300x200/ff5722/ffffff?text=音乐',
-        description: '经典歌曲翻唱，独特的嗓音和编曲，带来不一样的音乐体验。',
-        isLiked: false
-      }
-    ])
+        // 视频数据
+    const videos = ref([])
     
     // 推荐视频
     const recommendedVideos = computed(() => {
@@ -326,22 +261,228 @@ export default {
       file: null
     })
     
-    // 方法
-    const searchVideos = () => {
-      // 搜索逻辑已在computed中实现
+    // 获取所有视频
+    const loadVideos = async () => {
+      loading.value = true
+      try {
+        // 使用热门视频 API
+        const response = await bilibiliAPI.popular.getPopularVideos(1, 20)
+        if (response && response.data && response.data.list) {
+          videos.value = response.data.list.map(video => ({
+            id: video.bvid,
+            title: video.title,
+            author: video.owner.name,
+            views: video.stat.view,
+            likes: video.stat.like,
+            duration: bilibiliAPI.utils.formatDuration(video.duration),
+            uploadTime: new Date(video.pubdate * 1000).toLocaleDateString(),
+            category: 'tech',
+            thumbnail: video.pic,
+            description: video.desc || '暂无描述',
+            isLiked: false
+          }))
+        } else {
+          // 如果API返回格式不对，使用模拟数据
+          loadMockVideos()
+        }
+      } catch (error) {
+        console.error('获取视频列表失败:', error)
+        // 如果API不可用，使用模拟数据
+        loadMockVideos()
+      } finally {
+        loading.value = false
+      }
     }
     
-    const selectCategory = (category) => {
+    // 加载模拟数据
+    const loadMockVideos = () => {
+      videos.value = [
+        {
+          id: 1,
+          title: 'Vue.js 3.0 完整教程',
+          author: '前端大师',
+          views: 125000,
+          likes: 3200,
+          duration: '15:30',
+          uploadTime: '2024-01-15',
+          category: 'frontend',
+          thumbnail: 'https://via.placeholder.com/300x200/42b883/ffffff?text=Vue.js',
+          description: '从零开始学习Vue.js 3.0，包含响应式原理、组合式API等核心概念。',
+          isLiked: false
+        },
+        {
+          id: 2,
+          title: 'Spring Boot 实战开发',
+          author: 'Java工程师',
+          views: 89000,
+          likes: 2100,
+          duration: '22:15',
+          uploadTime: '2024-01-14',
+          category: 'backend',
+          thumbnail: 'https://via.placeholder.com/300x200/ff6b6b/ffffff?text=Spring',
+          description: '使用Spring Boot快速构建Web应用，包含数据库操作、REST API等。',
+          isLiked: true
+        },
+        {
+          id: 3,
+          title: '业务需求分析实战',
+          author: '产品经理',
+          views: 156000,
+          likes: 4500,
+          duration: '18:45',
+          uploadTime: '2024-01-13',
+          category: 'business',
+          thumbnail: 'https://via.placeholder.com/300x200/4ecdc4/ffffff?text=业务',
+          description: '深入分析业务需求，掌握需求分析方法论，提升产品设计能力。',
+          isLiked: false
+        },
+        {
+          id: 4,
+          title: '自动化测试实践',
+          author: '测试工程师',
+          views: 234000,
+          likes: 6700,
+          duration: '12:30',
+          uploadTime: '2024-01-12',
+          category: 'test',
+          thumbnail: 'https://via.placeholder.com/300x200/ffa726/ffffff?text=测试',
+          description: '从零开始学习自动化测试，包含单元测试、集成测试、端到端测试等。',
+          isLiked: false
+        },
+        {
+          id: 5,
+          title: 'DevOps 运维实践',
+          author: '运维工程师',
+          views: 345000,
+          likes: 8900,
+          duration: '25:20',
+          uploadTime: '2024-01-11',
+          category: 'ops',
+          thumbnail: 'https://via.placeholder.com/300x200/9c27b0/ffffff?text=运维',
+          description: '学习DevOps最佳实践，包含CI/CD、容器化、监控等运维技能。',
+          isLiked: true
+        },
+        {
+          id: 6,
+          title: '需求管理方法论',
+          author: '需求分析师',
+          views: 178000,
+          likes: 5200,
+          duration: '20:15',
+          uploadTime: '2024-01-10',
+          category: 'requirement',
+          thumbnail: 'https://via.placeholder.com/300x200/ff5722/ffffff?text=需求',
+          description: '系统学习需求管理，包含需求收集、分析、验证等完整流程。',
+          isLiked: false
+        }
+      ]
+    }
+    
+    // 搜索视频
+    const searchVideos = async () => {
+      if (!searchKeyword.value.trim()) {
+        await loadVideos()
+        return
+      }
+      
+      loading.value = true
+      try {
+        const response = await bilibiliAPI.search.searchVideos(searchKeyword.value, 1, 20)
+        if (response && response.data && response.data.result) {
+          videos.value = response.data.result.map(video => ({
+            id: video.bvid,
+            title: video.title,
+            author: video.author,
+            views: video.play,
+            likes: video.favorites,
+            duration: bilibiliAPI.utils.formatDuration(video.duration),
+            uploadTime: new Date(video.pubdate * 1000).toLocaleDateString(),
+            category: 'tech',
+            thumbnail: video.pic,
+            description: video.description || '暂无描述',
+            isLiked: false
+          }))
+        } else {
+          // 如果API返回格式不对，使用本地搜索
+          const filtered = videos.value.filter(video => 
+            video.title.toLowerCase().includes(searchKeyword.value.toLowerCase()) ||
+            video.author.toLowerCase().includes(searchKeyword.value.toLowerCase())
+          )
+          videos.value = filtered
+        }
+      } catch (error) {
+        console.error('搜索视频失败:', error)
+        // 如果API不可用，使用本地搜索
+        const filtered = videos.value.filter(video => 
+          video.title.toLowerCase().includes(searchKeyword.value.toLowerCase()) ||
+          video.author.toLowerCase().includes(searchKeyword.value.toLowerCase())
+        )
+        videos.value = filtered
+      } finally {
+        loading.value = false
+      }
+    }
+    
+    // 根据分类获取视频
+    const selectCategory = async (category) => {
+      console.log('点击分类:', category.name, category.id)
       selectedCategory.value = category
+      
+      if (category.id === 'all') {
+        console.log('加载全部视频')
+        await loadVideos()
+        return
+      }
+      
+      console.log('加载分类视频:', category.id)
+      loading.value = true
+      try {
+        // 使用分区 API 获取分类视频
+        const response = await bilibiliAPI.category.getCategoryVideos(category.id, 1, 20)
+        if (response && response.data && response.data.list) {
+          videos.value = response.data.list.map(video => ({
+            id: video.bvid,
+            title: video.title,
+            author: video.owner.name,
+            views: video.stat.view,
+            likes: video.stat.like,
+            duration: bilibiliAPI.utils.formatDuration(video.duration),
+            uploadTime: new Date(video.pubdate * 1000).toLocaleDateString(),
+            category: category.id,
+            thumbnail: video.pic,
+            description: video.desc || '暂无描述',
+            isLiked: false
+          }))
+        } else {
+          // 如果API返回格式不对，使用模拟数据
+          loadMockVideos()
+        }
+      } catch (error) {
+        console.error('获取分类视频失败:', error)
+        // 如果API不可用，使用模拟数据
+        loadMockVideos()
+      } finally {
+        loading.value = false
+      }
     }
     
     const sortVideos = () => {
       // 排序逻辑已在computed中实现
     }
     
-    const playVideo = (video) => {
+    const playVideo = async (video) => {
       currentVideo.value = video
       showVideoModal.value = true
+      
+      // 增加播放量（模拟）
+      try {
+        // 由于 Bilibili API 不支持直接增加播放量，这里只是模拟
+        console.log('播放视频:', video.title)
+        // 更新本地数据
+        video.views++
+      } catch (error) {
+        console.error('播放视频失败:', error)
+      }
     }
     
     const closeVideoModal = () => {
@@ -349,12 +490,29 @@ export default {
       currentVideo.value = {}
     }
     
-    const toggleLike = () => {
+    const toggleLike = async () => {
+      const wasLiked = currentVideo.value.isLiked
       currentVideo.value.isLiked = !currentVideo.value.isLiked
-      if (currentVideo.value.isLiked) {
-        currentVideo.value.likes++
-      } else {
-        currentVideo.value.likes--
+      
+      try {
+        if (currentVideo.value.isLiked) {
+          // 增加点赞（模拟）
+          console.log('点赞视频:', currentVideo.value.title)
+          currentVideo.value.likes++
+        } else {
+          // 取消点赞（模拟）
+          console.log('取消点赞视频:', currentVideo.value.title)
+          currentVideo.value.likes--
+        }
+      } catch (error) {
+        console.error('点赞操作失败:', error)
+        // 如果操作失败，恢复原状态
+        currentVideo.value.isLiked = wasLiked
+        if (wasLiked) {
+          currentVideo.value.likes++
+        } else {
+          currentVideo.value.likes--
+        }
       }
     }
     
@@ -371,30 +529,44 @@ export default {
       uploadForm.file = event.target.files[0]
     }
     
-    const uploadVideo = () => {
+    const uploadVideo = async () => {
       if (!uploadForm.title || !uploadForm.category || !uploadForm.file) {
         alert('请填写完整信息并选择视频文件')
         return
       }
       
-      // 模拟上传
-      const newVideo = {
-        id: videos.value.length + 1,
-        title: uploadForm.title,
-        author: '当前用户',
-        views: 0,
-        likes: 0,
-        duration: '00:00',
-        uploadTime: new Date().toISOString().split('T')[0],
-        category: uploadForm.category,
-        thumbnail: 'https://via.placeholder.com/300x200/cccccc/ffffff?text=新视频',
-        description: uploadForm.description,
-        isLiked: false
+      loading.value = true
+      try {
+        // 由于 Bilibili API 不支持直接上传，这里使用模拟上传
+        console.log('上传视频:', uploadForm.title)
+        
+        // 模拟上传延迟
+        await new Promise(resolve => setTimeout(resolve, 1000))
+        
+        // 创建模拟视频对象
+        const newVideo = {
+          id: videos.value.length + 1,
+          title: uploadForm.title,
+          author: '当前用户',
+          views: 0,
+          likes: 0,
+          duration: '00:00',
+          uploadTime: new Date().toISOString().split('T')[0],
+          category: uploadForm.category,
+          thumbnail: 'https://via.placeholder.com/300x200/cccccc/ffffff?text=新视频',
+          description: uploadForm.description,
+          isLiked: false
+        }
+        
+        videos.value.unshift(newVideo)
+        closeUploadModal()
+        alert('视频上传成功！(模拟模式)')
+      } catch (error) {
+        console.error('上传视频失败:', error)
+        alert('上传失败: ' + error.message)
+      } finally {
+        loading.value = false
       }
-      
-      videos.value.unshift(newVideo)
-      closeUploadModal()
-      alert('视频上传成功！')
     }
     
     const formatViews = (views) => {
@@ -417,6 +589,13 @@ export default {
       if (days < 365) return `${Math.floor(days / 30)}个月前`
       return `${Math.floor(days / 365)}年前`
     }
+
+
+    
+    // 页面初始化
+    onMounted(() => {
+      loadVideos()
+    })
     
     return {
       searchKeyword,
@@ -424,6 +603,7 @@ export default {
       showVideoModal,
       showUploadModal,
       currentVideo,
+      loading,
       categories,
       selectedCategory,
       videos,
@@ -942,4 +1122,41 @@ export default {
     margin: 1rem;
   }
 }
+
+/* 加载状态样式 */
+.loading-container {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 2rem;
+  grid-column: 1 / -1;
+}
+
+.loading-spinner {
+  width: 40px;
+  height: 40px;
+  border: 4px solid #f3f3f3;
+  border-top: 4px solid #00a1d6;
+  border-radius: 50%;
+  animation: spin 1s linear infinite;
+  margin-bottom: 1rem;
+}
+
+@keyframes spin {
+  0% { transform: rotate(0deg); }
+  100% { transform: rotate(360deg); }
+}
+
+.no-videos {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 2rem;
+  grid-column: 1 / -1;
+  color: #666;
+  font-size: 1.1rem;
+}
+
+
 </style> 
