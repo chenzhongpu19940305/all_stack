@@ -1,118 +1,46 @@
 <template>
   <div class="gallery-container">
-    <!-- 顶部导航栏 -->
     <div class="gallery-header">
       <div class="header-left">
         <div class="logo">
           <span class="logo-icon">🖼️</span>
-          <span class="logo-text">图片画廊</span>
+          <span class="logo-text">AI问答记录</span>
         </div>
-        <div class="search-bar">
-          <input
-              v-model="searchKeyword"
-              @keyup.enter="searchImages"
-              placeholder="搜索图片..."
-              class="search-input"
+        <div class="search-container">
+          <input 
+            v-model="searchQuery" 
+            @input="handleSearch"
+            placeholder="搜索AI问答记录..." 
+            class="search-input"
           >
-          <button @click="searchImages" class="search-btn">🔍</button>
+          <span class="search-icon">🔍</span>
         </div>
       </div>
       <div class="header-right">
-        <button @click="showUploadModal = true" class="upload-btn">上传图片</button>
-        <div class="user-avatar">👤</div>
+        <button @click="showUploadModal = true" class="upload-btn">新增记录</button>
       </div>
     </div>
 
-    <!-- 分类标签 -->
-    <div class="category-tabs">
-      <button
-          v-for="category in categories"
-          :key="category.id"
-          @click="selectCategory(category)"
-          :class="['category-tab', { active: selectedCategory.id === category.id }]"
-      >
-        {{ category.name }}
-      </button>
-    </div>
-
-    <!-- 主要内容区域 -->
     <div class="main-content">
-      <!-- 左侧图片列表 -->
       <div class="image-list">
-        <div class="list-header">
-          <h2>{{ selectedCategory.name }}</h2>
-          <div class="sort-options">
-            <select v-model="sortBy" @change="sortImages" class="sort-select">
-              <option value="latest">最新</option>
-              <option value="popular">最热</option>
-              <option value="views">浏览量</option>
-            </select>
-          </div>
-        </div>
-
         <div class="images-grid">
           <div v-if="loading" class="loading-container">
             <div class="loading-spinner"></div>
             <p>加载中...</p>
           </div>
-          <div
-              v-else-if="filteredImages.length === 0"
-              class="no-images"
-          >
-            <p>暂无图片</p>
+          <div v-else-if="filteredImages.length === 0" class="no-images">
+            <p>暂无AI问答记录</p>
           </div>
-          <div
-              v-else
-              v-for="image in filteredImages"
-              :key="image.id"
-              @click="viewImage(image)"
-              class="image-card"
-          >
-            <div class="image-container">
-              <img :src="image.url" :alt="image.title" class="image-preview">
-              <div class="image-overlay">
-                <div class="view-icon">👁️</div>
-              </div>
-            </div>
-            <div class="image-info">
-              <h3 class="image-title">{{ image.title }}</h3>
-              <div class="image-meta">
-                <span class="author">{{ image.author }}</span>
-                <span class="views">{{ formatViews(image.views) }}浏览</span>
-                <span class="time">{{ formatTime(image.uploadTime) }}</span>
-              </div>
-              <div class="image-dimensions">
-                <span>{{ image.width }} × {{ image.height }}</span>
-              </div>
-            </div>
-          </div>
-        </div>
-      </div>
-
-      <!-- 右侧推荐区域 -->
-      <div class="sidebar">
-        <div class="recommended-section">
-          <h3>推荐图片</h3>
-          <div class="recommended-images">
-            <div
-                v-for="image in recommendedImages"
-                :key="image.id"
-                @click="viewImage(image)"
-                class="recommended-image"
-            >
-              <img :src="image.url" :alt="image.title" class="rec-preview">
-              <div class="rec-info">
-                <h4>{{ image.title }}</h4>
-                <p>{{ image.author }}</p>
-                <span>{{ formatViews(image.views) }}浏览</span>
-              </div>
+          <div v-else v-for="item in filteredImages" :key="item.id" @click="viewImage(item)" class="image-card">
+            <div class="image-title">{{ item.title }}</div>
+            <div class="image-simple-list">
+              <img v-for="(img, idx) in item.images" :key="idx" :src="img.url" :alt="img.name" class="simple-image">
             </div>
           </div>
         </div>
       </div>
     </div>
 
-    <!-- 图片查看模态框 -->
     <div v-if="showImageModal" class="image-modal" @click="closeImageModal">
       <div class="image-modal-content" @click.stop>
         <div class="modal-header">
@@ -120,67 +48,48 @@
           <button @click="closeImageModal" class="close-btn">✕</button>
         </div>
         <div class="image-viewer">
-          <img :src="currentImage.url" :alt="currentImage.title" class="full-image">
-        </div>
-        <div class="image-details">
-          <div class="image-stats">
-            <span>{{ formatViews(currentImage.views) }}浏览</span>
-            <span>{{ formatTime(currentImage.uploadTime) }}</span>
-            <button class="like-btn" @click="toggleLike">
-              {{ currentImage.isLiked ? '❤️' : '🤍' }} {{ currentImage.likes }}
-            </button>
-            <button class="share-btn">📤 分享</button>
-            <button class="download-btn">⬇️ 下载</button>
-          </div>
-          <div class="image-description">
-            <h4>图片描述</h4>
-            <p>{{ currentImage.description }}</p>
-          </div>
-          <div class="image-info-details">
-            <p><strong>尺寸：</strong>{{ currentImage.width }} × {{ currentImage.height }}</p>
-            <p><strong>文件大小：</strong>{{ formatFileSize(currentImage.fileSize) }}</p>
-            <p><strong>格式：</strong>{{ currentImage.format }}</p>
+          <div class="image-simple-list-modal">
+            <img v-for="(img, idx) in currentImage.images" :key="idx" :src="img.url" :alt="img.name" class="simple-image-modal">
           </div>
         </div>
       </div>
     </div>
 
-    <!-- 上传图片模态框 -->
     <div v-if="showUploadModal" class="upload-modal" @click="closeUploadModal">
       <div class="upload-modal-content" @click.stop>
         <div class="modal-header">
-          <h3>上传图片</h3>
+          <h3>新增AI问答记录</h3>
           <button @click="closeUploadModal" class="close-btn">✕</button>
         </div>
         <div class="upload-form">
           <div class="form-group">
-            <label>图片标题：</label>
-            <input v-model="uploadForm.title" placeholder="请输入图片标题" class="form-input">
+            <label>标题：</label>
+            <input v-model="uploadForm.title" placeholder="请输入标题" class="form-input">
           </div>
           <div class="form-group">
-            <label>图片描述：</label>
-            <textarea v-model="uploadForm.description" placeholder="请输入图片描述" class="form-textarea"></textarea>
-          </div>
-          <div class="form-group">
-            <label>分类：</label>
-            <select v-model="uploadForm.category" class="form-select">
-              <option value="">请选择分类</option>
-              <option v-for="category in categories" :key="category.id" :value="category.id">
-                {{ category.name }}
-              </option>
-            </select>
-          </div>
-          <div class="form-group">
-            <label>上传图片：</label>
-            <div class="file-upload">
-              <input type="file" @change="handleFileUpload" accept="image/*" class="file-input">
-              <div class="upload-placeholder">
-                <span>📁 选择图片文件</span>
+            <label>图片：</label>
+            <div class="answer-editor" 
+                 @paste="handlePaste" 
+                 @drop="handleDrop" 
+                 @dragover.prevent>
+              <textarea style="display:none"></textarea>
+              <div class="paste-tip">
+                <span>💡 粘贴或拖拽图片到此区域</span>
+              </div>
+              <div v-if="uploadForm.images && uploadForm.images.length > 0" class="answer-images">
+                <div class="image-list">
+                  <div v-for="(image, index) in uploadForm.images" :key="index" class="image-item">
+                    <img :src="image.url" :alt="image.name" class="preview-image">
+                    <div class="image-actions">
+                      <button @click="removeImage(index)" class="remove-btn">删除</button>
+                    </div>
+                  </div>
+                </div>
               </div>
             </div>
           </div>
           <div class="form-actions">
-            <button @click="uploadImage" class="upload-submit-btn">上传图片</button>
+            <button @click="uploadImage" class="upload-submit-btn">新增</button>
             <button @click="closeUploadModal" class="cancel-btn">取消</button>
           </div>
         </div>
@@ -190,335 +99,258 @@
 </template>
 
 <script>
-import { ref, reactive, computed, onMounted } from 'vue'
+import { ref, reactive, onMounted } from 'vue'
 
 export default {
   name: 'Gallery',
   setup() {
-    // 响应式数据
-    const searchKeyword = ref('')
-    const sortBy = ref('latest')
     const showImageModal = ref(false)
     const showUploadModal = ref(false)
     const currentImage = ref({})
     const loading = ref(false)
-
-    // 分类数据
-    const categories = ref([
-      { id: 'all', name: '全部' },
-      { id: 'nature', name: '自然风景' },
-      { id: 'city', name: '城市建筑' },
-      { id: 'portrait', name: '人像摄影' },
-      { id: 'abstract', name: '抽象艺术' },
-      { id: 'food', name: '美食摄影' },
-      { id: 'travel', name: '旅行摄影' }
-    ])
-
-    const selectedCategory = ref(categories.value[0])
-
-    // 图片数据
     const images = ref([])
-
-    // 推荐图片
-    const recommendedImages = computed(() => {
-      return images.value.slice(0, 5)
-    })
-
-    // 过滤后的图片
-    const filteredImages = computed(() => {
-      let filtered = images.value
-
-      // 按分类过滤
-      if (selectedCategory.value.id !== 'all') {
-        filtered = filtered.filter(image => image.category === selectedCategory.value.id)
-      }
-
-      // 按搜索关键词过滤
-      if (searchKeyword.value) {
-        filtered = filtered.filter(image =>
-            image.title.toLowerCase().includes(searchKeyword.value.toLowerCase()) ||
-            image.author.toLowerCase().includes(searchKeyword.value.toLowerCase())
-        )
-      }
-
-      // 排序
-      switch (sortBy.value) {
-        case 'latest':
-          filtered.sort((a, b) => new Date(b.uploadTime) - new Date(a.uploadTime))
-          break
-        case 'popular':
-          filtered.sort((a, b) => b.likes - a.likes)
-          break
-        case 'views':
-          filtered.sort((a, b) => b.views - a.views)
-          break
-      }
-
-      return filtered
-    })
-
-    // 上传表单
+    const searchQuery = ref('')
+    const filteredImages = ref([])
     const uploadForm = reactive({
       title: '',
-      description: '',
-      category: '',
-      file: null
+      images: []
     })
 
-    // 加载模拟图片数据
-    const loadMockImages = () => {
-      images.value = [
-        {
-          id: 1,
-          title: '山间晨雾',
-          author: '自然摄影师',
-          views: 125000,
-          likes: 3200,
-          uploadTime: '2024-01-15',
-          category: 'nature',
-          url: 'https://via.placeholder.com/800x1200/4CAF50/ffffff?text=山间晨雾',
-          description: '清晨的山间雾气缭绕，宛如仙境般的自然美景。',
-          width: 800,
-          height: 1200,
-          fileSize: 2048576,
-          format: 'JPEG',
-          isLiked: false
-        },
-        {
-          id: 2,
-          title: '现代都市夜景',
-          author: '城市摄影师',
-          views: 89000,
-          likes: 2100,
-          uploadTime: '2024-01-14',
-          category: 'city',
-          url: 'https://via.placeholder.com/1200x800/2196F3/ffffff?text=都市夜景',
-          description: '繁华都市的夜晚，霓虹灯闪烁，展现现代城市的魅力。',
-          width: 1200,
-          height: 800,
-          fileSize: 1536000,
-          format: 'JPEG',
-          isLiked: true
-        },
-        {
-          id: 3,
-          title: '人物肖像',
-          author: '人像摄影师',
-          views: 156000,
-          likes: 4500,
-          uploadTime: '2024-01-13',
-          category: 'portrait',
-          url: 'https://via.placeholder.com/1000x1500/FF9800/ffffff?text=人物肖像',
-          description: '专业人像摄影，捕捉人物最真实的情感瞬间。',
-          width: 1000,
-          height: 1500,
-          fileSize: 2560000,
-          format: 'JPEG',
-          isLiked: false
-        },
-        {
-          id: 4,
-          title: '抽象几何',
-          author: '艺术摄影师',
-          views: 234000,
-          likes: 6700,
-          uploadTime: '2024-01-12',
-          category: 'abstract',
-          url: 'https://via.placeholder.com/900x600/9C27B0/ffffff?text=抽象几何',
-          description: '抽象的几何图形组合，展现现代艺术的独特魅力。',
-          width: 900,
-          height: 600,
-          fileSize: 1024000,
-          format: 'PNG',
-          isLiked: false
-        },
-        {
-          id: 5,
-          title: '精致美食',
-          author: '美食摄影师',
-          views: 345000,
-          likes: 8900,
-          uploadTime: '2024-01-11',
-          category: 'food',
-          url: 'https://via.placeholder.com/1200x900/FF5722/ffffff?text=精致美食',
-          description: '精心制作的美食摄影，展现食物的色香味俱全。',
-          width: 1200,
-          height: 900,
-          fileSize: 3072000,
-          format: 'JPEG',
-          isLiked: true
-        },
-        {
-          id: 6,
-          title: '旅行风景',
-          author: '旅行摄影师',
-          views: 178000,
-          likes: 5200,
-          uploadTime: '2024-01-10',
-          category: 'travel',
-          url: 'https://via.placeholder.com/1500x1000/607D8B/ffffff?text=旅行风景',
-          description: '世界各地的美丽风景，记录旅行中的精彩瞬间。',
-          width: 1500,
-          height: 1000,
-          fileSize: 4096000,
-          format: 'JPEG',
-          isLiked: false
-        }
-      ]
+    // API接口配置
+    const API_BASE_URL = '/api/gallery'
+    const API_ENDPOINTS = {
+      // 获取AI问答记录列表
+      GET_RECORDS: `${API_BASE_URL}/records`,
+      // 搜索AI问答记录
+      SEARCH_RECORDS: `${API_BASE_URL}/records/search`,
+      // 新增AI问答记录
+      CREATE_RECORD: `${API_BASE_URL}/records`,
+      // 删除AI问答记录
+      DELETE_RECORD: `${API_BASE_URL}/records/:id`,
+      // 获取单个记录详情
+      GET_RECORD: `${API_BASE_URL}/records/:id`,
+      // 上传图片
+      UPLOAD_IMAGE: `${API_BASE_URL}/upload`
     }
 
-    // 搜索图片
-    const searchImages = () => {
-      if (!searchKeyword.value.trim()) {
-        loadMockImages()
+    // 通用请求方法
+    const apiRequest = async (url, options = {}) => {
+      try {
+        const response = await fetch(url, {
+          headers: {
+            'Content-Type': 'application/json',
+            ...options.headers
+          },
+          ...options
+        })
+        
+        if (!response.ok) {
+          throw new Error(`HTTP error! status: ${response.status}`)
+        }
+        
+        return await response.json()
+      } catch (error) {
+        console.error('API请求失败:', error)
+        throw error
+      }
+    }
+
+    // 获取AI问答记录列表
+    const loadRecords = async (params = {}) => {
+      loading.value = true
+      try {
+        const queryParams = new URLSearchParams(params)
+        const url = `${API_ENDPOINTS.GET_RECORDS}?${queryParams}`
+        const data = await apiRequest(url)
+        images.value = data.records || []
+        filteredImages.value = [...images.value]
+      } catch (error) {
+        console.error('加载记录失败:', error)
+        alert('加载记录失败，请重试')
+      } finally {
+        loading.value = false
+      }
+    }
+
+    // 搜索AI问答记录
+    const searchRecords = async (query) => {
+      if (!query.trim()) {
+        filteredImages.value = [...images.value]
         return
       }
-
-      // 本地搜索
-      const filtered = images.value.filter(image =>
-          image.title.toLowerCase().includes(searchKeyword.value.toLowerCase()) ||
-          image.author.toLowerCase().includes(searchKeyword.value.toLowerCase())
-      )
-      images.value = filtered
+      
+      try {
+        const response = await apiRequest(API_ENDPOINTS.SEARCH_RECORDS, {
+          method: 'POST',
+          body: JSON.stringify({ query })
+        })
+        filteredImages.value = response.records || []
+      } catch (error) {
+        console.error('搜索失败:', error)
+        // 如果搜索失败，使用本地过滤
+        const localQuery = query.toLowerCase()
+        filteredImages.value = images.value.filter(item => 
+          item.title.toLowerCase().includes(localQuery)
+        )
+      }
     }
 
-    // 根据分类获取图片
-    const selectCategory = (category) => {
-      selectedCategory.value = category
-      loadMockImages()
+    // 上传图片到服务器
+    const uploadImageToServer = async (file) => {
+      const formData = new FormData()
+      formData.append('image', file)
+      
+      try {
+        const response = await fetch(API_ENDPOINTS.UPLOAD_IMAGE, {
+          method: 'POST',
+          body: formData
+        })
+        
+        if (!response.ok) {
+          throw new Error(`上传失败: ${response.status}`)
+        }
+        
+        const result = await response.json()
+        return {
+          url: result.url,
+          name: file.name,
+          id: result.id
+        }
+      } catch (error) {
+        console.error('图片上传失败:', error)
+        throw error
+      }
     }
 
-    const sortImages = () => {
-      // 排序逻辑已在computed中实现
+    // 新增AI问答记录
+    const createRecord = async (recordData) => {
+      try {
+        const response = await apiRequest(API_ENDPOINTS.CREATE_RECORD, {
+          method: 'POST',
+          body: JSON.stringify(recordData)
+        })
+        return response
+      } catch (error) {
+        console.error('创建记录失败:', error)
+        throw error
+      }
     }
 
-    const viewImage = (image) => {
-      currentImage.value = image
+    // 删除AI问答记录
+    const deleteRecord = async (recordId) => {
+      try {
+        const url = API_ENDPOINTS.DELETE_RECORD.replace(':id', recordId)
+        await apiRequest(url, { method: 'DELETE' })
+      } catch (error) {
+        console.error('删除记录失败:', error)
+        throw error
+      }
+    }
+
+    const viewImage = (item) => {
+      currentImage.value = item
       showImageModal.value = true
-
-      // 增加浏览量（模拟）
-      image.views++
     }
-
     const closeImageModal = () => {
       showImageModal.value = false
       currentImage.value = {}
     }
-
-    const toggleLike = () => {
-      const wasLiked = currentImage.value.isLiked
-      currentImage.value.isLiked = !currentImage.value.isLiked
-
-      if (currentImage.value.isLiked) {
-        currentImage.value.likes++
-      } else {
-        currentImage.value.likes--
-      }
-    }
-
     const closeUploadModal = () => {
       showUploadModal.value = false
-      // 重置表单
       uploadForm.title = ''
-      uploadForm.description = ''
-      uploadForm.category = ''
-      uploadForm.file = null
+      uploadForm.images = []
     }
-
-    const handleFileUpload = (event) => {
-      uploadForm.file = event.target.files[0]
-    }
-
-    const uploadImage = () => {
-      if (!uploadForm.title || !uploadForm.category || !uploadForm.file) {
-        alert('请填写完整信息并选择图片文件')
+    // 粘贴图片
+    const handlePaste = async (event) => {
+      const items = (event.clipboardData || event.originalEvent.clipboardData).items;
+      for (let i = 0; i < items.length; i++) {
+        if (items[i].kind === 'file') {
+          const file = items[i].getAsFile();
+          if (file && file.type.startsWith('image/')) {
+            try {
+              const uploadedImage = await uploadImageToServer(file);
+              uploadForm.images.push(uploadedImage);
+            } catch (error) {
+              alert('图片上传失败，请重试');
+            }
+          }
+        }
+      }
+    };
+    
+    // 拖拽图片
+    const handleDrop = async (event) => {
+      event.preventDefault();
+      const files = event.dataTransfer.files;
+      for (let i = 0; i < files.length; i++) {
+        const file = files[i];
+        if (file.type.startsWith('image/')) {
+          try {
+            const uploadedImage = await uploadImageToServer(file);
+            uploadForm.images.push(uploadedImage);
+          } catch (error) {
+            alert('图片上传失败，请重试');
+          }
+        }
+      }
+    };
+    
+    // 移除图片
+    const removeImage = (index) => {
+      uploadForm.images.splice(index, 1);
+    };
+    
+    // 搜索处理函数
+    const handleSearch = () => {
+      searchRecords(searchQuery.value);
+    };
+    
+    // 新增AI问答记录
+    const uploadImage = async () => {
+      if (!uploadForm.title || uploadForm.images.length === 0) {
+        alert('请填写标题并添加图片')
         return
       }
-
-      // 模拟上传
-      const newImage = {
-        id: images.value.length + 1,
-        title: uploadForm.title,
-        author: '当前用户',
-        views: 0,
-        likes: 0,
-        uploadTime: new Date().toISOString().split('T')[0],
-        category: uploadForm.category,
-        url: 'https://via.placeholder.com/800x600/cccccc/ffffff?text=新图片',
-        description: uploadForm.description,
-        width: 800,
-        height: 600,
-        fileSize: 1024000,
-        format: 'JPEG',
-        isLiked: false
+      
+      try {
+        const recordData = {
+          title: uploadForm.title,
+          images: uploadForm.images
+        }
+        
+        await createRecord(recordData);
+        await loadRecords(); // 重新加载列表
+        closeUploadModal();
+        alert('AI问答记录新增成功！');
+      } catch (error) {
+        alert('新增记录失败，请重试');
       }
-
-      images.value.unshift(newImage)
-      closeUploadModal()
-      alert('图片上传成功！(模拟模式)')
     }
-
-    const formatViews = (views) => {
-      if (views >= 10000) {
-        return (views / 10000).toFixed(1) + '万'
-      }
-      return views.toString()
-    }
-
-    const formatTime = (time) => {
-      const date = new Date(time)
-      const now = new Date()
-      const diff = now - date
-      const days = Math.floor(diff / (1000 * 60 * 60 * 24))
-
-      if (days === 0) return '今天'
-      if (days === 1) return '昨天'
-      if (days < 7) return `${days}天前`
-      if (days < 30) return `${Math.floor(days / 7)}周前`
-      if (days < 365) return `${Math.floor(days / 30)}个月前`
-      return `${Math.floor(days / 365)}年前`
-    }
-
-    const formatFileSize = (bytes) => {
-      if (bytes >= 1048576) {
-        return (bytes / 1048576).toFixed(1) + ' MB'
-      }
-      if (bytes >= 1024) {
-        return (bytes / 1024).toFixed(1) + ' KB'
-      }
-      return bytes + ' B'
-    }
-
-    // 页面初始化
     onMounted(() => {
-      loadMockImages()
+      loadRecords()
     })
-
     return {
-      searchKeyword,
-      sortBy,
       showImageModal,
       showUploadModal,
       currentImage,
       loading,
-      categories,
-      selectedCategory,
       images,
-      recommendedImages,
+      searchQuery,
       filteredImages,
       uploadForm,
-      searchImages,
-      selectCategory,
-      sortImages,
       viewImage,
       closeImageModal,
-      toggleLike,
       closeUploadModal,
-      handleFileUpload,
+      handlePaste,
+      handleDrop,
+      removeImage,
       uploadImage,
-      formatViews,
-      formatTime,
-      formatFileSize
+      handleSearch,
+      loadRecords,
+      searchRecords,
+      createRecord,
+      deleteRecord,
+      uploadImageToServer
     }
   }
 }
@@ -529,8 +361,6 @@ export default {
   min-height: 100vh;
   background-color: #f4f5f7;
 }
-
-/* 顶部导航栏 */
 .gallery-header {
   background: linear-gradient(135deg, #4CAF50 0%, #2E7D32 100%);
   padding: 1rem 2rem;
@@ -539,13 +369,11 @@ export default {
   align-items: center;
   box-shadow: 0 2px 10px rgba(0,0,0,0.1);
 }
-
 .header-left {
   display: flex;
   align-items: center;
   gap: 2rem;
 }
-
 .logo {
   display: flex;
   align-items: center;
@@ -554,42 +382,328 @@ export default {
   font-weight: bold;
   font-size: 1.5rem;
 }
-
 .logo-icon {
   font-size: 2rem;
 }
-
-.search-bar {
+.search-container {
+  position: relative;
   display: flex;
   align-items: center;
-  background: white;
-  border-radius: 20px;
-  overflow: hidden;
 }
-
 .search-input {
+  background: rgba(255, 255, 255, 0.9);
   border: none;
-  padding: 0.5rem 1rem;
-  width: 300px;
+  padding: 0.5rem 2.5rem 0.5rem 1rem;
+  border-radius: 20px;
+  width: 250px;
+  font-size: 0.9rem;
   outline: none;
+  transition: all 0.3s ease;
 }
-
-.search-btn {
-  background: #4CAF50;
-  border: none;
-  padding: 0.5rem 1rem;
-  color: white;
-  cursor: pointer;
+.search-input:focus {
+  background: white;
+  box-shadow: 0 0 0 2px rgba(255, 255, 255, 0.3);
 }
-
-.header-right {
-  display: flex;
-  align-items: center;
-  gap: 1rem;
+.search-input::placeholder {
+  color: #666;
 }
-
+.search-icon {
+  position: absolute;
+  right: 0.75rem;
+  color: #666;
+  font-size: 0.9rem;
+}
 .upload-btn {
   background: #FF9800;
   color: white;
   border: none;
   padding: 0.5rem 1rem;
+  border-radius: 6px;
+  cursor: pointer;
+  font-weight: 500;
+  transition: background-color 0.3s ease;
+}
+.upload-btn:hover {
+  background: #F57C00;
+}
+.main-content {
+  display: flex;
+  justify-content: center;
+  padding: 2rem;
+  width: 100%;
+}
+.image-list {
+  background: white;
+  border-radius: 12px;
+  box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+  padding: 2rem;
+  width: 100%;
+  max-width: 1400px;
+}
+.images-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+  gap: 1.5rem;
+  max-width: 1200px;
+  margin: 0 auto;
+}
+.image-card {
+  background: #f8f9fa;
+  border-radius: 8px;
+  box-shadow: 0 2px 8px rgba(0,0,0,0.05);
+  padding: 1.5rem;
+  cursor: pointer;
+  transition: box-shadow 0.3s;
+  height: fit-content;
+}
+.image-card:hover {
+  box-shadow: 0 8px 25px rgba(0,0,0,0.12);
+}
+.image-title {
+  font-size: 1.1rem;
+  font-weight: bold;
+  color: #2c3e50;
+  margin-bottom: 1rem;
+  text-align: center;
+}
+.image-simple-list {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(80px, 1fr));
+  gap: 0.5rem;
+}
+.simple-image {
+  width: 100%;
+  height: 80px;
+  object-fit: cover;
+  border-radius: 6px;
+  background: #fff;
+  border: 1px solid #e0e0e0;
+}
+.image-modal {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: rgba(0,0,0,0.8);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 1000;
+}
+.image-modal-content {
+  background: white;
+  border-radius: 12px;
+  max-width: 90vw;
+  max-height: 90vh;
+  overflow: hidden;
+  display: flex;
+  flex-direction: column;
+}
+.modal-header {
+  padding: 1rem 1.5rem;
+  border-bottom: 1px solid #e0e0e0;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+.modal-header h3 {
+  margin: 0;
+  color: #2c3e50;
+}
+.close-btn {
+  background: none;
+  border: none;
+  font-size: 1.5rem;
+  cursor: pointer;
+  color: #666;
+  padding: 0.5rem;
+  border-radius: 4px;
+  transition: background-color 0.3s ease;
+}
+.close-btn:hover {
+  background: #f0f0f0;
+}
+.image-viewer {
+  flex: 1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 1rem;
+  overflow: auto;
+}
+.image-simple-list-modal {
+  display: flex;
+  gap: 1.5rem;
+  flex-wrap: wrap;
+  justify-content: center;
+}
+.simple-image-modal {
+  width: 320px;
+  height: 220px;
+  object-fit: contain;
+  border-radius: 8px;
+  background: #fff;
+  border: 1px solid #e0e0e0;
+}
+.upload-modal {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: rgba(0,0,0,0.8);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 1000;
+}
+.upload-modal-content {
+  background: white;
+  border-radius: 12px;
+  width: 90%;
+  max-width: 500px;
+  max-height: 90vh;
+  overflow-y: auto;
+}
+.upload-form {
+  padding: 1.5rem;
+}
+.form-group {
+  margin-bottom: 1.5rem;
+}
+.form-group label {
+  display: block;
+  margin-bottom: 0.5rem;
+  color: #2c3e50;
+  font-weight: 500;
+}
+.form-input {
+  width: 100%;
+  padding: 0.75rem;
+  border: 1px solid #e0e0e0;
+  border-radius: 6px;
+  outline: none;
+  font-size: 1rem;
+  transition: border-color 0.3s ease;
+}
+.form-input:focus {
+  border-color: #4CAF50;
+}
+.answer-editor {
+  position: relative;
+  min-height: 120px;
+  border: 2px dashed #e0e0e0;
+  border-radius: 6px;
+  padding: 1rem;
+  background: #fafbfc;
+  margin-bottom: 1rem;
+}
+.paste-tip {
+  font-size: 0.9rem;
+  color: #888;
+  margin-bottom: 0.5rem;
+}
+.answer-images {
+  margin-top: 1rem;
+}
+.image-item {
+  position: relative;
+  background: white;
+  border-radius: 6px;
+  overflow: hidden;
+  box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+  margin-bottom: 1rem;
+}
+.preview-image {
+  width: 100%;
+  height: 100px;
+  object-fit: cover;
+}
+.image-actions {
+  padding: 0.5rem;
+  display: flex;
+  justify-content: center;
+}
+.remove-btn {
+  background: #ff4757;
+  color: white;
+  border: none;
+  padding: 0.25rem 0.5rem;
+  border-radius: 4px;
+  cursor: pointer;
+  font-size: 0.8rem;
+  transition: background-color 0.3s ease;
+}
+.remove-btn:hover {
+  background: #ff3742;
+}
+.form-actions {
+  display: flex;
+  gap: 1rem;
+  justify-content: flex-end;
+}
+.upload-submit-btn {
+  background: #4CAF50;
+  color: white;
+  border: none;
+  padding: 0.75rem 1.5rem;
+  border-radius: 6px;
+  cursor: pointer;
+  font-weight: 500;
+  transition: background-color 0.3s ease;
+}
+.upload-submit-btn:hover {
+  background: #3aa876;
+}
+.cancel-btn {
+  background: #f0f0f0;
+  color: #666;
+  border: none;
+  padding: 0.75rem 1.5rem;
+  border-radius: 6px;
+  cursor: pointer;
+  font-weight: 500;
+  transition: background-color 0.3s ease;
+}
+.cancel-btn:hover {
+  background: #e0e0e0;
+}
+@media (max-width: 768px) {
+  .gallery-header {
+    padding: 1rem;
+    flex-direction: column;
+    gap: 1rem;
+  }
+  .header-left {
+    width: 100%;
+    justify-content: space-between;
+    gap: 1rem;
+  }
+  .search-input {
+    width: 200px;
+  }
+  .main-content {
+    padding: 1rem;
+  }
+  .image-list {
+    padding: 1rem;
+    width: 100%;
+    max-width: 100%;
+  }
+  .images-grid {
+    grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+    gap: 1rem;
+  }
+  .image-simple-list {
+    grid-template-columns: repeat(auto-fit, minmax(60px, 1fr));
+  }
+  .simple-image {
+    height: 60px;
+  }
+  .simple-image-modal {
+    width: 95vw;
+    height: 180px;
+  }
+}
+</style>

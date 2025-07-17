@@ -39,6 +39,10 @@
           <span class="nav-icon">📺</span>
           B站
         </router-link>
+        <router-link to="/gallery" class="nav-link" active-class="active">
+          <span class="nav-icon">🤖</span>
+          AI问答记录
+        </router-link>
         <router-link to="/contact" class="nav-link" active-class="active">
           <span class="nav-icon">📞</span>
           联系我们
