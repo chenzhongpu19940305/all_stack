@@ -64,7 +64,7 @@
             v-for="feature in filteredFeatures" 
             :key="feature.id"
             class="feature-item"
-            :class="{ 'selected': selectedFeature?.id === feature.id }"
+            :class="{ 'selected': selectedFeature && selectedFeature.id === feature.id }"
             @click="selectFeature(feature)"
           >
             <div class="feature-info">
@@ -454,7 +454,7 @@ export default defineComponent({
     const deleteFeature = (feature) => {
       if (confirm('确定要删除这个特性吗？')) {
         features.value = features.value.filter(f => f.id !== feature.id)
-        if (selectedFeature.value?.id === feature.id) {
+        if (selectedFeature.value && selectedFeature.value.id === feature.id) {
           selectedFeature.value = null
         }
       }
