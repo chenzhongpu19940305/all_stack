@@ -23,13 +23,10 @@
             <artifactId>spring-boot-starter-web</artifactId>
         </dependency>
 
-
-
-        <!-- MySQL 驱动 -->
+        <!-- H2 数据库 -->
         <dependency>
-            <groupId>mysql</groupId>
-            <artifactId>mysql-connector-java</artifactId>
-            <version>8.0.33</version>
+            <groupId>com.h2database</groupId>
+            <artifactId>h2</artifactId>
             <scope>runtime</scope>
         </dependency>
 

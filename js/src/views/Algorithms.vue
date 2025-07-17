@@ -262,7 +262,13 @@ export default {
     // 加载算法数据
     loadAlgorithms: function() {
       var self = this;
-      fetch('http://localhost:8080/api/algorithms')
+      fetch('http://localhost:8080/api/algorithms/list', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({})
+      })
         .then(function(response) {
           if (response.ok) {
             return response.json();
@@ -342,13 +348,11 @@ export default {
         }
 
         var url = this.selectedAlgorithm.id ? 
-          'http://localhost:8080/api/algorithms/' + this.selectedAlgorithm.id : 
-          'http://localhost:8080/api/algorithms';
-        
-        var method = this.selectedAlgorithm.id ? 'PUT' : 'POST';
+          'http://localhost:8080/api/algorithms/update' : 
+          'http://localhost:8080/api/algorithms/create';
         
         const response = await fetch(url, {
-          method: method,
+          method: 'POST',
           headers: {
             'Content-Type': 'application/json'
           },
@@ -435,8 +439,14 @@ export default {
       if (!this.selectedAlgorithm) return;
 
       if (confirm('确定要删除这个算法吗？')) {
-        fetch('http://localhost:8080/api/algorithms/' + this.selectedAlgorithm.id, {
-          method: 'DELETE'
+        fetch('http://localhost:8080/api/algorithms/delete', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json'
+          },
+          body: JSON.stringify({
+            id: this.selectedAlgorithm.id
+          })
         })
         .then(function(response) {
           if (response.ok) {

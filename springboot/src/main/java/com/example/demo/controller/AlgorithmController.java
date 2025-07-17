@@ -82,4 +82,53 @@ public class AlgorithmController {
         List<AlgorithmDTO> algorithms = algorithmService.findByNameContaining(name);
         return ResponseEntity.ok(algorithms);
     }
+    
+    // 新增：获取算法列表（POST请求）
+    @PostMapping("/list")
+    public ResponseEntity<List<AlgorithmDTO>> getAlgorithmsList(@RequestBody(required = false) Object request) {
+        List<AlgorithmDTO> algorithms = algorithmService.findAll();
+        return ResponseEntity.ok(algorithms);
+    }
+    
+    // 新增：创建算法（POST请求）
+    @PostMapping("/create")
+    public ResponseEntity<AlgorithmDTO> createAlgorithmPost(@RequestBody AlgorithmDTO algorithmDTO) {
+        AlgorithmDTO savedAlgorithm = algorithmService.save(algorithmDTO);
+        return ResponseEntity.ok(savedAlgorithm);
+    }
+    
+    // 新增：更新算法（POST请求）
+    @PostMapping("/update")
+    public ResponseEntity<AlgorithmDTO> updateAlgorithmPost(@RequestBody AlgorithmDTO algorithmDTO) {
+        try {
+            AlgorithmDTO updatedAlgorithm = algorithmService.update(algorithmDTO.getId(), algorithmDTO);
+            return ResponseEntity.ok(updatedAlgorithm);
+        } catch (RuntimeException e) {
+            return ResponseEntity.notFound().build();
+        }
+    }
+    
+    // 新增：删除算法（POST请求）
+    @PostMapping("/delete")
+    public ResponseEntity<Void> deleteAlgorithmPost(@RequestBody DeleteRequest request) {
+        try {
+            algorithmService.deleteById(request.getId());
+            return ResponseEntity.ok().build();
+        } catch (RuntimeException e) {
+            return ResponseEntity.notFound().build();
+        }
+    }
+    
+    // 删除请求的内部类
+    public static class DeleteRequest {
+        private Long id;
+        
+        public Long getId() {
+            return id;
+        }
+        
+        public void setId(Long id) {
+            this.id = id;
+        }
+    }
 } 

@@ -5,6 +5,7 @@ import Contact from '../views/Contact.vue'
 import KibanaQuery from '../views/KibanaQuery.vue'
 import FeatureConfig from '../views/FeatureConfig.vue'
 import Algorithms from '../views/Algorithms.vue'
+import Bilibili from '../views/Bilibili.vue'
 
 const routes = [
   {
@@ -36,6 +37,11 @@ const routes = [
     path: '/algorithms',
     name: 'Algorithms',
     component: Algorithms
+  },
+  {
+    path: '/bilibili',
+    name: 'Bilibili',
+    component: Bilibili
   }
 ]
 

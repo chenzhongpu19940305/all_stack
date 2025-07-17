@@ -55,6 +55,12 @@ export default {
           title: 'ES查询',
           desc: 'Elasticsearch查询工具',
           link: '/kibana-query'
+        },
+        {
+          icon: '📺',
+          title: 'B站',
+          desc: '视频分享平台',
+          link: '/bilibili'
         }
       ]
     });

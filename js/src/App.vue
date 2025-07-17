@@ -11,6 +11,10 @@
           <span class="nav-icon">🏠</span>
           首页
         </router-link>
+        <router-link to="/dashboard" class="nav-link" active-class="active">
+          <span class="nav-icon">📊</span>
+          仪表板
+        </router-link>
         <router-link to="/about" class="nav-link" active-class="active">
           <span class="nav-icon">ℹ️</span>
           关于
@@ -26,6 +30,10 @@
         <router-link to="/kibana-query" class="nav-link" active-class="active">
           <span class="nav-icon">🔍</span>
           ES查询
+        </router-link>
+        <router-link to="/bilibili" class="nav-link" active-class="active">
+          <span class="nav-icon">📺</span>
+          B站
         </router-link>
         <router-link to="/contact" class="nav-link" active-class="active">
           <span class="nav-icon">📞</span>
