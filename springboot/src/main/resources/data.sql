@@ -1,5 +1,0 @@
--- 插入测试算法数据
-INSERT INTO algorithms (id, name, category, description, code) VALUES 
-(1, '快速排序', '排序算法', '快速排序是一种高效的排序算法，使用分治策略将数组分为两部分，然后递归排序。', 'function quickSort(arr) {\n  if (arr.length <= 1) return arr;\n  \n  const pivot = arr[Math.floor(arr.length / 2)];\n  const left = arr.filter(x => x < pivot);\n  const middle = arr.filter(x => x === pivot);\n  const right = arr.filter(x => x > pivot);\n  \n  return [...quickSort(left), ...middle, ...quickSort(right)];\n}'),
-(2, '二分查找', '搜索算法', '二分查找是一种在有序数组中查找特定元素的搜索算法，时间复杂度为O(log n)。', 'function binarySearch(arr, target) {\n  let left = 0;\n  let right = arr.length - 1;\n  \n  while (left <= right) {\n    const mid = Math.floor((left + right) / 2);\n    if (arr[mid] === target) return mid;\n    if (arr[mid] < target) left = mid + 1;\n    else right = mid - 1;\n  }\n  \n  return -1;\n}'),
-(3, '深度优先搜索', '图论算法', '深度优先搜索是一种用于遍历或搜索树或图的算法，沿着树的深度遍历树的节点。', 'function dfs(graph, start, visited = new Set()) {\n  visited.add(start);\n  console.log(start);\n  \n  for (const neighbor of graph[start] || []) {\n    if (!visited.has(neighbor)) {\n      dfs(graph, neighbor, visited);\n    }\n  }\n}'); 
