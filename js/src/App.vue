@@ -45,7 +45,7 @@
         </router-link>
         <router-link to="/video-gallery" class="nav-link" active-class="active">
           <span class="nav-icon">🎬</span>
-          AI视频记录
+          哔哩哔哩
         </router-link>
         <router-link to="/contact" class="nav-link" active-class="active">
           <span class="nav-icon">📞</span>

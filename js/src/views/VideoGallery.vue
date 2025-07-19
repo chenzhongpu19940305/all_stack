@@ -4,13 +4,13 @@
       <div class="header-left">
         <div class="logo">
           <span class="logo-icon">🎬</span>
-          <span class="logo-text">AI视频记录</span>
+          <span class="logo-text">哔哩哔哩</span>
         </div>
         <div class="search-container">
           <input 
             v-model="searchQuery" 
             @input="handleSearch"
-            placeholder="搜索AI视频记录..." 
+            placeholder="搜索哔哩哔哩视频..." 
             class="search-input"
           >
           <span class="search-icon">🔍</span>
@@ -29,7 +29,7 @@
             <p>加载中...</p>
           </div>
           <div v-else-if="filteredVideos.length === 0" class="no-videos">
-            <p>暂无AI视频记录</p>
+            <p>暂无哔哩哔哩视频</p>
           </div>
           <div v-else v-for="item in filteredVideos" :key="item.id" class="video-card" @mouseenter="showCardActions(item.id)" @mouseleave="hideCardActions(item.id)">
             <div class="video-title">{{ item.title }}</div>
@@ -83,7 +83,7 @@
     <div v-if="showUploadModal" class="upload-modal" @click="closeUploadModal">
       <div class="upload-modal-content" @click.stop>
         <div class="modal-header">
-          <h3>新增AI视频记录</h3>
+          <h3>新增哔哩哔哩视频</h3>
           <button @click="closeUploadModal" class="close-btn">✕</button>
         </div>
         <div class="upload-form">
@@ -129,7 +129,7 @@
     <div v-if="showUpdateModal" class="upload-modal" @click="closeUpdateModal">
       <div class="upload-modal-content" @click.stop>
         <div class="modal-header">
-          <h3>更新AI视频记录</h3>
+          <h3>更新哔哩哔哩视频</h3>
           <button @click="closeUpdateModal" class="close-btn">✕</button>
         </div>
         <div class="upload-form">
@@ -433,7 +433,7 @@ export default {
         await createRecord(recordData);
         await loadRecords(); // 重新加载列表
         closeUploadModal();
-        alert('AI视频记录新增成功！');
+        alert('哔哩哔哩视频新增成功！');
       } catch (error) {
         alert('新增记录失败，请重试');
       }
