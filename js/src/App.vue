@@ -35,10 +35,7 @@
           <span class="nav-icon">🔍</span>
           ES查询
         </router-link>
-        <router-link to="/bilibili" class="nav-link" active-class="active">
-          <span class="nav-icon">📺</span>
-          B站
-        </router-link>
+
         <router-link to="/gallery" class="nav-link" active-class="active">
           <span class="nav-icon">🤖</span>
           AI问答记录

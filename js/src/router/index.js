@@ -6,7 +6,7 @@ import KibanaQuery from '../views/KibanaQuery.vue'
 import FeatureConfig from '../views/FeatureConfig.vue'
 import FeatureModule from '../views/FeatureModule.vue'
 import Algorithms from '../views/Algorithms.vue'
-import Bilibili from '../views/Bilibili.vue'
+
 import Gallery from '../views/Gallery.vue'
 import VideoGallery from '../views/VideoGallery.vue'
 
@@ -46,11 +46,7 @@ const routes = [
     name: 'Algorithms',
     component: Algorithms
   },
-  {
-    path: '/bilibili',
-    name: 'Bilibili',
-    component: Bilibili
-  },
+
   {
     path: '/gallery',
     name: 'Gallery',

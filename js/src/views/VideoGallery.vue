@@ -833,6 +833,30 @@ export default {
   max-height: 90vh;
   overflow-y: auto;
 }
+.modal-header {
+  padding: 1rem 1.5rem;
+  border-bottom: 1px solid #e0e0e0;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+.modal-header h3 {
+  margin: 0;
+  color: #2c3e50;
+}
+.close-btn {
+  background: none;
+  border: none;
+  font-size: 1.5rem;
+  cursor: pointer;
+  color: #666;
+  padding: 0.5rem;
+  border-radius: 4px;
+  transition: background-color 0.3s ease;
+}
+.close-btn:hover {
+  background: #f0f0f0;
+}
 .upload-form {
   padding: 1.5rem;
 }
