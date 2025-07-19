@@ -31,9 +31,9 @@
           <div v-else-if="filteredImages.length === 0" class="no-images">
             <p>暂无AI问答记录</p>
           </div>
-          <div v-else v-for="item in filteredImages" :key="item.id" @click="viewImage(item)" class="image-card">
+          <div v-else v-for="item in filteredImages" :key="item.id" class="image-card" @mouseenter="showCardActions(item.id)" @mouseleave="hideCardActions(item.id)">
             <div class="image-title">{{ item.title }}</div>
-            <div class="image-preview">
+            <div class="image-preview" @click="viewImage(item)">
               <img v-if="item.images && item.images.length > 0" :src="item.images[0].imageData" :alt="item.images[0].name" class="preview-image">
               <div v-else class="no-image-placeholder">
                 <span>📷</span>
@@ -42,6 +42,17 @@
             </div>
             <div class="image-count" v-if="item.images && item.images.length > 1">
               <span>+{{ item.images.length - 1 }}</span>
+            </div>
+            <!-- 操作按钮 -->
+            <div class="card-actions" v-show="hoveredCardId === item.id">
+              <button @click.stop="updateRecord(item)" class="action-btn update-btn">
+                <span class="btn-icon">✏️</span>
+                <span class="btn-text">更新</span>
+              </button>
+              <button @click.stop="deleteRecord(item.id)" class="action-btn delete-btn">
+                <span class="btn-icon">🗑️</span>
+                <span class="btn-text">删除</span>
+              </button>
             </div>
           </div>
         </div>
@@ -107,6 +118,52 @@
         </div>
       </div>
     </div>
+
+    <!-- 更新模态框 -->
+    <div v-if="showUpdateModal" class="upload-modal" @click="closeUpdateModal">
+      <div class="upload-modal-content" @click.stop>
+        <div class="modal-header">
+          <h3>更新AI问答记录</h3>
+          <button @click="closeUpdateModal" class="close-btn">✕</button>
+        </div>
+        <div class="upload-form">
+          <div class="form-group">
+            <label>标题：</label>
+            <input v-model="updateForm.title" placeholder="请输入标题" class="form-input">
+          </div>
+          <div class="form-group">
+            <label>描述：</label>
+            <textarea v-model="updateForm.description" placeholder="请输入描述" class="form-textarea"></textarea>
+          </div>
+          <div class="form-group">
+            <label>图片：</label>
+            <div class="answer-editor" 
+                 @paste="handleUpdatePaste" 
+                 @drop="handleUpdateDrop" 
+                 @dragover.prevent>
+              <textarea style="display:none"></textarea>
+              <div class="paste-tip">
+                <span>💡 粘贴或拖拽图片到此区域</span>
+              </div>
+              <div v-if="updateForm.images && updateForm.images.length > 0" class="answer-images">
+                <div class="image-list">
+                  <div v-for="(image, index) in updateForm.images" :key="index" class="image-item">
+                    <img :src="image.imageData" :alt="image.name" class="preview-image">
+                    <div class="image-actions">
+                      <button @click="removeUpdateImage(index)" class="remove-btn">删除</button>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+          <div class="form-actions">
+            <button @click="submitUpdate" class="upload-submit-btn">更新</button>
+            <button @click="closeUpdateModal" class="cancel-btn">取消</button>
+          </div>
+        </div>
+      </div>
+    </div>
   </div>
 </template>
 
@@ -118,12 +175,20 @@ export default {
   setup() {
     const showImageModal = ref(false)
     const showUploadModal = ref(false)
+    const showUpdateModal = ref(false)
     const currentImage = ref({})
     const loading = ref(false)
     const images = ref([])
     const searchQuery = ref('')
     const filteredImages = ref([])
+    const hoveredCardId = ref(null)
     const uploadForm = reactive({
+      title: '',
+      description: '',
+      images: []
+    })
+    const updateForm = reactive({
+      id: null,
       title: '',
       description: '',
       images: []
@@ -251,12 +316,56 @@ export default {
 
     // 删除AI问答记录
     const deleteRecord = async (recordId) => {
+      if (!confirm('确定要删除这条记录吗？')) {
+        return
+      }
+      
       try {
         const url = API_ENDPOINTS.DELETE_RECORD.replace(':id', recordId)
         await apiRequest(url, { method: 'DELETE' })
+        await loadRecords() // 重新加载列表
+        alert('删除成功！')
       } catch (error) {
         console.error('删除记录失败:', error)
-        throw error
+        alert('删除失败，请重试')
+      }
+    }
+
+    // 更新记录
+    const updateRecord = (item) => {
+      updateForm.id = item.id
+      updateForm.title = item.title
+      updateForm.description = item.description || ''
+      updateForm.images = [...(item.images || [])]
+      showUpdateModal.value = true
+    }
+
+    // 提交更新
+    const submitUpdate = async () => {
+      if (!updateForm.title || updateForm.images.length === 0) {
+        alert('请填写标题并添加图片')
+        return
+      }
+      
+      try {
+        const url = API_ENDPOINTS.CREATE_RECORD.replace('/records', `/records/${updateForm.id}`)
+        const recordData = {
+          title: updateForm.title,
+          description: updateForm.description,
+          images: updateForm.images
+        }
+        
+        await apiRequest(url, {
+          method: 'PUT',
+          body: JSON.stringify(recordData)
+        })
+        
+        await loadRecords() // 重新加载列表
+        closeUpdateModal()
+        alert('更新成功！')
+      } catch (error) {
+        console.error('更新记录失败:', error)
+        alert('更新失败，请重试')
       }
     }
 
@@ -273,6 +382,21 @@ export default {
       uploadForm.title = ''
       uploadForm.description = ''
       uploadForm.images = []
+    }
+    const closeUpdateModal = () => {
+      showUpdateModal.value = false
+      updateForm.id = null
+      updateForm.title = ''
+      updateForm.description = ''
+      updateForm.images = []
+    }
+    // 显示卡片操作按钮
+    const showCardActions = (cardId) => {
+      hoveredCardId.value = cardId
+    }
+    // 隐藏卡片操作按钮
+    const hideCardActions = (cardId) => {
+      hoveredCardId.value = null
     }
     // 粘贴图片
     const handlePaste = async (event) => {
@@ -314,6 +438,46 @@ export default {
       uploadForm.images.splice(index, 1);
     };
     
+    // 移除更新模态框中的图片
+    const removeUpdateImage = (index) => {
+      updateForm.images.splice(index, 1);
+    };
+    
+    // 更新模态框粘贴图片
+    const handleUpdatePaste = async (event) => {
+      const items = (event.clipboardData || event.originalEvent.clipboardData).items;
+      for (let i = 0; i < items.length; i++) {
+        if (items[i].kind === 'file') {
+          const file = items[i].getAsFile();
+          if (file && file.type.startsWith('image/')) {
+            try {
+              const uploadedImage = await uploadImageToServer(file);
+              updateForm.images.push(uploadedImage);
+            } catch (error) {
+              alert('图片上传失败，请重试');
+            }
+          }
+        }
+      }
+    };
+    
+    // 更新模态框拖拽图片
+    const handleUpdateDrop = async (event) => {
+      event.preventDefault();
+      const files = event.dataTransfer.files;
+      for (let i = 0; i < files.length; i++) {
+        const file = files[i];
+        if (file.type.startsWith('image/')) {
+          try {
+            const uploadedImage = await uploadImageToServer(file);
+            updateForm.images.push(uploadedImage);
+          } catch (error) {
+            alert('图片上传失败，请重试');
+          }
+        }
+      }
+    };
+    
     // 搜索处理函数
     const handleSearch = () => {
       searchRecords(searchQuery.value);
@@ -347,18 +511,29 @@ export default {
     return {
       showImageModal,
       showUploadModal,
+      showUpdateModal,
       currentImage,
       loading,
       images,
       searchQuery,
       filteredImages,
+      hoveredCardId,
       uploadForm,
+      updateForm,
       viewImage,
       closeImageModal,
       closeUploadModal,
+      closeUpdateModal,
+      showCardActions,
+      hideCardActions,
+      updateRecord,
+      submitUpdate,
       handlePaste,
       handleDrop,
+      handleUpdatePaste,
+      handleUpdateDrop,
       removeImage,
+      removeUpdateImage,
       uploadImage,
       handleSearch,
       loadRecords,
@@ -473,6 +648,7 @@ export default {
   height: 200px;
   display: flex;
   flex-direction: column;
+  overflow: hidden;
 }
 .image-card:hover {
   box-shadow: 0 8px 25px rgba(0,0,0,0.12);
@@ -523,6 +699,61 @@ export default {
   border-radius: 12px;
   font-size: 0.7rem;
   font-weight: bold;
+}
+
+/* 卡片操作按钮样式 */
+.card-actions {
+  position: absolute;
+  bottom: 0.5rem;
+  left: 0.5rem;
+  display: flex;
+  gap: 0.5rem;
+  z-index: 10;
+}
+
+.action-btn {
+  display: flex;
+  align-items: center;
+  gap: 0.3rem;
+  padding: 0.4rem 0.6rem;
+  border: none;
+  border-radius: 6px;
+  cursor: pointer;
+  font-size: 0.7rem;
+  font-weight: 500;
+  transition: all 0.3s ease;
+  backdrop-filter: blur(10px);
+  box-shadow: 0 2px 8px rgba(0,0,0,0.15);
+}
+
+.update-btn {
+  background: rgba(76, 175, 80, 0.9);
+  color: white;
+}
+
+.update-btn:hover {
+  background: rgba(76, 175, 80, 1);
+  transform: translateY(-1px);
+  box-shadow: 0 4px 12px rgba(76, 175, 80, 0.3);
+}
+
+.delete-btn {
+  background: rgba(244, 67, 54, 0.9);
+  color: white;
+}
+
+.delete-btn:hover {
+  background: rgba(244, 67, 54, 1);
+  transform: translateY(-1px);
+  box-shadow: 0 4px 12px rgba(244, 67, 54, 0.3);
+}
+
+.btn-icon {
+  font-size: 0.8rem;
+}
+
+.btn-text {
+  font-size: 0.7rem;
 }
 
 /* 全屏模态框样式 */
