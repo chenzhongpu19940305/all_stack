@@ -8,6 +8,7 @@ import FeatureModule from '../views/FeatureModule.vue'
 import Algorithms from '../views/Algorithms.vue'
 import Bilibili from '../views/Bilibili.vue'
 import Gallery from '../views/Gallery.vue'
+import VideoGallery from '../views/VideoGallery.vue'
 
 const routes = [
   {
@@ -54,6 +55,11 @@ const routes = [
     path: '/gallery',
     name: 'Gallery',
     component: Gallery
+  },
+  {
+    path: '/video-gallery',
+    name: 'VideoGallery',
+    component: VideoGallery
   }
 ]
 
