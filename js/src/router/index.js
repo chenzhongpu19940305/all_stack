@@ -6,6 +6,7 @@ import KibanaQuery from '../views/KibanaQuery.vue'
 import FeatureConfig from '../views/FeatureConfig.vue'
 import FeatureModule from '../views/FeatureModule.vue'
 import Algorithms from '../views/Algorithms.vue'
+import EnterpriseWiki from '../views/EnterpriseWiki.vue'
 
 import Gallery from '../views/Gallery.vue'
 import VideoGallery from '../views/VideoGallery.vue'
@@ -46,7 +47,11 @@ const routes = [
     name: 'Algorithms',
     component: Algorithms
   },
-
+  {
+    path: '/enterprise-wiki',
+    name: 'EnterpriseWiki',
+    component: EnterpriseWiki
+  },
   {
     path: '/gallery',
     name: 'Gallery',

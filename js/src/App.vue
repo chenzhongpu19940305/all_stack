@@ -15,6 +15,10 @@
           <span class="nav-icon">📊</span>
           仪表板
         </router-link>
+        <router-link to="/enterprise-wiki" class="nav-link" active-class="active">
+          <span class="nav-icon">📚</span>
+          企业知识库
+        </router-link>
         <router-link to="/about" class="nav-link" active-class="active">
           <span class="nav-icon">ℹ️</span>
           关于

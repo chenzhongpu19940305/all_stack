@@ -1,0 +1,482 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>录屏功能测试（含音频）</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            max-width: 800px;
+            margin: 0 auto;
+            padding: 20px;
+            background-color: #f5f5f5;
+        }
+        
+        .container {
+            background: white;
+            padding: 30px;
+            border-radius: 10px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+        }
+        
+        h1 {
+            color: #333;
+            text-align: center;
+            margin-bottom: 30px;
+        }
+        
+        .test-section {
+            margin-bottom: 30px;
+            padding: 20px;
+            border: 2px solid #e0e0e0;
+            border-radius: 8px;
+            background: #f9f9f9;
+        }
+        
+        .test-section h2 {
+            color: #2196F3;
+            margin-bottom: 15px;
+        }
+        
+        .btn {
+            padding: 12px 24px;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            font-size: 16px;
+            margin: 5px;
+            transition: all 0.3s;
+        }
+        
+        .btn-success {
+            background: #4CAF50;
+            color: white;
+        }
+        
+        .btn-success:hover:not(:disabled) {
+            background: #45a049;
+        }
+        
+        .btn-danger {
+            background: #f44336;
+            color: white;
+        }
+        
+        .btn-danger:hover:not(:disabled) {
+            background: #d32f2f;
+        }
+        
+        .btn:disabled {
+            background: #ccc;
+            cursor: not-allowed;
+        }
+        
+        .recording-time {
+            text-align: center;
+            font-size: 24px;
+            font-weight: bold;
+            color: #e74c3c;
+            margin: 20px 0;
+        }
+        
+        .preview-video {
+            width: 100%;
+            max-width: 600px;
+            border-radius: 8px;
+            margin: 20px 0;
+        }
+        
+        .status {
+            padding: 10px;
+            border-radius: 5px;
+            margin: 10px 0;
+        }
+        
+        .status.success {
+            background: #d4edda;
+            color: #155724;
+            border: 1px solid #c3e6cb;
+        }
+        
+        .status.error {
+            background: #f8d7da;
+            color: #721c24;
+            border: 1px solid #f5c6cb;
+        }
+        
+        .status.info {
+            background: #d1ecf1;
+            color: #0c5460;
+            border: 1px solid #bee5eb;
+        }
+        
+        .requirements {
+            background: #fff3cd;
+            border: 1px solid #ffeaa7;
+            color: #856404;
+            padding: 15px;
+            border-radius: 5px;
+            margin-bottom: 20px;
+        }
+        
+        .requirements h3 {
+            margin-top: 0;
+            color: #856404;
+        }
+        
+        .requirements ul {
+            margin: 10px 0;
+            padding-left: 20px;
+        }
+        
+        .audio-options {
+            background: #e3f2fd;
+            border: 1px solid #bbdefb;
+            padding: 15px;
+            border-radius: 5px;
+            margin-bottom: 20px;
+        }
+        
+        .audio-options h3 {
+            margin-top: 0;
+            color: #1976d2;
+        }
+        
+        .checkbox-group {
+            margin: 10px 0;
+        }
+        
+        .checkbox-group label {
+            display: inline-block;
+            margin-right: 20px;
+            cursor: pointer;
+        }
+        
+        .checkbox-group input[type="checkbox"] {
+            margin-right: 5px;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>录屏功能测试页面（含音频录制）</h1>
+        
+        <div class="requirements">
+            <h3>使用要求：</h3>
+            <ul>
+                <li>使用现代浏览器（Chrome 74+, Firefox 66+, Edge 79+）</li>
+                <li>需要在HTTPS环境或localhost环境下运行</li>
+                <li>需要授予屏幕共享和麦克风权限</li>
+                <li>建议使用Chrome浏览器获得最佳体验</li>
+            </ul>
+        </div>
+        
+        <div class="audio-options">
+            <h3>音频录制选项：</h3>
+            <div class="checkbox-group">
+                <label>
+                    <input type="checkbox" id="recordSystemAudio" checked> 录制系统音频
+                </label>
+                <label>
+                    <input type="checkbox" id="recordMicrophone" checked> 录制麦克风音频
+                </label>
+            </div>
+        </div>
+        
+        <div class="test-section">
+            <h2>录屏功能测试</h2>
+            <div id="status"></div>
+            
+            <div style="text-align: center; margin: 20px 0;">
+                <button id="startBtn" class="btn btn-success">开始录屏</button>
+                <button id="stopBtn" class="btn btn-danger" disabled>停止录屏</button>
+            </div>
+            
+            <div id="recordingTime" class="recording-time" style="display: none;">
+                录制时间: 00:00
+            </div>
+            
+            <div id="preview" style="display: none;">
+                <h3>录屏预览</h3>
+                <video id="previewVideo" class="preview-video" controls></video>
+                <div style="text-align: center; margin: 10px 0;">
+                    <button id="downloadBtn" class="btn btn-success">下载录屏</button>
+                </div>
+            </div>
+        </div>
+        
+        <div class="test-section">
+            <h2>测试说明</h2>
+            <p>1. 选择要录制的音频类型（系统音频和/或麦克风音频）</p>
+            <p>2. 点击"开始录屏"按钮</p>
+            <p>3. 在弹出的对话框中选择要录制的屏幕或窗口</p>
+            <p>4. 如果选择了麦克风音频，需要授予麦克风权限</p>
+            <p>5. 系统开始录制，显示录制时间</p>
+            <p>6. 点击"停止录屏"按钮结束录制</p>
+            <p>7. 查看录屏预览并下载测试</p>
+        </div>
+    </div>
+
+    <script>
+        var mediaRecorder = null;
+        var recordingChunks = [];
+        var recordingTime = 0;
+        var recordingTimer = null;
+        var recordedBlob = null;
+        var screenStream = null;
+        var audioStream = null;
+        
+        var startBtn = document.getElementById('startBtn');
+        var stopBtn = document.getElementById('stopBtn');
+        var recordingTimeDiv = document.getElementById('recordingTime');
+        var previewDiv = document.getElementById('preview');
+        var previewVideo = document.getElementById('previewVideo');
+        var downloadBtn = document.getElementById('downloadBtn');
+        var statusDiv = document.getElementById('status');
+        var recordSystemAudio = document.getElementById('recordSystemAudio');
+        var recordMicrophone = document.getElementById('recordMicrophone');
+        
+        // 显示状态信息
+        function showStatus(message, type) {
+            if (type === undefined) type = 'info';
+            statusDiv.innerHTML = '<div class="status ' + type + '">' + message + '</div>';
+        }
+        
+        // 格式化时间
+        function formatTime(seconds) {
+            var mins = Math.floor(seconds / 60);
+            var secs = seconds % 60;
+            return (mins < 10 ? '0' : '') + mins + ':' + (secs < 10 ? '0' : '') + secs;
+        }
+        
+        // 开始录制计时器
+        function startRecordingTimer() {
+            recordingTimer = setInterval(function() {
+                recordingTime++;
+                recordingTimeDiv.textContent = '录制时间: ' + formatTime(recordingTime);
+            }, 1000);
+        }
+        
+        // 清除录制计时器
+        function clearRecordingTimer() {
+            if (recordingTimer) {
+                clearInterval(recordingTimer);
+                recordingTimer = null;
+            }
+        }
+        
+        // 检查录屏支持
+        function checkRecordingSupport() {
+            try {
+                if (navigator.mediaDevices && navigator.mediaDevices.getDisplayMedia) {
+                    showStatus('录屏功能可用，点击开始录屏按钮开始录制', 'success');
+                    return true;
+                } else {
+                    showStatus('录屏功能不可用: 浏览器不支持MediaRecorder API', 'error');
+                    return false;
+                }
+            } catch (error) {
+                showStatus('录屏功能不可用: ' + error.message, 'error');
+                return false;
+            }
+        }
+        
+        // 获取音频流
+        function getAudioStream() {
+            return new Promise(function(resolve, reject) {
+                var audioConstraints = {};
+                
+                if (recordSystemAudio.checked && recordMicrophone.checked) {
+                    // 同时录制系统音频和麦克风
+                    audioConstraints = {
+                        audio: {
+                            mandatory: {
+                                chromeMediaSource: 'desktop'
+                            }
+                        }
+                    };
+                } else if (recordSystemAudio.checked) {
+                    // 只录制系统音频
+                    audioConstraints = {
+                        audio: {
+                            mandatory: {
+                                chromeMediaSource: 'desktop'
+                            }
+                        }
+                    };
+                } else if (recordMicrophone.checked) {
+                    // 只录制麦克风
+                    audioConstraints = {
+                        audio: true
+                    };
+                } else {
+                    // 不录制音频
+                    resolve(null);
+                    return;
+                }
+                
+                navigator.mediaDevices.getUserMedia(audioConstraints)
+                    .then(function(stream) {
+                        resolve(stream);
+                    })
+                    .catch(function(error) {
+                        reject(error);
+                    });
+            });
+        }
+        
+        // 合并媒体流
+        function combineStreams(screenStream, audioStream) {
+            if (!audioStream) {
+                return screenStream;
+            }
+            
+            var tracks = screenStream.getTracks();
+            var audioTracks = audioStream.getTracks();
+            
+            for (var i = 0; i < audioTracks.length; i++) {
+                tracks.push(audioTracks[i]);
+            }
+            
+            return new MediaStream(tracks);
+        }
+        
+        // 开始录屏
+        function startRecording() {
+            try {
+                // 获取屏幕流
+                navigator.mediaDevices.getDisplayMedia({
+                    video: { mediaSource: 'screen' },
+                    audio: recordSystemAudio.checked
+                }).then(function(screenStream) {
+                    screenStream = screenStream;
+                    
+                    // 获取音频流
+                    getAudioStream().then(function(audioStream) {
+                        audioStream = audioStream;
+                        
+                        // 合并流
+                        var combinedStream = combineStreams(screenStream, audioStream);
+                        
+                        // 创建MediaRecorder
+                        var mimeType = 'video/webm;codecs=vp9';
+                        if (!MediaRecorder.isTypeSupported(mimeType)) {
+                            mimeType = 'video/webm;codecs=vp8';
+                        }
+                        if (!MediaRecorder.isTypeSupported(mimeType)) {
+                            mimeType = 'video/webm';
+                        }
+                        
+                        mediaRecorder = new MediaRecorder(combinedStream, {
+                            mimeType: mimeType
+                        });
+                        
+                        recordingChunks = [];
+                        recordingTime = 0;
+                        recordedBlob = null;
+                        
+                        mediaRecorder.ondataavailable = function(event) {
+                            if (event.data.size > 0) {
+                                recordingChunks.push(event.data);
+                            }
+                        };
+                        
+                        mediaRecorder.onstop = function() {
+                            recordedBlob = new Blob(recordingChunks, {
+                                type: 'video/webm'
+                            });
+                            
+                            var videoUrl = URL.createObjectURL(recordedBlob);
+                            previewVideo.src = videoUrl;
+                            
+                            previewDiv.style.display = 'block';
+                            recordingTimeDiv.style.display = 'none';
+                            
+                            showStatus('录屏完成，可以预览和下载', 'success');
+                        };
+                        
+                        mediaRecorder.start();
+                        startRecordingTimer();
+                        
+                        startBtn.disabled = true;
+                        stopBtn.disabled = false;
+                        recordingTimeDiv.style.display = 'block';
+                        previewDiv.style.display = 'none';
+                        
+                        var audioInfo = '';
+                        if (recordSystemAudio.checked && recordMicrophone.checked) {
+                            audioInfo = '（包含系统音频和麦克风音频）';
+                        } else if (recordSystemAudio.checked) {
+                            audioInfo = '（包含系统音频）';
+                        } else if (recordMicrophone.checked) {
+                            audioInfo = '（包含麦克风音频）';
+                        } else {
+                            audioInfo = '（仅录制画面）';
+                        }
+                        
+                        showStatus('录屏开始' + audioInfo + '，请选择要录制的屏幕或窗口', 'info');
+                        
+                    }).catch(function(error) {
+                        showStatus('获取音频流失败: ' + error.message, 'error');
+                    });
+                    
+                }).catch(function(error) {
+                    showStatus('录屏失败: ' + error.message, 'error');
+                });
+                
+            } catch (error) {
+                showStatus('录屏失败: ' + error.message, 'error');
+            }
+        }
+        
+        // 停止录屏
+        function stopRecording() {
+            if (mediaRecorder && mediaRecorder.state === 'recording') {
+                mediaRecorder.stop();
+                
+                if (screenStream) {
+                    screenStream.getTracks().forEach(function(track) {
+                        track.stop();
+                    });
+                }
+                
+                if (audioStream) {
+                    audioStream.getTracks().forEach(function(track) {
+                        track.stop();
+                    });
+                }
+                
+                clearRecordingTimer();
+                
+                startBtn.disabled = false;
+                stopBtn.disabled = true;
+            }
+        }
+        
+        // 下载录屏
+        function downloadRecording() {
+            if (recordedBlob) {
+                var url = URL.createObjectURL(recordedBlob);
+                var a = document.createElement('a');
+                a.href = url;
+                a.download = 'screen-recording-' + new Date().toISOString().slice(0, 19).replace(/:/g, '-') + '.webm';
+                document.body.appendChild(a);
+                a.click();
+                document.body.removeChild(a);
+                URL.revokeObjectURL(url);
+                
+                showStatus('录屏文件已下载', 'success');
+            }
+        }
+        
+        // 事件监听
+        startBtn.addEventListener('click', startRecording);
+        stopBtn.addEventListener('click', stopRecording);
+        downloadBtn.addEventListener('click', downloadRecording);
+        
+        // 页面加载时检查录屏支持
+        window.addEventListener('load', checkRecordingSupport);
+    </script>
+</body>
+</html> 
