@@ -34,7 +34,7 @@
           <div v-else v-for="item in filteredImages" :key="item.id" @click="viewImage(item)" class="image-card">
             <div class="image-title">{{ item.title }}</div>
             <div class="image-simple-list">
-              <img v-for="(img, idx) in item.images" :key="idx" :src="img.url" :alt="img.name" class="simple-image">
+              <img v-for="(img, idx) in item.images" :key="idx" :src="img.imageData" :alt="img.name" class="simple-image">
             </div>
           </div>
         </div>
@@ -49,7 +49,7 @@
         </div>
         <div class="image-viewer">
           <div class="image-simple-list-modal">
-            <img v-for="(img, idx) in currentImage.images" :key="idx" :src="img.url" :alt="img.name" class="simple-image-modal">
+            <img v-for="(img, idx) in currentImage.images" :key="idx" :src="img.imageData" :alt="img.name" class="simple-image-modal">
           </div>
         </div>
       </div>
@@ -79,7 +79,7 @@
               <div v-if="uploadForm.images && uploadForm.images.length > 0" class="answer-images">
                 <div class="image-list">
                   <div v-for="(image, index) in uploadForm.images" :key="index" class="image-item">
-                    <img :src="image.url" :alt="image.name" class="preview-image">
+                    <img :src="image.imageData" :alt="image.name" class="preview-image">
                     <div class="image-actions">
                       <button @click="removeImage(index)" class="remove-btn">删除</button>
                     </div>
@@ -212,7 +212,7 @@ export default {
         
         const result = await response.json()
         return {
-          url: result.url,
+          imageData: result.imageData,
           name: file.name,
           id: result.id
         }
