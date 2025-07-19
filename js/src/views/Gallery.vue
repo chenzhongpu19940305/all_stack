@@ -33,23 +33,31 @@
           </div>
           <div v-else v-for="item in filteredImages" :key="item.id" @click="viewImage(item)" class="image-card">
             <div class="image-title">{{ item.title }}</div>
-            <div class="image-simple-list">
-              <img v-for="(img, idx) in item.images" :key="idx" :src="img.imageData" :alt="img.name" class="simple-image">
+            <div class="image-preview">
+              <img v-if="item.images && item.images.length > 0" :src="item.images[0].imageData" :alt="item.images[0].name" class="preview-image">
+              <div v-else class="no-image-placeholder">
+                <span>📷</span>
+                <p>暂无图片</p>
+              </div>
+            </div>
+            <div class="image-count" v-if="item.images && item.images.length > 1">
+              <span>+{{ item.images.length - 1 }}</span>
             </div>
           </div>
         </div>
       </div>
     </div>
 
-    <div v-if="showImageModal" class="image-modal" @click="closeImageModal">
-      <div class="image-modal-content" @click.stop>
-        <div class="modal-header">
+    <!-- 全屏图片展示模态框 -->
+    <div v-if="showImageModal" class="fullscreen-modal" @click="closeImageModal">
+      <div class="fullscreen-content" @click.stop>
+        <div class="fullscreen-header">
           <h3>{{ currentImage.title }}</h3>
           <button @click="closeImageModal" class="close-btn">✕</button>
         </div>
-        <div class="image-viewer">
-          <div class="image-simple-list-modal">
-            <img v-for="(img, idx) in currentImage.images" :key="idx" :src="img.imageData" :alt="img.name" class="simple-image-modal">
+        <div class="fullscreen-image-container">
+          <div v-for="(img, idx) in currentImage.images" :key="idx" class="fullscreen-image-wrapper">
+            <img :src="img.imageData" :alt="img.name" class="fullscreen-image">
           </div>
         </div>
       </div>
@@ -449,7 +457,7 @@ export default {
 }
 .images-grid {
   display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+  grid-template-columns: repeat(4, 1fr);
   gap: 1.5rem;
   max-width: 1200px;
   margin: 0 auto;
@@ -458,34 +466,151 @@ export default {
   background: #f8f9fa;
   border-radius: 8px;
   box-shadow: 0 2px 8px rgba(0,0,0,0.05);
-  padding: 1.5rem;
+  padding: 1rem;
   cursor: pointer;
-  transition: box-shadow 0.3s;
-  height: fit-content;
+  transition: all 0.3s ease;
+  position: relative;
+  height: 200px;
+  display: flex;
+  flex-direction: column;
 }
 .image-card:hover {
   box-shadow: 0 8px 25px rgba(0,0,0,0.12);
+  transform: translateY(-2px);
 }
 .image-title {
-  font-size: 1.1rem;
+  font-size: 0.9rem;
   font-weight: bold;
   color: #2c3e50;
-  margin-bottom: 1rem;
+  margin-bottom: 0.5rem;
   text-align: center;
+  line-height: 1.2;
+  flex-shrink: 0;
 }
-.image-simple-list {
-  display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(80px, 1fr));
-  gap: 0.5rem;
-}
-.simple-image {
-  width: 100%;
-  height: 80px;
-  object-fit: cover;
+.image-preview {
+  flex: 1;
+  position: relative;
+  overflow: hidden;
   border-radius: 6px;
   background: #fff;
   border: 1px solid #e0e0e0;
 }
+.preview-image {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+.no-image-placeholder {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  height: 100%;
+  color: #999;
+  font-size: 0.8rem;
+}
+.no-image-placeholder span {
+  font-size: 2rem;
+  margin-bottom: 0.5rem;
+}
+.image-count {
+  position: absolute;
+  top: 0.5rem;
+  right: 0.5rem;
+  background: rgba(0,0,0,0.7);
+  color: white;
+  padding: 0.2rem 0.5rem;
+  border-radius: 12px;
+  font-size: 0.7rem;
+  font-weight: bold;
+}
+
+/* 全屏模态框样式 */
+.fullscreen-modal {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: rgba(0,0,0,0.95);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 1000;
+}
+.fullscreen-content {
+  width: 100%;
+  height: 100%;
+  display: flex;
+  flex-direction: column;
+  background: #000;
+}
+.fullscreen-header {
+  padding: 1rem 2rem;
+  background: rgba(0,0,0,0.8);
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  z-index: 1001;
+}
+.fullscreen-header h3 {
+  margin: 0;
+  color: white;
+  font-size: 1.2rem;
+}
+.fullscreen-image-container {
+  flex: 1;
+  overflow-y: auto;
+  padding: 80px 2rem 2rem 2rem;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 2rem;
+}
+.fullscreen-image-wrapper {
+  width: 100%;
+  max-width: 800px;
+  display: flex;
+  justify-content: center;
+}
+.fullscreen-image {
+  max-width: 100%;
+  height: auto;
+  border-radius: 8px;
+  box-shadow: 0 4px 20px rgba(0,0,0,0.3);
+}
+
+.loading-container {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 3rem;
+  color: #666;
+}
+.loading-spinner {
+  width: 40px;
+  height: 40px;
+  border: 4px solid #f3f3f3;
+  border-top: 4px solid #4CAF50;
+  border-radius: 50%;
+  animation: spin 1s linear infinite;
+  margin-bottom: 1rem;
+}
+@keyframes spin {
+  0% { transform: rotate(0deg); }
+  100% { transform: rotate(360deg); }
+}
+.no-images {
+  text-align: center;
+  padding: 3rem;
+  color: #666;
+}
+
 .image-modal {
   position: fixed;
   top: 0;
@@ -691,6 +816,20 @@ export default {
 .cancel-btn:hover {
   background: #e0e0e0;
 }
+
+/* 响应式设计 */
+@media (max-width: 1200px) {
+  .images-grid {
+    grid-template-columns: repeat(3, 1fr);
+  }
+}
+
+@media (max-width: 900px) {
+  .images-grid {
+    grid-template-columns: repeat(2, 1fr);
+  }
+}
+
 @media (max-width: 768px) {
   .gallery-header {
     padding: 1rem;
@@ -714,18 +853,29 @@ export default {
     max-width: 100%;
   }
   .images-grid {
-    grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+    grid-template-columns: repeat(2, 1fr);
     gap: 1rem;
   }
-  .image-simple-list {
-    grid-template-columns: repeat(auto-fit, minmax(60px, 1fr));
-  }
-  .simple-image {
-    height: 60px;
-  }
-  .simple-image-modal {
-    width: 95vw;
+  .image-card {
     height: 180px;
+  }
+  .fullscreen-header {
+    padding: 1rem;
+  }
+  .fullscreen-header h3 {
+    font-size: 1rem;
+  }
+  .fullscreen-image-container {
+    padding: 70px 1rem 1rem 1rem;
+  }
+}
+
+@media (max-width: 480px) {
+  .images-grid {
+    grid-template-columns: 1fr;
+  }
+  .image-card {
+    height: 160px;
   }
 }
 </style>
