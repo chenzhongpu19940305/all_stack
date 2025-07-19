@@ -1,0 +1,64 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.tool.mapper.VideoFileMapper">
+    
+    <!-- 结果映射 -->
+    <resultMap id="VideoFileResultMap" type="com.tool.entity.VideoFile">
+        <id column="id" property="id" jdbcType="BIGINT"/>
+        <result column="record_id" property="recordId" jdbcType="BIGINT"/>
+        <result column="video_data" property="videoData" jdbcType="LONGVARCHAR"/>
+        <result column="name" property="name" jdbcType="VARCHAR"/>
+        <result column="size" property="size" jdbcType="BIGINT"/>
+        <result column="type" property="type" jdbcType="VARCHAR"/>
+    </resultMap>
+    
+    <!-- 基础字段 -->
+    <sql id="Base_Column_List">
+        id, record_id, video_data, name, size, type
+    </sql>
+    
+    <!-- 插入视频文件 -->
+    <insert id="insert" parameterType="com.tool.entity.VideoFile" useGeneratedKeys="true" keyProperty="id">
+        INSERT INTO video_files (record_id, video_data, name, size, type)
+        VALUES (#{recordId}, #{videoData}, #{name}, #{size}, #{type})
+    </insert>
+    
+    <!-- 根据ID查询视频文件 -->
+    <select id="selectById" parameterType="java.lang.Long" resultMap="VideoFileResultMap">
+        SELECT <include refid="Base_Column_List"/>
+        FROM video_files
+        WHERE id = #{id}
+    </select>
+    
+    <!-- 根据记录ID查询视频文件列表 -->
+    <select id="selectByRecordId" parameterType="java.lang.Long" resultMap="VideoFileResultMap">
+        SELECT <include refid="Base_Column_List"/>
+        FROM video_files
+        WHERE record_id = #{recordId}
+        ORDER BY id ASC
+    </select>
+    
+    <!-- 更新视频文件 -->
+    <update id="update" parameterType="com.tool.entity.VideoFile">
+        UPDATE video_files
+        SET record_id = #{recordId},
+            video_data = #{videoData},
+            name = #{name},
+            size = #{size},
+            type = #{type}
+        WHERE id = #{id}
+    </update>
+    
+    <!-- 根据ID删除视频文件 -->
+    <delete id="deleteById" parameterType="java.lang.Long">
+        DELETE FROM video_files
+        WHERE id = #{id}
+    </delete>
+    
+    <!-- 根据记录ID删除视频文件 -->
+    <delete id="deleteByRecordId" parameterType="java.lang.Long">
+        DELETE FROM video_files
+        WHERE record_id = #{recordId}
+    </delete>
+    
+</mapper> 

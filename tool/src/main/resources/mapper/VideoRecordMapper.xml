@@ -1,0 +1,83 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.tool.mapper.VideoRecordMapper">
+    
+    <!-- 结果映射 -->
+    <resultMap id="VideoRecordResultMap" type="com.tool.entity.VideoRecord">
+        <id column="id" property="id" jdbcType="BIGINT"/>
+        <result column="title" property="title" jdbcType="VARCHAR"/>
+        <result column="description" property="description" jdbcType="VARCHAR"/>
+        <result column="create_time" property="createTime" jdbcType="TIMESTAMP"/>
+        <result column="update_time" property="updateTime" jdbcType="TIMESTAMP"/>
+    </resultMap>
+    
+    <!-- 基础字段 -->
+    <sql id="Base_Column_List">
+        id, title, description, create_time, update_time
+    </sql>
+    
+    <!-- 插入视频记录 -->
+    <insert id="insert" parameterType="com.tool.entity.VideoRecord" useGeneratedKeys="true" keyProperty="id">
+        INSERT INTO video_records (title, description, create_time, update_time)
+        VALUES (#{title}, #{description}, #{createTime}, #{updateTime})
+    </insert>
+    
+    <!-- 根据ID查询视频记录 -->
+    <select id="selectById" parameterType="java.lang.Long" resultMap="VideoRecordResultMap">
+        SELECT <include refid="Base_Column_List"/>
+        FROM video_records
+        WHERE id = #{id}
+    </select>
+    
+    <!-- 查询所有视频记录 -->
+    <select id="selectAll" resultMap="VideoRecordResultMap">
+        SELECT <include refid="Base_Column_List"/>
+        FROM video_records
+        ORDER BY create_time DESC
+    </select>
+    
+    <!-- 分页查询视频记录 -->
+    <select id="selectByPage" resultMap="VideoRecordResultMap">
+        SELECT <include refid="Base_Column_List"/>
+        FROM video_records
+        ORDER BY create_time DESC
+        LIMIT #{offset}, #{limit}
+    </select>
+    
+    <!-- 根据标题搜索视频记录 -->
+    <select id="selectByTitle" parameterType="java.lang.String" resultMap="VideoRecordResultMap">
+        SELECT <include refid="Base_Column_List"/>
+        FROM video_records
+        WHERE title LIKE CONCAT('%', #{title}, '%')
+        ORDER BY create_time DESC
+    </select>
+    
+    <!-- 更新视频记录 -->
+    <update id="update" parameterType="com.tool.entity.VideoRecord">
+        UPDATE video_records
+        SET title = #{title},
+            description = #{description},
+            update_time = #{updateTime}
+        WHERE id = #{id}
+    </update>
+    
+    <!-- 根据ID删除视频记录 -->
+    <delete id="deleteById" parameterType="java.lang.Long">
+        DELETE FROM video_records
+        WHERE id = #{id}
+    </delete>
+    
+    <!-- 统计总记录数 -->
+    <select id="count" resultType="java.lang.Integer">
+        SELECT COUNT(*)
+        FROM video_records
+    </select>
+    
+    <!-- 根据标题统计记录数 -->
+    <select id="countByTitle" parameterType="java.lang.String" resultType="java.lang.Integer">
+        SELECT COUNT(*)
+        FROM video_records
+        WHERE title LIKE CONCAT('%', #{title}, '%')
+    </select>
+    
+</mapper> 
