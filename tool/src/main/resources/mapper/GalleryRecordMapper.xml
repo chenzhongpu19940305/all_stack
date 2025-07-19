@@ -2,54 +2,111 @@
 <!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
 <mapper namespace="com.tool.mapper.GalleryRecordMapper">
     
-    <!-- 结果映射 -->
+    <!-- 结果映射 - 包含图片信息 -->
+    <resultMap id="RecordWithImagesResultMap" type="com.tool.entity.GalleryRecord">
+        <id column="id" property="id" jdbcType="BIGINT"/>
+        <result column="title" property="title" jdbcType="VARCHAR"/>
+        <result column="description" property="description" jdbcType="VARCHAR"/>
+        <result column="created_at" property="createdAt" jdbcType="TIMESTAMP"/>
+        <result column="updated_at" property="updatedAt" jdbcType="TIMESTAMP"/>
+        <collection property="images" ofType="com.tool.entity.GalleryImage">
+            <id column="img_id" property="id" jdbcType="BIGINT"/>
+            <result column="img_name" property="name" jdbcType="VARCHAR"/>
+            <result column="img_image_data" property="imageData" jdbcType="LONGVARCHAR"/>
+            <result column="img_file_size" property="fileSize" jdbcType="BIGINT"/>
+            <result column="img_content_type" property="contentType" jdbcType="VARCHAR"/>
+            <result column="img_created_at" property="createdAt" jdbcType="TIMESTAMP"/>
+            <result column="img_record_id" property="recordId" jdbcType="BIGINT"/>
+        </collection>
+    </resultMap>
+    
+    <!-- 基础结果映射 -->
     <resultMap id="BaseResultMap" type="com.tool.entity.GalleryRecord">
         <id column="id" property="id" jdbcType="BIGINT"/>
         <result column="title" property="title" jdbcType="VARCHAR"/>
+        <result column="description" property="description" jdbcType="VARCHAR"/>
         <result column="created_at" property="createdAt" jdbcType="TIMESTAMP"/>
         <result column="updated_at" property="updatedAt" jdbcType="TIMESTAMP"/>
     </resultMap>
     
     <!-- 基础字段 -->
     <sql id="Base_Column_List">
-        id, title, created_at, updated_at
+        id, title, description, created_at, updated_at
     </sql>
     
-    <!-- 获取所有记录 -->
-    <select id="selectAll" resultMap="BaseResultMap">
+    <!-- 获取所有记录（包含图片信息） -->
+    <select id="selectAll" resultMap="RecordWithImagesResultMap">
         SELECT 
-        <include refid="Base_Column_List"/>
-        FROM gallery_records
-        ORDER BY created_at DESC
+            r.id,
+            r.title,
+            r.description,
+            r.created_at,
+            r.updated_at,
+            i.id as img_id,
+            i.name as img_name,
+            i.image_data as img_image_data,
+            i.file_size as img_file_size,
+            i.content_type as img_content_type,
+            i.created_at as img_created_at,
+            i.record_id as img_record_id
+        FROM gallery_records r
+        LEFT JOIN gallery_images i ON r.id = i.record_id
+        ORDER BY r.created_at DESC, i.created_at ASC
     </select>
     
-    <!-- 根据ID获取记录 -->
-    <select id="selectById" parameterType="java.lang.Long" resultMap="BaseResultMap">
+    <!-- 根据ID获取记录（包含图片信息） -->
+    <select id="selectById" parameterType="java.lang.Long" resultMap="RecordWithImagesResultMap">
         SELECT 
-        <include refid="Base_Column_List"/>
-        FROM gallery_records
-        WHERE id = #{id}
+            r.id,
+            r.title,
+            r.description,
+            r.created_at,
+            r.updated_at,
+            i.id as img_id,
+            i.name as img_name,
+            i.image_data as img_image_data,
+            i.file_size as img_file_size,
+            i.content_type as img_content_type,
+            i.created_at as img_created_at,
+            i.record_id as img_record_id
+        FROM gallery_records r
+        LEFT JOIN gallery_images i ON r.id = i.record_id
+        WHERE r.id = #{id}
+        ORDER BY i.created_at ASC
     </select>
     
-    <!-- 根据标题搜索记录 -->
-    <select id="selectByTitle" parameterType="java.lang.String" resultMap="BaseResultMap">
+    <!-- 根据标题搜索记录（包含图片信息） -->
+    <select id="selectByTitle" parameterType="java.lang.String" resultMap="RecordWithImagesResultMap">
         SELECT 
-        <include refid="Base_Column_List"/>
-        FROM gallery_records
-        WHERE title LIKE CONCAT('%', #{title}, '%')
-        ORDER BY created_at DESC
+            r.id,
+            r.title,
+            r.description,
+            r.created_at,
+            r.updated_at,
+            i.id as img_id,
+            i.name as img_name,
+            i.image_data as img_image_data,
+            i.file_size as img_file_size,
+            i.content_type as img_content_type,
+            i.created_at as img_created_at,
+            i.record_id as img_record_id
+        FROM gallery_records r
+        LEFT JOIN gallery_images i ON r.id = i.record_id
+        WHERE r.title LIKE CONCAT('%', #{title}, '%')
+        ORDER BY r.created_at DESC, i.created_at ASC
     </select>
     
     <!-- 插入新记录 -->
     <insert id="insert" parameterType="com.tool.entity.GalleryRecord" useGeneratedKeys="true" keyProperty="id">
-        INSERT INTO gallery_records (title, created_at, updated_at)
-        VALUES (#{title}, #{createdAt}, #{updatedAt})
+        INSERT INTO gallery_records (title, description, created_at, updated_at)
+        VALUES (#{title}, #{description}, #{createdAt}, #{updatedAt})
     </insert>
     
     <!-- 更新记录 -->
     <update id="update" parameterType="com.tool.entity.GalleryRecord">
         UPDATE gallery_records
         SET title = #{title},
+            description = #{description},
             updated_at = #{updatedAt}
         WHERE id = #{id}
     </update>

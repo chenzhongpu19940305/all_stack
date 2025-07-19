@@ -5,6 +5,7 @@
 CREATE TABLE IF NOT EXISTS gallery_records (
     id BIGINT AUTO_INCREMENT PRIMARY KEY,
     title VARCHAR(255) NOT NULL COMMENT '记录标题',
+    description TEXT COMMENT '记录描述',
     created_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP COMMENT '创建时间',
     updated_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP COMMENT '更新时间',
     INDEX idx_title (title),
@@ -26,10 +27,10 @@ CREATE TABLE IF NOT EXISTS gallery_images (
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci COMMENT='图片表';
 
 -- 3. 插入示例数据
-INSERT INTO gallery_records (title, created_at) VALUES 
-('Java算法实现示例', NOW()),
-('Spring Boot项目结构', NOW()),
-('Vue.js前端开发', NOW());
+INSERT INTO gallery_records (title, description, created_at) VALUES 
+('Java算法实现示例', '包含各种Java算法实现的截图和说明', NOW()),
+('Spring Boot项目结构', 'Spring Boot项目的目录结构和配置文件', NOW()),
+('Vue.js前端开发', 'Vue.js组件开发和路由配置示例', NOW());
 
 -- 4. 验证表创建成功
 SELECT 'gallery_records表结构:' as info;

@@ -13,6 +13,7 @@ public class GalleryRecordDTO {
     
     private Long id;
     private String title;
+    private String description;
     private LocalDateTime createdAt;
     private LocalDateTime updatedAt;
     private List<GalleryImageDTO> images;
@@ -41,6 +42,14 @@ public class GalleryRecordDTO {
     
     public void setTitle(String title) {
         this.title = title;
+    }
+    
+    public String getDescription() {
+        return description;
+    }
+    
+    public void setDescription(String description) {
+        this.description = description;
     }
     
     public LocalDateTime getCreatedAt() {

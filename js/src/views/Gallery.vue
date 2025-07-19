@@ -67,6 +67,10 @@
             <input v-model="uploadForm.title" placeholder="请输入标题" class="form-input">
           </div>
           <div class="form-group">
+            <label>描述：</label>
+            <textarea v-model="uploadForm.description" placeholder="请输入描述" class="form-textarea"></textarea>
+          </div>
+          <div class="form-group">
             <label>图片：</label>
             <div class="answer-editor" 
                  @paste="handlePaste" 
@@ -113,6 +117,7 @@ export default {
     const filteredImages = ref([])
     const uploadForm = reactive({
       title: '',
+      description: '',
       images: []
     })
 
@@ -258,6 +263,7 @@ export default {
     const closeUploadModal = () => {
       showUploadModal.value = false
       uploadForm.title = ''
+      uploadForm.description = ''
       uploadForm.images = []
     }
     // 粘贴图片
@@ -315,6 +321,7 @@ export default {
       try {
         const recordData = {
           title: uploadForm.title,
+          description: uploadForm.description,
           images: uploadForm.images
         }
         
@@ -588,6 +595,21 @@ export default {
   transition: border-color 0.3s ease;
 }
 .form-input:focus {
+  border-color: #4CAF50;
+}
+.form-textarea {
+  width: 100%;
+  padding: 0.75rem;
+  border: 1px solid #e0e0e0;
+  border-radius: 6px;
+  outline: none;
+  font-size: 1rem;
+  min-height: 80px;
+  resize: vertical;
+  font-family: inherit;
+  transition: border-color 0.3s ease;
+}
+.form-textarea:focus {
   border-color: #4CAF50;
 }
 .answer-editor {

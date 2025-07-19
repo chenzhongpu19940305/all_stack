@@ -9,7 +9,9 @@ js/dist/
 js/.env.local
 js/.env.*.local
 
-# Spring Boot
+# Spring Boot / Maven
+**/target/
+**/target/**
 springboot/target/
 springboot/.mvn/
 springboot/mvnw

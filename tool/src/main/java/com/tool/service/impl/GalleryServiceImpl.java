@@ -64,20 +64,25 @@ public class GalleryServiceImpl implements GalleryService {
     
     @Override
     public GalleryRecordDTO createRecord(CreateRecordRequest request) {
-        GalleryRecord record = new GalleryRecord(request.getTitle());
+        // 创建记录
+        GalleryRecord record = new GalleryRecord(request.getTitle(), request.getDescription());
         recordMapper.insert(record);
         
+        // 如果有图片，创建图片记录
         if (request.getImages() != null && !request.getImages().isEmpty()) {
             for (GalleryImageDTO imageDTO : request.getImages()) {
                 GalleryImage image = new GalleryImage();
                 image.setName(imageDTO.getName());
                 image.setImageData(imageDTO.getImageData());
+                image.setFileSize(imageDTO.getFileSize());
+                image.setContentType(imageDTO.getContentType());
                 image.setRecordId(record.getId());
                 imageMapper.insert(image);
             }
         }
         
-        return convertToDTO(record);
+        // 重新查询以获取完整的记录信息（包括图片）
+        return getRecordById(record.getId());
     }
     
     @Override
@@ -131,13 +136,24 @@ public class GalleryServiceImpl implements GalleryService {
                 record.getUpdatedAt()
         );
         
-        // 获取关联的图片
-        List<GalleryImage> images = imageMapper.selectByRecordId(record.getId());
-        if (images != null && !images.isEmpty()) {
-            List<GalleryImageDTO> imageDTOs = images.stream()
+        // 设置描述
+        dto.setDescription(record.getDescription());
+        
+        // 设置关联的图片（如果record中已经包含图片信息）
+        if (record.getImages() != null && !record.getImages().isEmpty()) {
+            List<GalleryImageDTO> imageDTOs = record.getImages().stream()
                     .map(this::convertImageToDTO)
                     .collect(Collectors.toList());
             dto.setImages(imageDTOs);
+        } else {
+            // 如果record中没有图片信息，则单独查询
+            List<GalleryImage> images = imageMapper.selectByRecordId(record.getId());
+            if (images != null && !images.isEmpty()) {
+                List<GalleryImageDTO> imageDTOs = images.stream()
+                        .map(this::convertImageToDTO)
+                        .collect(Collectors.toList());
+                dto.setImages(imageDTOs);
+            }
         }
         
         return dto;

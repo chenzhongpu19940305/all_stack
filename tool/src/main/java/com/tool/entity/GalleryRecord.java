@@ -15,10 +15,13 @@ public class GalleryRecord {
     
     private String title;
     
+    private String description;
+    
     private LocalDateTime createdAt;
     
     private LocalDateTime updatedAt;
     
+    // 关联的图片列表，用于查询时填充
     private List<GalleryImage> images;
     
     public GalleryRecord() {
@@ -26,9 +29,10 @@ public class GalleryRecord {
         this.updatedAt = LocalDateTime.now();
     }
     
-    public GalleryRecord(String title) {
+    public GalleryRecord(String title, String description) {
         this();
         this.title = title;
+        this.description = description;
     }
     
     // Getters and Setters
@@ -46,6 +50,14 @@ public class GalleryRecord {
     
     public void setTitle(String title) {
         this.title = title;
+    }
+    
+    public String getDescription() {
+        return description;
+    }
+    
+    public void setDescription(String description) {
+        this.description = description;
     }
     
     public LocalDateTime getCreatedAt() {

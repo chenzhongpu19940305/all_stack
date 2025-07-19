@@ -11,12 +11,14 @@ import java.util.List;
 public class CreateRecordRequest {
     
     private String title;
+    private String description;
     private List<GalleryImageDTO> images;
     
     public CreateRecordRequest() {}
     
-    public CreateRecordRequest(String title, List<GalleryImageDTO> images) {
+    public CreateRecordRequest(String title, String description, List<GalleryImageDTO> images) {
         this.title = title;
+        this.description = description;
         this.images = images;
     }
     
@@ -27,6 +29,14 @@ public class CreateRecordRequest {
     
     public void setTitle(String title) {
         this.title = title;
+    }
+    
+    public String getDescription() {
+        return description;
+    }
+    
+    public void setDescription(String description) {
+        this.description = description;
     }
     
     public List<GalleryImageDTO> getImages() {

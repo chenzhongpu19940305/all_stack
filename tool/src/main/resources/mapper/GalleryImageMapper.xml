@@ -6,7 +6,7 @@
     <resultMap id="BaseResultMap" type="com.tool.entity.GalleryImage">
         <id column="id" property="id" jdbcType="BIGINT"/>
         <result column="name" property="name" jdbcType="VARCHAR"/>
-        <result column="image_data" property="imageData" jdbcType="LONGTEXT"/>
+        <result column="image_data" property="imageData" jdbcType="LONGVARCHAR"/>
         <result column="file_size" property="fileSize" jdbcType="BIGINT"/>
         <result column="content_type" property="contentType" jdbcType="VARCHAR"/>
         <result column="created_at" property="createdAt" jdbcType="TIMESTAMP"/>
@@ -30,7 +30,7 @@
     <!-- 插入新图片 -->
     <insert id="insert" parameterType="com.tool.entity.GalleryImage" useGeneratedKeys="true" keyProperty="id">
         INSERT INTO gallery_images (name, image_data, file_size, content_type, created_at, record_id)
-        VALUES (#{name}, #{imageData}, #{fileSize}, #{contentType}, #{createdAt}, #{recordId})
+        VALUES (#{name,jdbcType=VARCHAR}, #{imageData,jdbcType=LONGVARCHAR}, #{fileSize,jdbcType=BIGINT}, #{contentType,jdbcType=VARCHAR}, #{createdAt,jdbcType=TIMESTAMP}, #{recordId,jdbcType=BIGINT})
     </insert>
     
     <!-- 根据ID删除图片 -->
