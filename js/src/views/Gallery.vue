@@ -98,6 +98,7 @@
               <textarea style="display:none"></textarea>
               <div class="paste-tip">
                 <span>💡 粘贴或拖拽图片到此区域</span>
+                <span class="file-size-tip">📏 最大允许50M</span>
               </div>
               <div v-if="uploadForm.images && uploadForm.images.length > 0" class="answer-images">
                 <div class="image-list">
@@ -144,6 +145,7 @@
               <textarea style="display:none"></textarea>
               <div class="paste-tip">
                 <span>💡 粘贴或拖拽图片到此区域</span>
+                <span class="file-size-tip">📏 最大允许50M</span>
               </div>
               <div v-if="updateForm.images && updateForm.images.length > 0" class="answer-images">
                 <div class="image-list">
@@ -981,6 +983,15 @@ export default {
   font-size: 0.9rem;
   color: #888;
   margin-bottom: 0.5rem;
+  display: flex;
+  flex-direction: column;
+  gap: 0.3rem;
+}
+
+.file-size-tip {
+  font-size: 0.8rem;
+  color: #666;
+  font-style: italic;
 }
 .answer-images {
   margin-top: 1rem;
