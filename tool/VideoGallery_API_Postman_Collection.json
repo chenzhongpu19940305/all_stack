@@ -1,0 +1,171 @@
+{
+  "info": {
+    "name": "VideoGallery API Collection",
+    "description": "VideoGallery视频管理系统的API接口集合",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+  "item": [
+    {
+      "name": "获取视频记录列表",
+      "request": {
+        "method": "GET",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "url": {
+          "raw": "{{baseUrl}}/api/videogallery/records",
+          "host": ["{{baseUrl}}"],
+          "path": ["api", "videogallery", "records"]
+        },
+        "description": "获取所有视频记录列表"
+      },
+      "response": []
+    },
+    {
+      "name": "搜索视频记录",
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"query\": \"搜索关键词\"\n}"
+        },
+        "url": {
+          "raw": "{{baseUrl}}/api/videogallery/records/search",
+          "host": ["{{baseUrl}}"],
+          "path": ["api", "videogallery", "records", "search"]
+        },
+        "description": "根据关键词搜索视频记录"
+      },
+      "response": []
+    },
+    {
+      "name": "获取单个视频记录",
+      "request": {
+        "method": "GET",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "url": {
+          "raw": "{{baseUrl}}/api/videogallery/records/{{recordId}}",
+          "host": ["{{baseUrl}}"],
+          "path": ["api", "videogallery", "records", "{{recordId}}"]
+        },
+        "description": "根据ID获取单个视频记录详情"
+      },
+      "response": []
+    },
+    {
+      "name": "新增视频记录",
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"title\": \"视频标题\",\n  \"description\": \"视频描述\",\n  \"videos\": [\n    {\n      \"id\": 1,\n      \"name\": \"video.mp4\",\n      \"videoData\": \"data:video/mp4;base64,UklGRnoGAABXQVZFZm10IBAAAAABAAEAQB8AAEAfAAABAAgAZGF0YQoGAACBhYqFbF1fdJivrJBhNjVgodDbq2EcBj+a2/LDciUFLIHO8tiJNwgZaLvt559NEAxQp+PwtmMcBjiR1/LMeSwFJHfH8N2QQAoUXrTp66hVFApGn+DyvmwhBSuBzvLZiTYIG2m98OScTgwOUarm7blmGgU7k9n1unEiBC13yO/eizEIHWq+8+OWT...\",\n      \"contentType\": \"video/mp4\",\n      \"fileSize\": 1024000\n    }\n  ]\n}"
+        },
+        "url": {
+          "raw": "{{baseUrl}}/api/videogallery/records",
+          "host": ["{{baseUrl}}"],
+          "path": ["api", "videogallery", "records"]
+        },
+        "description": "新增视频记录"
+      },
+      "response": []
+    },
+    {
+      "name": "更新视频记录",
+      "request": {
+        "method": "PUT",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"title\": \"更新后的视频标题\",\n  \"description\": \"更新后的视频描述\",\n  \"videos\": [\n    {\n      \"id\": 1,\n      \"name\": \"updated_video.mp4\",\n      \"videoData\": \"data:video/mp4;base64,UklGRnoGAABXQVZFZm10IBAAAAABAAEAQB8AAEAfAAABAAgAZGF0YQoGAACBhYqFbF1fdJivrJBhNjVgodDbq2EcBj+a2/LDciUFLIHO8tiJNwgZaLvt559NEAxQp+PwtmMcBjiR1/LMeSwFJHfH8N2QQAoUXrTp66hVFApGn+DyvmwhBSuBzvLZiTYIG2m98OScTgwOUarm7blmGgU7k9n1unEiBC13yO/eizEIHWq+8+OWT...\",\n      \"contentType\": \"video/mp4\",\n      \"fileSize\": 1024000\n    }\n  ]\n}"
+        },
+        "url": {
+          "raw": "{{baseUrl}}/api/videogallery/records/{{recordId}}",
+          "host": ["{{baseUrl}}"],
+          "path": ["api", "videogallery", "records", "{{recordId}}"]
+        },
+        "description": "更新指定ID的视频记录"
+      },
+      "response": []
+    },
+    {
+      "name": "删除视频记录",
+      "request": {
+        "method": "DELETE",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "url": {
+          "raw": "{{baseUrl}}/api/videogallery/records/{{recordId}}",
+          "host": ["{{baseUrl}}"],
+          "path": ["api", "videogallery", "records", "{{recordId}}"]
+        },
+        "description": "删除指定ID的视频记录"
+      },
+      "response": []
+    },
+    {
+      "name": "上传视频文件",
+      "request": {
+        "method": "POST",
+        "header": [],
+        "body": {
+          "mode": "formdata",
+          "formdata": [
+            {
+              "key": "video",
+              "type": "file",
+              "src": []
+            }
+          ]
+        },
+        "url": {
+          "raw": "{{baseUrl}}/api/videogallery/upload",
+          "host": ["{{baseUrl}}"],
+          "path": ["api", "videogallery", "upload"]
+        },
+        "description": "上传视频文件到服务器"
+      },
+      "response": []
+    }
+  ],
+  "variable": [
+    {
+      "key": "baseUrl",
+      "value": "http://localhost:8080/cpsc/privacy/testmock",
+      "type": "string"
+    },
+    {
+      "key": "recordId",
+      "value": "1",
+      "type": "string"
+    }
+  ]
+} 
