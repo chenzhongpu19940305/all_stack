@@ -108,6 +108,11 @@ public class GalleryServiceImpl implements GalleryService {
                 throw new RuntimeException("只能上传图片文件");
             }
             
+            // 检查文件大小（限制为50MB）
+            if (file.getSize() > 50 * 1024 * 1024) {
+                throw new RuntimeException("文件大小超过限制（50MB）");
+            }
+            
             // 将图片转换为base64
             byte[] imageBytes = file.getBytes();
             String base64Image = Base64.getEncoder().encodeToString(imageBytes);
