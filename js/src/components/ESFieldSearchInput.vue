@@ -46,11 +46,60 @@
     </div>
     
     <!-- 字段值下拉框 -->
-    <div v-if="showValueDropdown && selectedField && fieldValues[selectedField] && fieldValues[selectedField].length > 0" class="value-dropdown">
+    <div v-if="showValueDropdown && selectedField" class="value-dropdown">
       <div class="value-dropdown-header">
         <span>{{ selectedField }} 的可选值:</span>
       </div>
-      <div class="value-options">
+      
+      <!-- 自定义输入框 -->
+      <div class="custom-value-input-container">
+        <input
+          v-model="customValue"
+          type="text"
+          class="custom-value-input"
+          placeholder="输入自定义值..."
+          @keyup.enter="addCustomValue"
+        />
+        <button 
+          @click="addCustomValue" 
+          class="add-custom-btn"
+          :disabled="!customValue.trim()"
+        >
+          添加
+        </button>
+      </div>
+      
+      <!-- 已添加的自定义值 -->
+      <div v-if="customValues.length > 0" class="custom-values-section">
+        <div class="custom-values-header">自定义值:</div>
+        <div class="custom-values-list">
+          <div 
+            v-for="(value, index) in customValues" 
+            :key="'custom-' + index"
+            class="value-option"
+          >
+            <label class="value-checkbox">
+              <input 
+                type="checkbox" 
+                :checked="isValueSelected(value)"
+                @change="toggleValue(value)"
+              />
+              <span class="value-label">{{ value }}</span>
+              <button 
+                @click="removeCustomValue(index)" 
+                class="remove-custom-btn"
+                title="删除自定义值"
+              >
+                ×
+              </button>
+            </label>
+          </div>
+        </div>
+      </div>
+      
+      <!-- 预定义的可选值 -->
+      <div v-if="fieldValues[selectedField] && fieldValues[selectedField].length > 0" class="value-options">
+        <div class="predefined-values-header">预定义值:</div>
         <div 
           v-for="(value, index) in fieldValues[selectedField]" 
           :key="index"
@@ -66,6 +115,7 @@
           </label>
         </div>
       </div>
+      
       <div class="value-dropdown-footer">
         <button @click="applySelectedValues" class="apply-btn">应用</button>
         <button @click="closeValueDropdown" class="cancel-btn">取消</button>
@@ -126,6 +176,8 @@ const filteredFields = ref([])
 const selectedField = ref('')
 const tempSelectedValues = ref([])
 const selectedValues = ref(props.modelValue || [])
+const customValue = ref('')
+const customValues = ref([])
 
 // 预定义的字段列表
 const availableFields = [
@@ -240,6 +292,14 @@ const selectField = (field) => {
       .map(item => item.value)
     
     showValueDropdown.value = true
+    
+    // 清空自定义值输入框
+    customValue.value = ''
+    
+    // 加载该字段已有的自定义值
+    customValues.value = selectedValues.value
+      .filter(item => item.field === field && !fieldValues[field]?.includes(item.value))
+      .map(item => item.value)
   }
   
   nextTick(() => {
@@ -283,9 +343,44 @@ const applySelectedValues = () => {
   clearSearch()
 }
 
+// 添加自定义值
+const addCustomValue = () => {
+  const trimmedValue = customValue.value.trim()
+  if (!trimmedValue) return
+  
+  // 检查是否已存在于自定义值列表中
+  if (!customValues.value.includes(trimmedValue)) {
+    customValues.value.push(trimmedValue)
+    
+    // 如果还没有选中，自动选中该值
+    if (!tempSelectedValues.value.includes(trimmedValue)) {
+      tempSelectedValues.value.push(trimmedValue)
+    }
+  }
+  
+  // 清空输入框
+  customValue.value = ''
+}
+
+// 删除自定义值
+const removeCustomValue = (index) => {
+  const valueToRemove = customValues.value[index]
+  
+  // 从自定义值列表中移除
+  customValues.value.splice(index, 1)
+  
+  // 如果该值已被选中，也从临时选中列表中移除
+  const selectedIndex = tempSelectedValues.value.indexOf(valueToRemove)
+  if (selectedIndex !== -1) {
+    tempSelectedValues.value.splice(selectedIndex, 1)
+  }
+}
+
 const closeValueDropdown = () => {
   showValueDropdown.value = false
   tempSelectedValues.value = []
+  customValues.value = []
+  customValue.value = ''
 }
 
 const removeSelectedValue = (index) => {
@@ -434,6 +529,77 @@ defineExpose({
   border-bottom: 1px solid #ddd;
   font-weight: bold;
   font-size: 14px;
+}
+
+/* 自定义值输入框容器 */
+.custom-value-input-container {
+  display: flex;
+  padding: 10px 12px;
+  border-bottom: 1px solid #ddd;
+  background: #f9f9f9;
+}
+
+.custom-value-input {
+  flex: 1;
+  padding: 6px 10px;
+  border: 1px solid #ddd;
+  border-radius: 4px 0 0 4px;
+  font-size: 14px;
+  outline: none;
+}
+
+.custom-value-input:focus {
+  border-color: #3b82f6;
+}
+
+.add-custom-btn {
+  padding: 6px 12px;
+  background: #3b82f6;
+  color: white;
+  border: none;
+  border-radius: 0 4px 4px 0;
+  cursor: pointer;
+  font-size: 14px;
+}
+
+.add-custom-btn:hover {
+  background: #2563eb;
+}
+
+.add-custom-btn:disabled {
+  background: #93c5fd;
+  cursor: not-allowed;
+}
+
+/* 自定义值和预定义值的标题 */
+.custom-values-header,
+.predefined-values-header {
+  padding: 8px 12px;
+  font-size: 13px;
+  font-weight: 600;
+  color: #4b5563;
+  background: #f3f4f6;
+  border-bottom: 1px solid #e5e7eb;
+}
+
+.custom-values-list {
+  max-height: 150px;
+  overflow-y: auto;
+}
+
+.remove-custom-btn {
+  margin-left: auto;
+  background: transparent;
+  border: none;
+  color: #9ca3af;
+  font-size: 16px;
+  cursor: pointer;
+  padding: 0 4px;
+  line-height: 1;
+}
+
+.remove-custom-btn:hover {
+  color: #ef4444;
 }
 
 .value-options {
@@ -611,9 +777,40 @@ defineExpose({
   }
   
   .value-dropdown-header,
-  .value-dropdown-footer {
+  .value-dropdown-footer,
+  .custom-values-header,
+  .predefined-values-header {
     background: #111827;
     border-color: #374151;
+    color: #e5e7eb;
+  }
+  
+  .custom-value-input-container {
+    background: #1a202c;
+    border-color: #374151;
+  }
+  
+  .custom-value-input {
+    background: #1f2937;
+    border-color: #4b5563;
+    color: #f9fafb;
+  }
+  
+  .custom-value-input:focus {
+    border-color: #3b82f6;
+  }
+  
+  .add-custom-btn:disabled {
+    background: #1e40af;
+    color: #93c5fd;
+  }
+  
+  .remove-custom-btn {
+    color: #6b7280;
+  }
+  
+  .remove-custom-btn:hover {
+    color: #ef4444;
   }
   
   .value-option {
