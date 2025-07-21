@@ -48,6 +48,10 @@
           <span class="nav-icon">🎬</span>
           哔哩哔哩
         </router-link>
+        <router-link to="/simple-field-input" class="nav-link" active-class="active">
+          <span class="nav-icon">📝</span>
+          字段输入
+        </router-link>
         <router-link to="/contact" class="nav-link" active-class="active">
           <span class="nav-icon">📞</span>
           联系我们

@@ -10,6 +10,7 @@ import EnterpriseWiki from '../views/EnterpriseWiki.vue'
 
 import Gallery from '../views/Gallery.vue'
 import VideoGallery from '../views/VideoGallery.vue'
+import SimpleFieldInputExample from '../components/SimpleFieldInputExample.vue'
 
 const routes = [
   {
@@ -61,6 +62,11 @@ const routes = [
     path: '/video-gallery',
     name: 'VideoGallery',
     component: VideoGallery
+  },
+  {
+    path: '/simple-field-input',
+    name: 'SimpleFieldInput',
+    component: SimpleFieldInputExample
   }
 ]
 
