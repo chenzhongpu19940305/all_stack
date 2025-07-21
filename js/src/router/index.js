@@ -7,10 +7,10 @@ import FeatureConfig from '../views/FeatureConfig.vue'
 import FeatureModule from '../views/FeatureModule.vue'
 import Algorithms from '../views/Algorithms.vue'
 import EnterpriseWiki from '../views/EnterpriseWiki.vue'
+import ESFieldSearch from '../views/ESFieldSearch.vue'
 
 import Gallery from '../views/Gallery.vue'
 import VideoGallery from '../views/VideoGallery.vue'
-import SimpleFieldInputExample from '../components/SimpleFieldInputExample.vue'
 
 const routes = [
   {
@@ -64,9 +64,9 @@ const routes = [
     component: VideoGallery
   },
   {
-    path: '/simple-field-input',
-    name: 'SimpleFieldInput',
-    component: SimpleFieldInputExample
+    path: '/es-field-search',
+    name: 'ESFieldSearch',
+    component: ESFieldSearch
   }
 ]
 
@@ -75,4 +75,4 @@ const router = createRouter({
   routes
 })
 
-export default router 
+export default router

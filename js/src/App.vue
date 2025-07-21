@@ -6,6 +6,15 @@
         <span class="brand-text">Vue应用</span>
       </div>
       
+      <!-- 添加搜索组件 -->
+      <div class="nav-search">
+        <SearchInput 
+          v-model="globalSearch"
+          placeholder="搜索功能..."
+          @search="handleGlobalSearch"
+        />
+      </div>
+      
       <div class="nav-links">
         <router-link to="/" class="nav-link" active-class="active">
           <span class="nav-icon">🏠</span>
@@ -39,6 +48,10 @@
           <span class="nav-icon">🔍</span>
           ES查询
         </router-link>
+        <router-link to="/es-field-search" class="nav-link" active-class="active">
+          <span class="nav-icon">🔎</span>
+          ES字段搜索
+        </router-link>
 
         <router-link to="/gallery" class="nav-link" active-class="active">
           <span class="nav-icon">🤖</span>
@@ -47,10 +60,6 @@
         <router-link to="/video-gallery" class="nav-link" active-class="active">
           <span class="nav-icon">🎬</span>
           哔哩哔哩
-        </router-link>
-        <router-link to="/simple-field-input" class="nav-link" active-class="active">
-          <span class="nav-icon">📝</span>
-          字段输入
         </router-link>
         <router-link to="/contact" class="nav-link" active-class="active">
           <span class="nav-icon">📞</span>
@@ -65,17 +74,22 @@
   </div>
 </template>
 
-<script>
-import { defineComponent } from 'vue'
+<script setup>
+import { ref } from 'vue'
+import SearchInput from './components/SearchInput.vue'
 
-export default defineComponent({
-  name: 'App',
-  setup() {
-    // 使用Vue 3的响应式API
-    // 这里可以添加全局状态管理
-    return {}
+// 全局搜索状态
+const globalSearch = ref('')
+
+// 处理全局搜索
+const handleGlobalSearch = (searchValue) => {
+  console.log('全局搜索:', searchValue)
+  // 这里可以添加全局搜索逻辑
+  // 比如跳转到搜索结果页面或显示搜索结果
+  if (searchValue.trim()) {
+    alert(`搜索: ${searchValue}`)
   }
-})
+}
 </script>
 
 <style>
@@ -124,6 +138,50 @@ body {
   color: white;
 }
 
+/* 搜索组件样式 */
+.nav-search {
+  flex: 1;
+  max-width: 400px;
+  margin: 0 2rem;
+}
+
+/* 自定义搜索组件在导航栏中的样式 */
+.nav-search .search-input-wrapper {
+  background: rgba(255, 255, 255, 0.1);
+  border: 1px solid rgba(255, 255, 255, 0.2);
+  border-radius: 20px;
+}
+
+.nav-search .search-input-wrapper:hover {
+  border-color: rgba(255, 255, 255, 0.3);
+}
+
+.nav-search .search-input-wrapper:focus-within {
+  border-color: #42b883;
+  box-shadow: 0 0 0 3px rgba(66, 184, 131, 0.2);
+}
+
+.nav-search .search-icon {
+  color: rgba(255, 255, 255, 0.7);
+}
+
+.nav-search .search-input {
+  color: white;
+}
+
+.nav-search .search-input::placeholder {
+  color: rgba(255, 255, 255, 0.6);
+}
+
+.nav-search .clear-button {
+  color: rgba(255, 255, 255, 0.7);
+}
+
+.nav-search .clear-button:hover {
+  background: rgba(255, 255, 255, 0.1);
+  color: white;
+}
+
 .nav-links {
   display: flex;
   gap: 1rem;
@@ -169,7 +227,14 @@ body {
     padding: 1rem;
   }
   
+  .nav-search {
+    order: 2;
+    max-width: 100%;
+    margin: 0;
+  }
+  
   .nav-links {
+    order: 3;
     flex-wrap: wrap;
     justify-content: center;
   }
@@ -179,4 +244,4 @@ body {
     padding: 0.4rem 0.8rem;
   }
 }
-</style> 
+</style>
