@@ -1,0 +1,122 @@
+import java.io.IOException;
+import java.nio.charset.StandardCharsets;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.nio.file.Paths;
+import java.util.*;
+import java.util.stream.Collectors;
+import java.util.stream.IntStream;
+
+public class AdvancedSqlGenerator {
+
+    /**
+     * 高级SQL批量生成器（支持多占位符替换）
+     *
+     * @param templatePath   SQL模板文件路径
+     * @param placeholders   占位符映射表（占位符 -> 替换值列表）
+     * @param outputPath     输出文件路径
+     */
+    public static void generateMultiPlaceholderSql(
+            String templatePath,
+            Map<String, List<String>> placeholders,
+            String outputPath) throws IOException {
+
+        // 参数校验
+        validateInput(templatePath, placeholders, outputPath);
+
+        // 读取模板内容
+        String sqlTemplate = readTemplate(templatePath);
+
+        // 验证所有占位符都存在
+        validatePlaceholders(sqlTemplate, placeholders.keySet());
+
+        // 生成替换组合
+        List<String> sqlStatements = generateSqlStatements(sqlTemplate, placeholders);
+
+        // 构建纯换行分隔的内容
+        String outputContent = String.join("\n",  sqlStatements);
+
+        // 确保输出目录存在
+        createOutputDirectory(outputPath);
+
+        // 写入文件
+        Files.write(Paths.get(outputPath),  outputContent.getBytes(StandardCharsets.UTF_8));
+    }
+
+    // 参数校验方法
+    private static void validateInput(String templatePath,
+                                     Map<String, List<String>> placeholders,
+                                     String outputPath) {
+        if (templatePath == null || templatePath.trim().isEmpty())  {
+            throw new IllegalArgumentException("SQL模板路径不能为空");
+        }
+        if (placeholders == null || placeholders.isEmpty())  {
+            throw new IllegalArgumentException("占位符映射表不能为空");
+        }
+        if (outputPath == null || outputPath.trim().isEmpty())  {
+            throw new IllegalArgumentException("输出路径不能为空");
+        }
+
+        // 检查所有替换列表长度一致
+        int expectedSize = -1;
+        for (Map.Entry<String, List<String>> entry : placeholders.entrySet())  {
+            List<String> values = entry.getValue();
+            if (values == null || values.isEmpty())  {
+                throw new IllegalArgumentException("占位符 '" + entry.getKey()  + "' 的替换列表不能为空");
+            }
+            if (expectedSize == -1) {
+                expectedSize = values.size();
+            } else if (values.size()  != expectedSize) {
+                throw new IllegalArgumentException("所有替换列表长度必须一致。占位符 '" +
+                        entry.getKey()  + "' 的长度为 " + values.size()  +
+                        "，但期望长度为 " + expectedSize);
+            }
+        }
+    }
+
+    // 读取模板文件
+    private static String readTemplate(String templatePath) throws IOException {
+        Path path = Paths.get(templatePath);
+        if (!Files.exists(path))  {
+            throw new IOException("模板文件不存在: " + templatePath);
+        }
+        return new String(Files.readAllBytes(path),  StandardCharsets.UTF_8);
+    }
+
+    // 验证模板包含所有占位符
+    private static void validatePlaceholders(String template, Set<String> placeholderKeys) {
+        for (String key : placeholderKeys) {
+            if (!template.contains(key))  {
+                throw new IllegalArgumentException("模板中未找到占位符: " + key);
+            }
+        }
+    }
+
+    // 生成SQL语句的核心方法
+    private static List<String> generateSqlStatements(String template,
+                                                    Map<String, List<String>> placeholders) {
+        // 获取替换次数（所有列表长度相同）
+        int numStatements = placeholders.values().iterator().next().size();
+
+        return IntStream.range(0,  numStatements)
+            .mapToObj(index -> {
+                String currentSql = template;
+                // 对每个占位符进行替换
+                for (Map.Entry<String, List<String>> entry : placeholders.entrySet())  {
+                    String placeholder = entry.getKey();
+                    String replacement = entry.getValue().get(index);
+                    currentSql = currentSql.replace(placeholder,  replacement);
+                }
+                return currentSql;
+            })
+            .collect(Collectors.toList());
+    }
+
+    // 创建输出目录
+    private static void createOutputDirectory(String outputPath) throws IOException {
+        Path parentDir = Paths.get(outputPath).getParent();
+        if (parentDir != null && !Files.exists(parentDir))  {
+            Files.createDirectories(parentDir);
+        }
+    }
+}
