@@ -85,163 +85,178 @@
   </div>
 </template>
 
-<script>
-export default {
-  name: 'ElasticsearchQuery',
-  data: function() {
-    return {
-      currentField: '',
-      currentValue: '',
-      fieldValues: [],
-      showFieldDropdown: false,
-      filteredFields: [],
-      queryResult: null,
-      // 预定义的字段列表
-      availableFields: [
-        'title',
-        'content',
-        'author',
-        'category',
-        'tags',
-        'status',
-        'priority',
-        'created_at',
-        'updated_at',
-        'user_id',
-        'email',
-        'phone',
-        'address',
-        'company',
-        'department',
-        'level',
-        'message',
-        'service',
-        'ip',
-        'status_code',
-        'response_time',
-        'timestamp',
-        'log_level',
-        'error_code',
-        'session_id',
-        'request_id',
-        'method',
-        'url',
-        'user_agent',
-        'referer',
-        'client_ip'
-      ]
-    };
-  },
-  methods: {
-    filterFields: function() {
-      var self = this;
-      var input = this.currentField.toLowerCase();
-      
-      if (!input) {
-        this.filteredFields = this.availableFields.slice(0, 10);
-      } else {
-        this.filteredFields = this.availableFields.filter(function(field) {
-          return field.toLowerCase().includes(input);
-        }).slice(0, 10);
-      }
-    },
-    
-    selectField: function(field) {
-      this.currentField = field;
-      this.showFieldDropdown = false;
-      this.$refs.fieldInput.focus();
-    },
-    
-    handleFieldBlur: function() {
-      var self = this;
-      // 延迟隐藏下拉框，让点击事件先执行
-      setTimeout(function() {
-        self.showFieldDropdown = false;
-      }, 200);
-    },
-    
-    addFieldValue: function() {
-      if (!this.currentField || !this.currentValue) {
-        return;
-      }
-      
-      // 检查是否已存在相同字段
-      var existingIndex = this.fieldValues.findIndex(function(item) {
-        return item.field === this.currentField;
-      }.bind(this));
-      
-      if (existingIndex !== -1) {
-        // 更新已存在的字段值
-        this.fieldValues[existingIndex].value = this.currentValue;
-      } else {
-        // 添加新的字段值对
-        this.fieldValues.push({
-          field: this.currentField,
-          value: this.currentValue
-        });
-      }
-      
-      // 清空当前输入
-      this.currentField = '';
-      this.currentValue = '';
-      this.showFieldDropdown = false;
-    },
-    
-    removeFieldValue: function(index) {
-      this.fieldValues.splice(index, 1);
-    },
-    
-    handleQuery: function() {
-      if (this.fieldValues.length === 0) {
-        alert('请至少添加一个查询条件');
-        return;
-      }
-      
-      // 构建查询参数
-      var queryParams = {
-        conditions: this.fieldValues
-      };
-      
-      // 触发父组件事件
-      this.$emit('query', queryParams);
-      
-      // 模拟查询结果
-      this.queryResult = {
-        success: true,
-        data: {
-          conditions: this.fieldValues,
-          timestamp: new Date().toISOString(),
-          message: '多字段查询参数已发送到后端'
-        }
-      };
-    },
-    
-    handleClear: function() {
-      this.currentField = '';
-      this.currentValue = '';
-      this.fieldValues = [];
-      this.queryResult = null;
-      this.showFieldDropdown = false;
-      this.$emit('clear');
-    },
-    
-    // 提供给父组件调用的方法
-    getQueryData: function() {
-      return {
-        conditions: this.fieldValues
-      };
-    },
-    
-    setQueryData: function(conditions) {
-      this.fieldValues = conditions || [];
-    }
-  },
+<script setup>
+import { ref, reactive, onMounted, nextTick } from 'vue'
+
+// 定义组件名称
+defineOptions({
+  name: 'ElasticsearchQuery'
+})
+
+// 响应式数据
+const currentField = ref('')
+const currentValue = ref('')
+const fieldValues = ref([])
+const showFieldDropdown = ref(false)
+const filteredFields = ref([])
+const queryResult = ref(null)
+const fieldInput = ref(null)
+
+// 预定义的字段列表
+const availableFields = [
+  'title',
+  'content',
+  'author',
+  'category',
+  'tags',
+  'status',
+  'priority',
+  'created_at',
+  'updated_at',
+  'user_id',
+  'email',
+  'phone',
+  'address',
+  'company',
+  'department',
+  'level',
+  'message',
+  'service',
+  'ip',
+  'status_code',
+  'response_time',
+  'timestamp',
+  'log_level',
+  'error_code',
+  'session_id',
+  'request_id',
+  'method',
+  'url',
+  'user_agent',
+  'referer',
+  'client_ip'
+]
+
+// 定义事件
+const emit = defineEmits(['query', 'clear'])
+
+// 方法
+const filterFields = () => {
+  const input = currentField.value.toLowerCase()
   
-  mounted: function() {
-    // 初始化过滤字段
-    this.filterFields();
+  if (!input) {
+    filteredFields.value = availableFields.slice(0, 10)
+  } else {
+    filteredFields.value = availableFields.filter(field => 
+      field.toLowerCase().includes(input)
+    ).slice(0, 10)
   }
-};
+}
+
+const selectField = (field) => {
+  currentField.value = field
+  showFieldDropdown.value = false
+  nextTick(() => {
+    if (fieldInput.value) {
+      fieldInput.value.focus()
+    }
+  })
+}
+
+const handleFieldBlur = () => {
+  // 延迟隐藏下拉框，让点击事件先执行
+  setTimeout(() => {
+    showFieldDropdown.value = false
+  }, 200)
+}
+
+const addFieldValue = () => {
+  if (!currentField.value || !currentValue.value) {
+    return
+  }
+  
+  // 检查是否已存在相同字段
+  const existingIndex = fieldValues.value.findIndex(item => 
+    item.field === currentField.value
+  )
+  
+  if (existingIndex !== -1) {
+    // 更新已存在的字段值
+    fieldValues.value[existingIndex].value = currentValue.value
+  } else {
+    // 添加新的字段值对
+    fieldValues.value.push({
+      field: currentField.value,
+      value: currentValue.value
+    })
+  }
+  
+  // 清空当前输入
+  currentField.value = ''
+  currentValue.value = ''
+  showFieldDropdown.value = false
+}
+
+const removeFieldValue = (index) => {
+  fieldValues.value.splice(index, 1)
+}
+
+const handleQuery = () => {
+  if (fieldValues.value.length === 0) {
+    alert('请至少添加一个查询条件')
+    return
+  }
+  
+  // 构建查询参数
+  const queryParams = {
+    conditions: fieldValues.value
+  }
+  
+  // 触发父组件事件
+  emit('query', queryParams)
+  
+  // 模拟查询结果
+  queryResult.value = {
+    success: true,
+    data: {
+      conditions: fieldValues.value,
+      timestamp: new Date().toISOString(),
+      message: '多字段查询参数已发送到后端'
+    }
+  }
+}
+
+const handleClear = () => {
+  currentField.value = ''
+  currentValue.value = ''
+  fieldValues.value = []
+  queryResult.value = null
+  showFieldDropdown.value = false
+  emit('clear')
+}
+
+// 提供给父组件调用的方法
+const getQueryData = () => {
+  return {
+    conditions: fieldValues.value
+  }
+}
+
+const setQueryData = (conditions) => {
+  fieldValues.value = conditions || []
+}
+
+// 暴露方法给父组件
+defineExpose({
+  getQueryData,
+  setQueryData
+})
+
+// 生命周期
+onMounted(() => {
+  // 初始化过滤字段
+  filterFields()
+})
 </script>
 
 <style scoped>
