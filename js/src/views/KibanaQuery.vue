@@ -35,95 +35,99 @@
   </div>
 </template>
 
-<script>
-import ElasticsearchQuery from '../components/ElasticsearchQuery.vue';
+<script setup>
+import { ref } from 'vue'
+import ElasticsearchQuery from '../components/ElasticsearchQuery.vue'
 
-export default {
-  name: 'KibanaQuery',
-  components: {
-    ElasticsearchQuery: ElasticsearchQuery
-  },
-  data: function() {
-    return {
-      queryHistory: []
-    };
-  },
-  methods: {
-    handleEsQuery: function(queryData) {
-      console.log('接收到ES多字段查询数据:', queryData);
-      
-      // 添加到查询历史
-      var historyRecord = {
-        timestamp: new Date().toLocaleString(),
-        data: queryData
-      };
-      
-      this.queryHistory.unshift(historyRecord);
-      
-      // 限制历史记录数量
-      if (this.queryHistory.length > 10) {
-        this.queryHistory = this.queryHistory.slice(0, 10);
-      }
-      
-      // 发送到后端
-      this.sendToBackend(queryData);
-    },
-    
-    handleClear: function() {
-      console.log('查询已清空');
-    },
-    
-    sendToBackend: function(data) {
-      var self = this;
-      
-      // 模拟发送到后端
-      console.log('发送到后端的数据:', data);
-      
-      // 构建查询条件字符串
-      var conditionsText = data.conditions.map(function(condition) {
-        return condition.field + ': ' + condition.value;
-      }).join(', ');
-      
-      // 实际使用时，这里应该调用API
-      // 例如：
-      /*
-      fetch('/api/es-query', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json'
-        },
-        body: JSON.stringify(data)
-      })
-      .then(function(response) {
-        return response.json();
-      })
-      .then(function(result) {
-        console.log('后端响应:', result);
-        alert('查询成功！');
-      })
-      .catch(function(error) {
-        console.error('查询失败:', error);
-        alert('查询失败，请重试');
-      });
-      */
-      
-      alert('多字段查询数据已发送到后端:\n' + conditionsText);
-    },
-    
-    removeHistory: function(index) {
-      this.queryHistory.splice(index, 1);
-    },
-    
-    // 提供给外部调用的方法
-    setQueryData: function(conditions) {
-      this.$refs.esQueryComponent.setQueryData(conditions);
-    },
-    
-    getQueryData: function() {
-      return this.$refs.esQueryComponent.getQueryData();
-    }
+// 定义组件名称
+defineOptions({
+  name: 'KibanaQuery'
+})
+
+// 响应式数据
+const queryHistory = ref([])
+const esQueryComponent = ref(null)
+
+// 方法
+const handleEsQuery = (queryData) => {
+  console.log('接收到ES多字段查询数据:', queryData)
+  
+  // 添加到查询历史
+  const historyRecord = {
+    timestamp: new Date().toLocaleString(),
+    data: queryData
   }
-};
+  
+  queryHistory.value.unshift(historyRecord)
+  
+  // 限制历史记录数量
+  if (queryHistory.value.length > 10) {
+    queryHistory.value = queryHistory.value.slice(0, 10)
+  }
+  
+  // 发送到后端
+  sendToBackend(queryData)
+}
+
+const handleClear = () => {
+  console.log('查询已清空')
+}
+
+const sendToBackend = async (data) => {
+  // 模拟发送到后端
+  console.log('发送到后端的数据:', data)
+  
+  // 构建查询条件字符串
+  const conditionsText = data.conditions.map(condition => 
+    condition.field + ': ' + condition.value
+  ).join(', ')
+  
+  // 实际使用时，这里应该调用API
+  // 例如：
+  /*
+  try {
+    const response = await fetch('/api/es-query', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json'
+      },
+      body: JSON.stringify(data)
+    });
+    const result = await response.json();
+    console.log('后端响应:', result);
+    alert('查询成功！');
+  } catch (error) {
+    console.error('查询失败:', error);
+    alert('查询失败，请重试');
+  }
+  */
+  
+  alert('多字段查询数据已发送到后端:\n' + conditionsText)
+}
+
+const removeHistory = (index) => {
+  queryHistory.value.splice(index, 1)
+}
+
+// 提供给外部调用的方法
+const setQueryData = (conditions) => {
+  if (esQueryComponent.value) {
+    esQueryComponent.value.setQueryData(conditions)
+  }
+}
+
+const getQueryData = () => {
+  if (esQueryComponent.value) {
+    return esQueryComponent.value.getQueryData()
+  }
+  return null
+}
+
+// 暴露方法给父组件
+defineExpose({
+  setQueryData,
+  getQueryData
+})
 </script>
 
 <style scoped>
