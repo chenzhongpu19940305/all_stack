@@ -148,6 +148,11 @@
         </div>
       </div>
       
+      <!-- 没有预定义值时的提示 -->
+      <div v-else class="no-predefined-values">
+        <div class="no-values-message">该字段没有预定义值，请使用上方输入框添加自定义值</div>
+      </div>
+      
       <div class="value-dropdown-footer">
         <button @click="applySelectedValues" class="apply-btn">应用</button>
         <button @click="closeValueDropdown" class="cancel-btn">取消</button>
@@ -318,21 +323,27 @@ const selectField = (field) => {
   searchValue.value = field
   showFieldDropdown.value = false
   
-  // 如果该字段有可选值，则显示值下拉框
+  // 无论字段是否有预定义值，都显示值下拉框
+  // 初始化临时选中值
+  tempSelectedValues.value = selectedValues.value
+    .filter(item => item.field === field)
+    .map(item => item.value)
+  
+  showValueDropdown.value = true
+  
+  // 清空自定义值输入框
+  customValue.value = ''
+  
+  // 加载该字段已有的自定义值
   if (props.fieldValues[field] && props.fieldValues[field].length > 0) {
-    // 初始化临时选中值
-    tempSelectedValues.value = selectedValues.value
-      .filter(item => item.field === field)
-      .map(item => item.value)
-    
-    showValueDropdown.value = true
-    
-    // 清空自定义值输入框
-    customValue.value = ''
-    
-    // 加载该字段已有的自定义值
+    // 如果有预定义值，只加载不在预定义值中的自定义值
     customValues.value = selectedValues.value
-      .filter(item => item.field === field && !props.fieldValues[field]?.includes(item.value))
+      .filter(item => item.field === field && !props.fieldValues[field].includes(item.value))
+      .map(item => item.value)
+  } else {
+    // 如果没有预定义值，加载所有该字段的值作为自定义值
+    customValues.value = selectedValues.value
+      .filter(item => item.field === field)
       .map(item => item.value)
   }
   
@@ -706,6 +717,18 @@ defineExpose({
   margin-bottom: 50px; /* 确保底部有足够空间显示应用按钮 */
 }
 
+.no-predefined-values {
+  padding: 10px;
+  margin-bottom: 40px; /* 为底部按钮留出空间 */
+}
+
+.no-values-message {
+  color: #666;
+  font-style: italic;
+  text-align: center;
+  padding: 10px 0;
+}
+
 .value-option {
   padding: 8px 12px;
   border-bottom: 1px solid #eee;
@@ -917,6 +940,10 @@ defineExpose({
   
   .value-option {
     border-color: #374151;
+  }
+  
+  .no-values-message {
+    color: #9ca3af;
   }
   
   .cancel-btn {
