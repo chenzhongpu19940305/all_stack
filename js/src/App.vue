@@ -52,6 +52,14 @@
           <span class="nav-icon">🔎</span>
           ES字段搜索
         </router-link>
+        <router-link to="/query-list" class="nav-link" active-class="active">
+          <span class="nav-icon">📋</span>
+          查询列表
+        </router-link>
+        <router-link to="/query-list-example" class="nav-link" active-class="active">
+          <span class="nav-icon">📖</span>
+          功能示例
+        </router-link>
 
         <router-link to="/gallery" class="nav-link" active-class="active">
           <span class="nav-icon">🤖</span>

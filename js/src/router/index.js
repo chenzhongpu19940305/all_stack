@@ -8,6 +8,8 @@ import FeatureModule from '../views/FeatureModule.vue'
 import Algorithms from '../views/Algorithms.vue'
 import EnterpriseWiki from '../views/EnterpriseWiki.vue'
 import ESFieldSearch from '../views/ESFieldSearch.vue'
+import QueryList from '../views/QueryList.vue'
+import QueryListExample from '../views/QueryListExample.vue'
 
 import Gallery from '../views/Gallery.vue'
 import VideoGallery from '../views/VideoGallery.vue'
@@ -67,6 +69,16 @@ const routes = [
     path: '/es-field-search',
     name: 'ESFieldSearch',
     component: ESFieldSearch
+  },
+  {
+    path: '/query-list',
+    name: 'QueryList',
+    component: QueryList
+  },
+  {
+    path: '/query-list-example',
+    name: 'QueryListExample',
+    component: QueryListExample
   }
 ]
 
