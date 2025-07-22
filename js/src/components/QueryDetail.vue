@@ -127,7 +127,7 @@ const formatDateRange = (dateString) => {
   try {
     const date = new Date(dateString)
     const startDate = new Date(date.getTime() - 24 * 60 * 60 * 1000) // 前一天
-    const endDate = new Date(date.getTime() + 24 * 60 * 60 * 1000)   // 后一天
+    const endDate = new Date(date.getTime())
     
     const formatDateTime = (date) => {
       const year = date.getFullYear()
@@ -148,7 +148,7 @@ const formatDateRange = (dateString) => {
 
 const handleSearch = (searchData) => {
   console.log('ES搜索数据:', searchData)
-  
+
   // 模拟搜索结果
   searchResults.value = [
     {

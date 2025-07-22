@@ -1,22 +1,17 @@
 import { createRouter, createWebHistory } from 'vue-router'
 import Home from '../views/Home.vue'
-import About from '../views/About.vue'
 import KibanaQuery from '../views/KibanaQuery.vue'
 import ESFieldSearch from '../views/ESFieldSearch.vue'
 import QueryList from '../views/QueryList.vue'
 import Gallery from '../views/Gallery.vue'
 import VideoGallery from '../views/VideoGallery.vue'
+import MindMap from '../views/MindMap.vue'
 
 const routes = [
   {
     path: '/',
     name: 'Home',
     component: Home
-  },
-  {
-    path: '/about',
-    name: 'About',
-    component: About
   },
   {
     path: '/kibana-query',
@@ -42,6 +37,11 @@ const routes = [
     path: '/query-list',
     name: 'QueryList',
     component: QueryList
+  },
+  {
+    path: '/mind-map',
+    name: 'MindMap',
+    component: MindMap
   }
 ]
 
