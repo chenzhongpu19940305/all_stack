@@ -20,30 +20,6 @@
           <span class="nav-icon">🏠</span>
           首页
         </router-link>
-        <router-link to="/dashboard" class="nav-link" active-class="active">
-          <span class="nav-icon">📊</span>
-          仪表板
-        </router-link>
-        <router-link to="/enterprise-wiki" class="nav-link" active-class="active">
-          <span class="nav-icon">📚</span>
-          企业知识库
-        </router-link>
-        <router-link to="/about" class="nav-link" active-class="active">
-          <span class="nav-icon">ℹ️</span>
-          关于
-        </router-link>
-        <router-link to="/algorithms" class="nav-link" active-class="active">
-          <span class="nav-icon">📊</span>
-          算法学习
-        </router-link>
-        <router-link to="/feature-config" class="nav-link" active-class="active">
-          <span class="nav-icon">⚙️</span>
-          特性配置
-        </router-link>
-        <router-link to="/feature-module" class="nav-link" active-class="active">
-          <span class="nav-icon">📦</span>
-          特性模块
-        </router-link>
         <router-link to="/kibana-query" class="nav-link" active-class="active">
           <span class="nav-icon">🔍</span>
           ES查询
@@ -56,11 +32,6 @@
           <span class="nav-icon">📋</span>
           查询列表
         </router-link>
-        <router-link to="/query-list-example" class="nav-link" active-class="active">
-          <span class="nav-icon">📖</span>
-          功能示例
-        </router-link>
-
         <router-link to="/gallery" class="nav-link" active-class="active">
           <span class="nav-icon">🤖</span>
           AI问答记录

@@ -1,7 +1,6 @@
 <template>
   <div class="query-detail-container">
     <div class="detail-header">
-      <h3>查询详情信息</h3>
       <div class="detail-info">
         <div class="info-item">
           <span class="label">应用ID:</span>
@@ -24,41 +23,8 @@
 
     <div class="es-search-section">
       <h4>ES字段搜索</h4>
-      <p class="section-desc">基于当前查询条件进行ES字段搜索</p>
+      <p class="section-desc">使用Elasticsearch字段进行精确搜索和过滤</p>
       
-      <div class="search-config">
-        <div class="config-item">
-          <label>应用ID字段值:</label>
-          <input 
-            v-model="esAppId" 
-            type="text" 
-            class="config-input"
-            placeholder="应用ID"
-          />
-        </div>
-        <div class="config-item">
-          <label>请求路径字段值:</label>
-          <input 
-            v-model="esReqPath" 
-            type="text" 
-            class="config-input"
-            placeholder="请求路径"
-          />
-        </div>
-        <div class="config-item">
-          <label>日期字段值:</label>
-          <input 
-            v-model="esDate" 
-            type="text" 
-            class="config-input"
-            placeholder="日期 (格式: YYYY-MM-DD HH:mm:ss to YYYY-MM-DD HH:mm:ss)"
-          />
-          <div class="date-format-hint">
-            日期将自动格式化为开始时间到结束时间的范围格式
-          </div>
-        </div>
-      </div>
-
       <div class="es-search-wrapper">
         <ESFieldSearchInput
           v-model="selectedValues"
@@ -261,12 +227,16 @@ onMounted(() => {
 <style scoped>
 .query-detail-container {
   padding: 0;
+  height: 100%;
+  display: flex;
+  flex-direction: column;
 }
 
 .detail-header {
-  margin-bottom: 30px;
+  margin-bottom: 24px;
   padding-bottom: 20px;
   border-bottom: 1px solid #e5e7eb;
+  flex-shrink: 0;
 }
 
 .detail-header h3 {
@@ -278,8 +248,8 @@ onMounted(() => {
 
 .detail-info {
   display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
-  gap: 15px;
+  grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+  gap: 12px;
 }
 
 .info-item {
@@ -291,7 +261,8 @@ onMounted(() => {
 .label {
   font-weight: 600;
   color: #374151;
-  min-width: 80px;
+  min-width: 70px;
+  font-size: 13px;
 }
 
 .value {
@@ -300,7 +271,9 @@ onMounted(() => {
   background: #f3f4f6;
   padding: 4px 8px;
   border-radius: 4px;
-  font-size: 13px;
+  font-size: 12px;
+  flex: 1;
+  word-break: break-all;
 }
 
 .status-value {
@@ -321,103 +294,66 @@ onMounted(() => {
 }
 
 .es-search-section {
-  margin-top: 30px;
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
 }
 
 .es-search-section h4 {
-  margin: 0 0 10px 0;
+  margin: 0 0 8px 0;
   color: #1f2937;
   font-size: 16px;
   font-weight: 600;
 }
 
 .section-desc {
-  margin: 0 0 20px 0;
+  margin: 0 0 16px 0;
   color: #6b7280;
-  font-size: 14px;
-}
-
-.search-config {
-  background: #f9fafb;
-  padding: 20px;
-  border-radius: 8px;
-  margin-bottom: 20px;
-  border: 1px solid #e5e7eb;
-}
-
-.config-item {
-  display: flex;
-  align-items: center;
-  gap: 10px;
-  margin-bottom: 15px;
-}
-
-.config-item:last-child {
-  margin-bottom: 0;
-}
-
-.config-item label {
-  font-weight: 500;
-  color: #374151;
-  min-width: 120px;
-  font-size: 14px;
-}
-
-.config-input {
-  flex: 1;
-  padding: 8px 12px;
-  border: 1px solid #d1d5db;
-  border-radius: 4px;
-  font-size: 14px;
-  outline: none;
-  transition: border-color 0.2s;
-}
-
-.config-input:focus {
-  border-color: #3b82f6;
-  box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1);
-}
-
-.date-format-hint {
-  font-size: 12px;
-  color: #6b7280;
-  margin-top: 4px;
-  font-style: italic;
+  font-size: 13px;
 }
 
 .es-search-wrapper {
   margin-bottom: 20px;
+  flex-shrink: 0;
 }
 
 .search-results {
-  margin-top: 30px;
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
 }
 
 .search-results h5 {
-  margin: 0 0 15px 0;
+  margin: 0 0 12px 0;
   color: #1f2937;
   font-size: 14px;
   font-weight: 600;
+  flex-shrink: 0;
 }
 
 .results-list {
+  flex: 1;
   display: flex;
   flex-direction: column;
-  gap: 15px;
+  gap: 12px;
+  overflow-y: auto;
 }
 
 .result-item {
   background: #f9fafb;
   border: 1px solid #e5e7eb;
-  border-radius: 8px;
+  border-radius: 6px;
   overflow: hidden;
+  flex-shrink: 0;
 }
 
 .result-header {
   display: flex;
   align-items: center;
-  gap: 10px;
-  padding: 12px 16px;
+  gap: 8px;
+  padding: 10px 12px;
   background: #f3f4f6;
   border-bottom: 1px solid #e5e7eb;
 }
@@ -425,33 +361,35 @@ onMounted(() => {
 .result-index {
   font-weight: 600;
   color: #374151;
-  font-size: 13px;
+  font-size: 12px;
 }
 
 .result-type {
   background: #3b82f6;
   color: white;
-  padding: 2px 8px;
-  border-radius: 12px;
-  font-size: 11px;
+  padding: 2px 6px;
+  border-radius: 10px;
+  font-size: 10px;
   font-weight: 500;
 }
 
 .result-content {
-  padding: 16px;
+  padding: 12px;
 }
 
 .result-content pre {
   margin: 0;
-  font-size: 12px;
+  font-size: 11px;
   color: #374151;
   background: white;
-  padding: 12px;
+  padding: 10px;
   border-radius: 4px;
   border: 1px solid #e5e7eb;
   overflow-x: auto;
   white-space: pre-wrap;
   word-break: break-word;
+  max-height: 200px;
+  overflow-y: auto;
 }
 
 /* 响应式设计 */
@@ -460,18 +398,19 @@ onMounted(() => {
     grid-template-columns: 1fr;
   }
   
-  .config-item {
+  .info-item {
     flex-direction: column;
     align-items: stretch;
-    gap: 5px;
+    gap: 4px;
   }
   
-  .config-item label {
+  .label {
     min-width: auto;
   }
   
   .result-content pre {
-    font-size: 11px;
+    font-size: 10px;
+    max-height: 150px;
   }
 }
 </style> 

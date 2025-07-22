@@ -289,6 +289,7 @@ const handleInput = () => {
 }
 
 const handleFocus = () => {
+  debugger
   isFocused.value = true
   showFieldDropdown.value = true
   filterFields()
