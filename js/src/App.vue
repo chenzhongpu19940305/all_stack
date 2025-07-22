@@ -6,15 +6,6 @@
         <span class="brand-text">Vue应用</span>
       </div>
       
-      <!-- 添加搜索组件 -->
-      <div class="nav-search">
-        <SearchInput 
-          v-model="globalSearch"
-          placeholder="搜索功能..."
-          @search="handleGlobalSearch"
-        />
-      </div>
-      
       <div class="nav-links">
         <router-link to="/" class="nav-link" active-class="active">
           <span class="nav-icon">🏠</span>

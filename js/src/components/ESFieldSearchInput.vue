@@ -200,31 +200,11 @@ const props = defineProps({
   availableFields: {
     type: Array,
     default: () => [
-      'title', 'content', 'author', 'category', 'tags', 'status', 'priority',
-      'created_at', 'updated_at', 'user_id', 'email', 'phone', 'address',
-      'company', 'department', 'level', 'message', 'service', 'ip',
-      'status_code', 'response_time', 'timestamp', 'log_level', 'error_code',
-      'session_id', 'request_id', 'method', 'url', 'user_agent', 'referer', 'client_ip'
     ]
   },
   fieldValues: {
     type: Object,
     default: () => ({
-      title: ['首页', '关于我们', '产品介绍', '联系方式'],
-      content: ['Vue', 'React', 'Angular', 'Svelte'],
-      author: ['张三', '李四', '王五', '赵六'],
-      category: ['前端', '后端', '移动端', '全栈'],
-      tags: ['JavaScript', 'TypeScript', 'CSS', 'HTML', 'Vue', 'React'],
-      status: ['已发布', '草稿', '审核中', '已删除'],
-      priority: ['高', '中', '低'],
-      created_at: ['今天', '昨天', '本周', '本月', '今年'],
-      updated_at: ['今天', '昨天', '本周', '本月', '今年'],
-      user_id: ['1001', '1002', '1003', '1004'],
-      email: ['admin@example.com', 'user@example.com', 'test@example.com'],
-      phone: ['13800138000', '13900139000', '13700137000'],
-      level: ['初级', '中级', '高级', '专家'],
-      log_level: ['INFO', 'WARNING', 'ERROR', 'DEBUG', 'CRITICAL'],
-      method: ['GET', 'POST', 'PUT', 'DELETE', 'PATCH']
     })
   }
 })
@@ -251,8 +231,7 @@ const endDateTime = ref('')
 // 判断字段是否为日期或时间类型
 const isDateTimeField = (field) => {
   return field.toLowerCase().includes('date') || 
-         field.toLowerCase().includes('time') || 
-         field.toLowerCase().includes('at')
+         field.toLowerCase().includes('time')
 }
 
 // 格式化日期时间为 yyyy-MM-dd HH:mm:ss 格式
