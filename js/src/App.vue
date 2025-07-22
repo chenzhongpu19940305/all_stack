@@ -46,7 +46,6 @@
 
 <script setup>
 import { ref } from 'vue'
-import SearchInput from './components/SearchInput.vue'
 
 // 全局搜索状态
 const globalSearch = ref('')
