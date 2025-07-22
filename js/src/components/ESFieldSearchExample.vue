@@ -9,6 +9,8 @@
       <ESFieldSearchInput 
         v-model="selectedConditions"
         placeholder="搜索ES字段..."
+        :available-fields="customFields"
+        :field-values="customFieldValues"
         @search="handleSearch"
       />
       
@@ -68,6 +70,8 @@
     &lt;ESFieldSearchInput 
       v-model="selectedConditions"
       placeholder="搜索ES字段..."
+      :available-fields="customFields"
+      :field-values="customFieldValues"
       @search="handleSearch"
     /&gt;
   &lt;/div&gt;
@@ -79,6 +83,16 @@ import ESFieldSearchInput from './ESFieldSearchInput.vue'
 
 const selectedConditions = ref([])
 const searchResult = ref(null)
+
+// 自定义字段和字段值
+const customFields = ['title', 'content', 'author', 'created_at', 'updated_at']
+const customFieldValues = {
+  title: ['首页', '关于我们', '产品介绍'],
+  content: ['Vue3', 'React18', 'TypeScript'],
+  author: ['张三', '李四', '王五'],
+  created_at: ['今天', '昨天', '本周'],
+  updated_at: ['今天', '昨天', '本周']
+}
 
 const handleSearch = (conditions) => {
   // 处理搜索逻辑
@@ -105,6 +119,37 @@ import ESFieldSearchInput from './ESFieldSearchInput.vue'
 // 响应式数据
 const selectedConditions = ref([])
 const searchResult = ref(null)
+
+// 自定义字段列表
+const customFields = [
+  'title', 'content', 'author', 'category', 'tags', 'status', 'priority',
+  'created_at', 'updated_at', 'publish_date', 'last_modified_time',
+  'user_id', 'email', 'phone', 'address', 'company', 'department',
+  'level', 'message', 'service', 'ip', 'status_code', 'response_time',
+  'timestamp', 'log_level', 'error_code', 'session_id', 'request_id',
+  'method', 'url', 'user_agent', 'referer', 'client_ip'
+]
+
+// 自定义字段值
+const customFieldValues = {
+  title: ['首页', '关于我们', '产品介绍', '联系方式', '新闻中心'],
+  content: ['Vue3', 'React18', 'Angular15', 'Svelte', 'TypeScript'],
+  author: ['张三', '李四', '王五', '赵六', '钱七'],
+  category: ['前端开发', '后端开发', '移动端开发', '全栈开发', 'DevOps'],
+  tags: ['JavaScript', 'TypeScript', 'CSS3', 'HTML5', 'Vue3', 'React', 'Node.js'],
+  status: ['已发布', '草稿', '审核中', '已删除', '待发布'],
+  priority: ['高', '中', '低', '紧急'],
+  created_at: ['今天', '昨天', '本周', '本月', '今年', '去年'],
+  updated_at: ['今天', '昨天', '本周', '本月', '今年'],
+  publish_date: ['2024-01-01', '2024-02-01', '2024-03-01'],
+  last_modified_time: ['最近1小时', '最近24小时', '最近7天'],
+  user_id: ['1001', '1002', '1003', '1004', '1005'],
+  email: ['admin@example.com', 'user@example.com', 'test@example.com', 'demo@example.com'],
+  phone: ['13800138000', '13900139000', '13700137000', '15800158000'],
+  level: ['初级', '中级', '高级', '专家', '架构师'],
+  log_level: ['INFO', 'WARNING', 'ERROR', 'DEBUG', 'CRITICAL', 'TRACE'],
+  method: ['GET', 'POST', 'PUT', 'DELETE', 'PATCH', 'OPTIONS']
+}
 
 // 处理搜索事件
 const handleSearch = (conditions) => {

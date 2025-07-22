@@ -53,14 +53,36 @@
       
       <!-- 自定义输入框 -->
       <div class="custom-value-input-container">
-        <!-- 日期时间输入框 -->
-        <input
-          v-if="isDateTimeField(selectedField)"
-          v-model="customValue"
-          type="datetime-local"
-          class="custom-value-input datetime-input"
-          @change="addCustomValue"
-        />
+        <!-- 日期时间范围输入框 -->
+        <div v-if="isDateTimeField(selectedField)" class="datetime-range-container">
+          <div class="datetime-input-group">
+            <label class="datetime-label">开始时间:</label>
+            <input
+              v-model="startDateTime"
+              type="datetime-local"
+              step="1"
+              class="custom-value-input datetime-input"
+              placeholder="开始时间"
+            />
+          </div>
+          <div class="datetime-input-group">
+            <label class="datetime-label">结束时间:</label>
+            <input
+              v-model="endDateTime"
+              type="datetime-local"
+              step="1"
+              class="custom-value-input datetime-input"
+              placeholder="结束时间"
+            />
+          </div>
+          <button 
+            @click="addDateTimeRange" 
+            class="add-custom-btn datetime-range-btn"
+            :disabled="!startDateTime || !endDateTime"
+          >
+            添加范围
+          </button>
+        </div>
         <!-- 普通文本输入框 -->
         <input
           v-else
@@ -108,10 +130,10 @@
       </div>
       
       <!-- 预定义的可选值 -->
-      <div v-if="fieldValues[selectedField] && fieldValues[selectedField].length > 0" class="value-options">
+      <div v-if="props.fieldValues[selectedField] && props.fieldValues[selectedField].length > 0" class="value-options">
         <div class="predefined-values-header">预定义值:</div>
         <div 
-          v-for="(value, index) in fieldValues[selectedField]" 
+          v-for="(value, index) in props.fieldValues[selectedField]" 
           :key="index"
           class="value-option"
         >
@@ -169,6 +191,36 @@ const props = defineProps({
   debounceTime: {
     type: Number,
     default: 300
+  },
+  availableFields: {
+    type: Array,
+    default: () => [
+      'title', 'content', 'author', 'category', 'tags', 'status', 'priority',
+      'created_at', 'updated_at', 'user_id', 'email', 'phone', 'address',
+      'company', 'department', 'level', 'message', 'service', 'ip',
+      'status_code', 'response_time', 'timestamp', 'log_level', 'error_code',
+      'session_id', 'request_id', 'method', 'url', 'user_agent', 'referer', 'client_ip'
+    ]
+  },
+  fieldValues: {
+    type: Object,
+    default: () => ({
+      title: ['首页', '关于我们', '产品介绍', '联系方式'],
+      content: ['Vue', 'React', 'Angular', 'Svelte'],
+      author: ['张三', '李四', '王五', '赵六'],
+      category: ['前端', '后端', '移动端', '全栈'],
+      tags: ['JavaScript', 'TypeScript', 'CSS', 'HTML', 'Vue', 'React'],
+      status: ['已发布', '草稿', '审核中', '已删除'],
+      priority: ['高', '中', '低'],
+      created_at: ['今天', '昨天', '本周', '本月', '今年'],
+      updated_at: ['今天', '昨天', '本周', '本月', '今年'],
+      user_id: ['1001', '1002', '1003', '1004'],
+      email: ['admin@example.com', 'user@example.com', 'test@example.com'],
+      phone: ['13800138000', '13900139000', '13700137000'],
+      level: ['初级', '中级', '高级', '专家'],
+      log_level: ['INFO', 'WARNING', 'ERROR', 'DEBUG', 'CRITICAL'],
+      method: ['GET', 'POST', 'PUT', 'DELETE', 'PATCH']
+    })
   }
 })
 
@@ -188,41 +240,8 @@ const tempSelectedValues = ref([])
 const selectedValues = ref(props.modelValue || [])
 const customValue = ref('')
 const customValues = ref([])
-
-// 预定义的字段列表
-const availableFields = [
-  'title',
-  'content',
-  'author',
-  'category',
-  'tags',
-  'status',
-  'priority',
-  'created_at',
-  'updated_at',
-  'user_id',
-  'email',
-  'phone',
-  'address',
-  'company',
-  'department',
-  'level',
-  'message',
-  'service',
-  'ip',
-  'status_code',
-  'response_time',
-  'timestamp',
-  'log_level',
-  'error_code',
-  'session_id',
-  'request_id',
-  'method',
-  'url',
-  'user_agent',
-  'referer',
-  'client_ip'
-]
+const startDateTime = ref('')
+const endDateTime = ref('')
 
 // 判断字段是否为日期或时间类型
 const isDateTimeField = (field) => {
@@ -231,23 +250,21 @@ const isDateTimeField = (field) => {
          field.toLowerCase().includes('at')
 }
 
-// 模拟每个字段的可选值
-const fieldValues = {
-  title: ['首页', '关于我们', '产品介绍', '联系方式'],
-  content: ['Vue', 'React', 'Angular', 'Svelte'],
-  author: ['张三', '李四', '王五', '赵六'],
-  category: ['前端', '后端', '移动端', '全栈'],
-  tags: ['JavaScript', 'TypeScript', 'CSS', 'HTML', 'Vue', 'React'],
-  status: ['已发布', '草稿', '审核中', '已删除'],
-  priority: ['高', '中', '低'],
-  created_at: ['今天', '昨天', '本周', '本月', '今年'],
-  updated_at: ['今天', '昨天', '本周', '本月', '今年'],
-  user_id: ['1001', '1002', '1003', '1004'],
-  email: ['admin@example.com', 'user@example.com', 'test@example.com'],
-  phone: ['13800138000', '13900139000', '13700137000'],
-  level: ['初级', '中级', '高级', '专家'],
-  log_level: ['INFO', 'WARNING', 'ERROR', 'DEBUG', 'CRITICAL'],
-  method: ['GET', 'POST', 'PUT', 'DELETE', 'PATCH']
+// 格式化日期时间为 yyyy-MM-dd HH:mm:ss 格式
+const formatDateTime = (dateTimeString) => {
+  try {
+    const date = new Date(dateTimeString)
+    const year = date.getFullYear()
+    const month = String(date.getMonth() + 1).padStart(2, '0')
+    const day = String(date.getDate()).padStart(2, '0')
+    const hours = String(date.getHours()).padStart(2, '0')
+    const minutes = String(date.getMinutes()).padStart(2, '0')
+    const seconds = String(date.getSeconds()).padStart(2, '0')
+    return `${year}-${month}-${day} ${hours}:${minutes}:${seconds}`
+  } catch (e) {
+    console.error('日期格式化失败', e)
+    return dateTimeString
+  }
 }
 
 // 计算属性
@@ -288,9 +305,9 @@ const filterFields = () => {
   const input = searchValue.value.toLowerCase()
   
   if (!input) {
-    filteredFields.value = availableFields.slice(0, 10)
+    filteredFields.value = props.availableFields.slice(0, 10)
   } else {
-    filteredFields.value = availableFields.filter(field => 
+    filteredFields.value = props.availableFields.filter(field => 
       field.toLowerCase().includes(input)
     ).slice(0, 10)
   }
@@ -302,7 +319,7 @@ const selectField = (field) => {
   showFieldDropdown.value = false
   
   // 如果该字段有可选值，则显示值下拉框
-  if (fieldValues[field] && fieldValues[field].length > 0) {
+  if (props.fieldValues[field] && props.fieldValues[field].length > 0) {
     // 初始化临时选中值
     tempSelectedValues.value = selectedValues.value
       .filter(item => item.field === field)
@@ -315,7 +332,7 @@ const selectField = (field) => {
     
     // 加载该字段已有的自定义值
     customValues.value = selectedValues.value
-      .filter(item => item.field === field && !fieldValues[field]?.includes(item.value))
+      .filter(item => item.field === field && !props.fieldValues[field]?.includes(item.value))
       .map(item => item.value)
   }
   
@@ -367,16 +384,9 @@ const addCustomValue = () => {
   
   let valueToAdd = trimmedValue
   
-  // 如果是日期时间字段，格式化显示
+  // 如果是日期时间字段，格式化显示为 yyyy-MM-dd HH:mm:ss 格式
   if (isDateTimeField(selectedField.value) && trimmedValue.includes('T')) {
-    try {
-      // 将ISO格式的日期时间转换为更友好的显示格式
-      const date = new Date(trimmedValue)
-      valueToAdd = date.toLocaleString()
-    } catch (e) {
-      // 如果转换失败，使用原始值
-      console.error('日期格式化失败', e)
-    }
+    valueToAdd = formatDateTime(trimmedValue)
   }
   
   // 检查是否已存在于自定义值列表中
@@ -391,6 +401,29 @@ const addCustomValue = () => {
   
   // 清空输入框
   customValue.value = ''
+}
+
+// 添加日期时间范围
+const addDateTimeRange = () => {
+  if (!startDateTime.value || !endDateTime.value) return
+  
+  const startFormatted = formatDateTime(startDateTime.value)
+  const endFormatted = formatDateTime(endDateTime.value)
+  const rangeValue = `${startFormatted} 至 ${endFormatted}`
+  
+  // 检查是否已存在于自定义值列表中
+  if (!customValues.value.includes(rangeValue)) {
+    customValues.value.push(rangeValue)
+    
+    // 如果还没有选中，自动选中该值
+    if (!tempSelectedValues.value.includes(rangeValue)) {
+      tempSelectedValues.value.push(rangeValue)
+    }
+  }
+  
+  // 清空输入框
+  startDateTime.value = ''
+  endDateTime.value = ''
 }
 
 // 删除自定义值
@@ -412,6 +445,8 @@ const closeValueDropdown = () => {
   tempSelectedValues.value = []
   customValues.value = []
   customValue.value = ''
+  startDateTime.value = ''
+  endDateTime.value = ''
 }
 
 const removeSelectedValue = (index) => {
@@ -585,6 +620,34 @@ defineExpose({
 
 .datetime-input {
   min-width: 200px;
+}
+
+.datetime-range-container {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  padding: 12px;
+  background: #f8f9fa;
+  border-radius: 6px;
+  border: 1px solid #e1e5e9;
+}
+
+.datetime-input-group {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.datetime-label {
+  font-size: 12px;
+  font-weight: 600;
+  color: #374151;
+  margin-bottom: 2px;
+}
+
+.datetime-range-btn {
+  align-self: flex-start;
+  margin-top: 4px;
 }
 
 .add-custom-btn {
@@ -885,6 +948,25 @@ defineExpose({
   .remove-btn:hover {
     background: #1e293b;
     color: #f9fafb;
+  }
+  
+  .datetime-range-container {
+    background: #1f2937;
+    border-color: #374151;
+  }
+  
+  .datetime-label {
+    color: #e5e7eb;
+  }
+  
+  .datetime-input {
+    background: #1f2937;
+    border-color: #4b5563;
+    color: #f9fafb;
+  }
+  
+  .datetime-input:focus {
+    border-color: #3b82f6;
   }
 }
 </style>
