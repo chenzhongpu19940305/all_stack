@@ -53,7 +53,17 @@
       
       <!-- 自定义输入框 -->
       <div class="custom-value-input-container">
+        <!-- 日期时间输入框 -->
         <input
+          v-if="isDateTimeField(selectedField)"
+          v-model="customValue"
+          type="datetime-local"
+          class="custom-value-input datetime-input"
+          @change="addCustomValue"
+        />
+        <!-- 普通文本输入框 -->
+        <input
+          v-else
           v-model="customValue"
           type="text"
           class="custom-value-input"
@@ -214,6 +224,13 @@ const availableFields = [
   'client_ip'
 ]
 
+// 判断字段是否为日期或时间类型
+const isDateTimeField = (field) => {
+  return field.toLowerCase().includes('date') || 
+         field.toLowerCase().includes('time') || 
+         field.toLowerCase().includes('at')
+}
+
 // 模拟每个字段的可选值
 const fieldValues = {
   title: ['首页', '关于我们', '产品介绍', '联系方式'],
@@ -348,13 +365,27 @@ const addCustomValue = () => {
   const trimmedValue = customValue.value.trim()
   if (!trimmedValue) return
   
+  let valueToAdd = trimmedValue
+  
+  // 如果是日期时间字段，格式化显示
+  if (isDateTimeField(selectedField.value) && trimmedValue.includes('T')) {
+    try {
+      // 将ISO格式的日期时间转换为更友好的显示格式
+      const date = new Date(trimmedValue)
+      valueToAdd = date.toLocaleString()
+    } catch (e) {
+      // 如果转换失败，使用原始值
+      console.error('日期格式化失败', e)
+    }
+  }
+  
   // 检查是否已存在于自定义值列表中
-  if (!customValues.value.includes(trimmedValue)) {
-    customValues.value.push(trimmedValue)
+  if (!customValues.value.includes(valueToAdd)) {
+    customValues.value.push(valueToAdd)
     
     // 如果还没有选中，自动选中该值
-    if (!tempSelectedValues.value.includes(trimmedValue)) {
-      tempSelectedValues.value.push(trimmedValue)
+    if (!tempSelectedValues.value.includes(valueToAdd)) {
+      tempSelectedValues.value.push(valueToAdd)
     }
   }
   
@@ -552,6 +583,10 @@ defineExpose({
   border-color: #3b82f6;
 }
 
+.datetime-input {
+  min-width: 200px;
+}
+
 .add-custom-btn {
   padding: 6px 12px;
   background: #3b82f6;
@@ -603,8 +638,9 @@ defineExpose({
 }
 
 .value-options {
-  max-height: 200px;
+  max-height: 150px;
   overflow-y: auto;
+  margin-bottom: 50px; /* 确保底部有足够空间显示应用按钮 */
 }
 
 .value-option {
@@ -632,6 +668,9 @@ defineExpose({
   padding: 10px 12px;
   background: #f5f5f5;
   border-top: 1px solid #ddd;
+  position: sticky;
+  bottom: 0;
+  z-index: 10;
 }
 
 .apply-btn,
