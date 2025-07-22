@@ -409,7 +409,7 @@ const addDateTimeRange = () => {
   
   const startFormatted = formatDateTime(startDateTime.value)
   const endFormatted = formatDateTime(endDateTime.value)
-  const rangeValue = `${startFormatted} 至 ${endFormatted}`
+  const rangeValue = `${startFormatted} to ${endFormatted}`
   
   // 检查是否已存在于自定义值列表中
   if (!customValues.value.includes(rangeValue)) {
