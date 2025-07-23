@@ -57,12 +57,6 @@ export default {
           link: '/kibana-query'
         },
         {
-          icon: '📺',
-          title: 'B站',
-          desc: '视频分享平台',
-          link: '/bilibili'
-        },
-        {
           icon: '🤖',
           title: 'AI问答记录',
           desc: '智能问答知识库',
@@ -242,4 +236,4 @@ export default {
     padding: 1.5rem;
   }
 }
-</style> 
+</style>

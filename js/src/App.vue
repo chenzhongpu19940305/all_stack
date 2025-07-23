@@ -6,43 +6,10 @@
         <span class="brand-text">Vue应用</span>
       </div>
       
-      <!-- 添加搜索组件 -->
-      <div class="nav-search">
-        <SearchInput 
-          v-model="globalSearch"
-          placeholder="搜索功能..."
-          @search="handleGlobalSearch"
-        />
-      </div>
-      
       <div class="nav-links">
         <router-link to="/" class="nav-link" active-class="active">
           <span class="nav-icon">🏠</span>
           首页
-        </router-link>
-        <router-link to="/dashboard" class="nav-link" active-class="active">
-          <span class="nav-icon">📊</span>
-          仪表板
-        </router-link>
-        <router-link to="/enterprise-wiki" class="nav-link" active-class="active">
-          <span class="nav-icon">📚</span>
-          企业知识库
-        </router-link>
-        <router-link to="/about" class="nav-link" active-class="active">
-          <span class="nav-icon">ℹ️</span>
-          关于
-        </router-link>
-        <router-link to="/algorithms" class="nav-link" active-class="active">
-          <span class="nav-icon">📊</span>
-          算法学习
-        </router-link>
-        <router-link to="/feature-config" class="nav-link" active-class="active">
-          <span class="nav-icon">⚙️</span>
-          特性配置
-        </router-link>
-        <router-link to="/feature-module" class="nav-link" active-class="active">
-          <span class="nav-icon">📦</span>
-          特性模块
         </router-link>
         <router-link to="/kibana-query" class="nav-link" active-class="active">
           <span class="nav-icon">🔍</span>
@@ -56,11 +23,6 @@
           <span class="nav-icon">📋</span>
           查询列表
         </router-link>
-        <router-link to="/query-list-example" class="nav-link" active-class="active">
-          <span class="nav-icon">📖</span>
-          功能示例
-        </router-link>
-
         <router-link to="/gallery" class="nav-link" active-class="active">
           <span class="nav-icon">🤖</span>
           AI问答记录
@@ -68,6 +30,10 @@
         <router-link to="/video-gallery" class="nav-link" active-class="active">
           <span class="nav-icon">🎬</span>
           哔哩哔哩
+        </router-link>
+        <router-link to="/mind-map" class="nav-link" active-class="active">
+          <span class="nav-icon">🧠</span>
+          思维导图
         </router-link>
         <router-link to="/contact" class="nav-link" active-class="active">
           <span class="nav-icon">📞</span>
@@ -84,7 +50,6 @@
 
 <script setup>
 import { ref } from 'vue'
-import SearchInput from './components/SearchInput.vue'
 
 // 全局搜索状态
 const globalSearch = ref('')

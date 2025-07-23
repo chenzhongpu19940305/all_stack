@@ -35,21 +35,25 @@
               <span :class="['status-badge', record.status]">{{ record.status }}</span>
             </td>
             <td>
-              <button @click="viewDetail(record)" class="detail-btn">查看详情</button>
+              <button @click="openDrawer(record)" class="detail-btn">查看详情</button>
             </td>
           </tr>
         </tbody>
       </table>
     </div>
 
-    <!-- 详情模态框 -->
-    <div v-if="showDetailModal" class="modal-overlay" @click="closeDetailModal">
-      <div class="modal-content" @click.stop>
-        <div class="modal-header">
+    <!-- 抽屉柜 -->
+    <div 
+      v-if="showDrawer" 
+      class="drawer-overlay" 
+      @click="closeDrawer"
+    >
+      <div class="drawer-content" @click.stop>
+        <div class="drawer-header">
           <h2>查询详情</h2>
-          <button @click="closeDetailModal" class="close-btn">×</button>
+          <button @click="closeDrawer" class="close-btn">×</button>
         </div>
-        <div class="modal-body">
+        <div class="drawer-body">
           <QueryDetail 
             :app-id="selectedRecord.appId"
             :req-path="selectedRecord.reqPath"
@@ -68,7 +72,7 @@ import QueryDetail from '../components/QueryDetail.vue'
 
 // 响应式数据
 const searchKeyword = ref('')
-const showDetailModal = ref(false)
+const showDrawer = ref(false)
 const selectedRecord = ref({})
 
 // 模拟数据
@@ -138,13 +142,13 @@ const searchRecords = () => {
   console.log('搜索关键词:', searchKeyword.value)
 }
 
-const viewDetail = (record) => {
+const openDrawer = (record) => {
   selectedRecord.value = record
-  showDetailModal.value = true
+  showDrawer.value = true
 }
 
-const closeDetailModal = () => {
-  showDetailModal.value = false
+const closeDrawer = () => {
+  showDrawer.value = false
   selectedRecord.value = {}
 }
 </script>
@@ -272,8 +276,8 @@ const closeDetailModal = () => {
   background: #2563eb;
 }
 
-/* 模态框样式 */
-.modal-overlay {
+/* 抽屉柜样式 */
+.drawer-overlay {
   position: fixed;
   top: 0;
   left: 0;
@@ -282,30 +286,33 @@ const closeDetailModal = () => {
   background: rgba(0, 0, 0, 0.5);
   display: flex;
   align-items: center;
-  justify-content: center;
+  justify-content: flex-end;
   z-index: 1000;
+  animation: fadeIn 0.3s ease-out;
 }
 
-.modal-content {
+.drawer-content {
   background: white;
-  border-radius: 8px;
+  height: 100vh;
   width: 90%;
-  max-width: 800px;
-  max-height: 90vh;
-  overflow: hidden;
-  box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1);
+  max-width: 600px;
+  box-shadow: -4px 0 25px rgba(0, 0, 0, 0.15);
+  display: flex;
+  flex-direction: column;
+  animation: slideIn 0.3s ease-out;
 }
 
-.modal-header {
+.drawer-header {
   display: flex;
   justify-content: space-between;
   align-items: center;
   padding: 20px 24px;
   border-bottom: 1px solid #e5e7eb;
   background: #f9fafb;
+  flex-shrink: 0;
 }
 
-.modal-header h2 {
+.drawer-header h2 {
   margin: 0;
   color: #1f2937;
   font-size: 20px;
@@ -333,10 +340,29 @@ const closeDetailModal = () => {
   color: #374151;
 }
 
-.modal-body {
+.drawer-body {
+  flex: 1;
   padding: 24px;
-  max-height: calc(90vh - 80px);
   overflow-y: auto;
+}
+
+/* 动画效果 */
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+
+@keyframes slideIn {
+  from {
+    transform: translateX(100%);
+  }
+  to {
+    transform: translateX(0);
+  }
 }
 
 /* 响应式设计 */
@@ -364,9 +390,9 @@ const closeDetailModal = () => {
     padding: 10px 8px;
   }
   
-  .modal-content {
-    width: 95%;
-    margin: 10px;
+  .drawer-content {
+    width: 100%;
+    max-width: none;
   }
 }
 </style>

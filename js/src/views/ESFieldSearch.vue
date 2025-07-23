@@ -6,13 +6,58 @@
     </div>
     
     <div class="content-container">
-      <ESFieldSearchExample />
+      <ESFieldSearchInput 
+        v-model="selectedValues"
+        :available-fields="availableFields"
+        :field-values="fieldValues"
+        placeholder="搜索ES字段..."
+        @search="handleSearch"
+      />
+      
+      <div v-if="selectedValues.length > 0" class="search-results">
+        <h3>已选择的字段值:</h3>
+        <pre>{{ JSON.stringify(selectedValues, null, 2) }}</pre>
+      </div>
     </div>
   </div>
 </template>
 
 <script setup>
-import ESFieldSearchExample from '../components/ESFieldSearchExample.vue'
+import { ref } from 'vue'
+import ESFieldSearchInput from '../components/ESFieldSearchInput.vue'
+
+// 示例数据
+const availableFields = ref([
+  'user_id',
+  'username', 
+  'email',
+  'created_at',
+  'updated_at',
+  'status',
+  'category',
+  'tags',
+  'score',
+  'title',
+  'content',
+  'author',
+  'publish_date',
+  'view_count',
+  'like_count'
+])
+
+const fieldValues = ref({
+  'status': ['active', 'inactive', 'pending', 'deleted'],
+  'category': ['技术', '产品', '设计', '运营', '市场'],
+  'tags': ['Vue', 'React', 'JavaScript', 'Python', 'Java', 'Go'],
+  'author': ['张三', '李四', '王五', '赵六'],
+  'score': ['1', '2', '3', '4', '5']
+})
+
+const selectedValues = ref([])
+
+const handleSearch = (searchValue) => {
+  console.log('搜索值:', searchValue)
+}
 </script>
 
 <style scoped>
@@ -89,6 +134,50 @@ import ESFieldSearchExample from '../components/ESFieldSearchExample.vue'
   .content-container {
     background: #1f2937;
     box-shadow: 0 4px 6px rgba(0, 0, 0, 0.2), 0 10px 15px rgba(0, 0, 0, 0.1);
+  }
+}
+
+/* 搜索结果样式 */
+.search-results {
+  margin-top: 32px;
+  padding: 20px;
+  background: #f8f9fa;
+  border-radius: 8px;
+  border: 1px solid #e9ecef;
+}
+
+.search-results h3 {
+  margin-bottom: 16px;
+  color: #495057;
+  font-size: 1.1rem;
+}
+
+.search-results pre {
+  background: #ffffff;
+  padding: 16px;
+  border-radius: 6px;
+  border: 1px solid #dee2e6;
+  overflow-x: auto;
+  font-size: 14px;
+  line-height: 1.5;
+  color: #212529;
+}
+
+/* 深色模式下的搜索结果样式 */
+@media (prefers-color-scheme: dark) {
+  .search-results {
+    background: #2d3748;
+    border-color: #4a5568;
+  }
+  
+  .search-results h3 {
+    color: #e2e8f0;
+  }
+  
+  .search-results pre {
+    background: #1a202c;
+    border-color: #4a5568;
+    color: #e2e8f0;
   }
 }
 </style>
