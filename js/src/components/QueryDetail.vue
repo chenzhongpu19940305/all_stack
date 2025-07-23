@@ -128,12 +128,18 @@ const formatDate = (dateString) => {
   return `${year}-${month}-${day} ${hours}:${minutes}:${seconds}`
 }
 
-// 格式化日期为开始时间到结束时间的格式
+// 格式化日期为当天开始时间到结束时间的格式
 const formatDateRange = (dateString) => {
   try {
     const date = new Date(dateString)
-    const startDate = new Date(date.getTime() - 24 * 60 * 60 * 1000) // 前一天
-    const endDate = new Date(date.getTime())
+    
+    // 设置为当天的开始时间 00:00:00
+    const startDate = new Date(date)
+    startDate.setHours(0, 0, 0, 0)
+    
+    // 设置为当天的结束时间 23:59:59
+    const endDate = new Date(date)
+    endDate.setHours(23, 59, 59, 999)
     
     const formatDateTime = (date) => {
       const year = date.getFullYear()
