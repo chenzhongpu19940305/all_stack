@@ -77,35 +77,35 @@ const records = ref([
     id: 1,
     appId: 'app_001',
     reqPath: '/api/users/search',
-    date: '2024-01-15 10:30:00',
+    date: '2024-01-15',
     status: '成功'
   },
   {
     id: 2,
     appId: 'app_002',
     reqPath: '/api/orders/list',
-    date: '2024-01-15 11:15:00',
+    date: '2024-01-15',
     status: '成功'
   },
   {
     id: 3,
     appId: 'app_003',
     reqPath: '/api/products/filter',
-    date: '2024-01-15 12:00:00',
+    date: '2024-01-15',
     status: '失败'
   },
   {
     id: 4,
     appId: 'app_001',
     reqPath: '/api/logs/query',
-    date: '2024-01-15 13:45:00',
+    date: '2024-01-15',
     status: '成功'
   },
   {
     id: 5,
     appId: 'app_004',
     reqPath: '/api/analytics/data',
-    date: '2024-01-15 14:20:00',
+    date: '2024-01-15',
     status: '成功'
   }
 ])
@@ -127,7 +127,10 @@ const filteredRecords = computed(() => {
 // 方法
 const formatDate = (dateString) => {
   const date = new Date(dateString)
-  return date.toLocaleString('zh-CN')
+  const year = date.getFullYear()
+  const month = String(date.getMonth() + 1).padStart(2, '0')
+  const day = String(date.getDate()).padStart(2, '0')
+  return `${year}-${month}-${day}`
 }
 
 const searchRecords = () => {
@@ -366,4 +369,4 @@ const closeDetailModal = () => {
     margin: 10px;
   }
 }
-</style> 
+</style>

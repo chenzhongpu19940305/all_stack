@@ -153,7 +153,13 @@ const fieldValues = ref({
 // 方法
 const formatDate = (dateString) => {
   const date = new Date(dateString)
-  return date.toLocaleString('zh-CN')
+  const year = date.getFullYear()
+  const month = String(date.getMonth() + 1).padStart(2, '0')
+  const day = String(date.getDate()).padStart(2, '0')
+  const hours = String(date.getHours()).padStart(2, '0')
+  const minutes = String(date.getMinutes()).padStart(2, '0')
+  const seconds = String(date.getSeconds()).padStart(2, '0')
+  return `${year}-${month}-${day} ${hours}:${minutes}:${seconds}`
 }
 
 // 格式化日期为开始时间到结束时间的格式
@@ -474,4 +480,4 @@ onMounted(() => {
     font-size: 11px;
   }
 }
-</style> 
+</style>
