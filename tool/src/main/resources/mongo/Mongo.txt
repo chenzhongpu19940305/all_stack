@@ -28,3 +28,62 @@ db.your_collection.aggregate([
     $sort: { count: -1 }             // 按文档数量降序排列
   }
 ])
+
+
+
+####################################################################时间字段
+
+// 查看requestTime字段类型分布的完整查询语句
+db.your_collection.aggregate([
+  {
+    $project: {
+      "fieldExists": {
+        $cond: {
+          if: { $ne: ["$requestTime", null] },
+          then: true,
+          else: false
+        }
+      },
+      "requestTime_Type": {
+        $type: "$requestTime"   // 获取BSON类型
+      },
+      "requestTime_Value": {
+        $cond: {
+          if: { $isNumber: "$requestTime" },
+          then: { $toDate: "$requestTime" }, // 将数字转换为日期
+          else: "$requestTime"
+        }
+      },
+      "originalValue": "$requestTime"  // 原始值用于调试
+    }
+  },
+  {
+    $match: {
+      "fieldExists": true  // 只包含存在requestTime字段的文档
+    }
+  },
+  {
+    $group: {
+      _id: "$requestTime_Type",      // 按字段类型分组
+      count: { $sum: 1 },            // 统计每种类型的文档数量
+      sampleValues: { $push: "$requestTime_Value" },  // 收集值
+      originalSamples: { $push: "$originalValue" }    // 原始值样本
+    }
+  },
+  {
+    $project: {
+      _id: 0,                        // 隐藏默认_id
+      dataType: "$_id",              // 重命名类型为dataType
+      count: 1,                      // 保留计数
+      sampleValues: {
+        $slice: ["$sampleValues", 5] // 取前5个样本值（日期格式）
+      },
+      originalSamples: {
+        $slice: ["$originalSamples", 3] // 原始值样本（用于调试）
+      }
+    }
+  },
+  {
+    $sort: { count: -1 }             // 按文档数量降序排列
+  }
+])
