@@ -7,6 +7,7 @@
         <sourceOutputDir name="target/generated-sources/annotations" />
         <sourceTestOutputDir name="target/generated-test-sources/test-annotations" />
         <outputRelativeToContentRoot value="true" />
+        <module name="langchain-springboot" />
         <module name="algorithm" />
         <module name="tool-service" />
       </profile>
@@ -20,6 +21,7 @@
     <option name="ADDITIONAL_OPTIONS_OVERRIDE">
       <module name="algorithm-service" options="-parameters" />
       <module name="demo" options="-parameters" />
+      <module name="langchain-springboot" options="-parameters" />
       <module name="tool-service" options="-parameters" />
     </option>
   </component>

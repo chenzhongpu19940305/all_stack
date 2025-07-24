@@ -1,0 +1,23 @@
+db.collection.aggregate([
+  {
+    $project: {
+      "字段名类型": { $type: "$your_field" },
+      "字段名值": "$your_field"
+    }
+  },
+  {
+    $group: {
+      _id: "$字段名类型",
+      count: { $sum: 1 },
+      sampleValues: { $push: "$字段名值" }
+    }
+  },
+  {
+    $project: {
+      _id: 0,
+      dataType: "$_id",
+      count: 1,
+      sampleValues: { $slice: ["$sampleValues", 5] }
+    }
+  }
+])
