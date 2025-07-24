@@ -35,6 +35,10 @@
           <span class="nav-icon">🧠</span>
           思维导图
         </router-link>
+        <router-link to="/introduction" class="nav-link" active-class="active">
+          <span class="nav-icon">📖</span>
+          介绍模块
+        </router-link>
         <router-link to="/contact" class="nav-link" active-class="active">
           <span class="nav-icon">📞</span>
           联系我们

@@ -6,6 +6,7 @@ import QueryList from '../views/QueryList.vue'
 import Gallery from '../views/Gallery.vue'
 import VideoGallery from '../views/VideoGallery.vue'
 import MindMap from '../views/MindMap.vue'
+import Introduction from '../views/Introduction.vue'
 
 const routes = [
   {
@@ -42,6 +43,11 @@ const routes = [
     path: '/mind-map',
     name: 'MindMap',
     component: MindMap
+  },
+  {
+    path: '/introduction',
+    name: 'Introduction',
+    component: Introduction
   }
 ]
 
