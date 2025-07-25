@@ -3,9 +3,13 @@
 CREATE TABLE IF NOT EXISTS gallery_records (
     id BIGINT AUTO_INCREMENT PRIMARY KEY,
     title VARCHAR(255) NOT NULL COMMENT '记录标题',
+    description TEXT COMMENT '记录描述',
+    code LONGTEXT COMMENT '代码内容',
+    language VARCHAR(50) COMMENT '编程语言',
     created_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP COMMENT '创建时间',
     updated_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP COMMENT '更新时间',
     INDEX idx_title (title),
+    INDEX idx_language (language),
     INDEX idx_created_at (created_at)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci COMMENT='AI问答记录表';
 

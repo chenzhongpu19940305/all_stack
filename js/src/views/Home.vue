@@ -6,12 +6,12 @@
     </div>
     
     <div class="quick-actions">
-      <div class="action-card" v-for="action in actions">
-        <div class="action-icon">{{ action.icon }}</div>
-        <h3>{{ action.title }}</h3>
-        <p>{{ action.desc }}</p>
-        <router-link :to="action.link" class="action-btn">开始使用</router-link>
-      </div>
+              <div class="action-card" v-for="action in actions">
+          <div class="action-icon">{{ action.icon }}</div>
+          <h3>{{ action.title }}</h3>
+          <p>{{ action.description }}</p>
+          <router-link :to="action.path" class="action-btn">开始使用</router-link>
+        </div>
     </div>
     
     <div class="demo-section">
@@ -28,6 +28,7 @@
 
 <script>
 import { reactive, ref } from 'vue'
+import { getNavigationMenu } from '../router/routes'
 
 export default {
   name: 'Home',
@@ -37,32 +38,7 @@ export default {
     
     // 使用reactive()管理复杂响应式对象
     var state = reactive({
-      actions: [
-        {
-          icon: '📊',
-          title: '算法学习',
-          desc: '可视化算法学习平台',
-          link: '/algorithms'
-        },
-        {
-          icon: '⚙️',
-          title: '特性配置',
-          desc: '系统特性管理工具',
-          link: '/feature-config'
-        },
-        {
-          icon: '🔍',
-          title: 'ES查询',
-          desc: 'Elasticsearch查询工具',
-          link: '/kibana-query'
-        },
-        {
-          icon: '🤖',
-          title: 'AI问答记录',
-          desc: '智能问答知识库',
-          link: '/gallery'
-        }
-      ]
+      actions: getNavigationMenu().filter(route => route.path !== '/')
     });
 
     // 方法定义

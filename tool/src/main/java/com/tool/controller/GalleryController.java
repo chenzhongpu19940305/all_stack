@@ -109,6 +109,28 @@ public class GalleryController {
     }
     
     /**
+     * 更新AI问答记录
+     * 
+     * @param id 记录ID
+     * @param request 更新请求
+     * @return 更新后的记录
+     */
+    @PutMapping("/records/{id}")
+    public ResponseEntity<Map<String, Object>> updateRecord(@PathVariable Long id, @RequestBody CreateRecordRequest request) {
+        try {
+            GalleryRecordDTO record = galleryService.updateRecord(id, request);
+            Map<String, Object> response = new HashMap<String, Object>();
+            response.put("record", record);
+            response.put("message", "记录更新成功");
+            return ResponseEntity.ok(response);
+        } catch (Exception e) {
+            Map<String, Object> error = new HashMap<String, Object>();
+            error.put("error", "更新记录失败: " + e.getMessage());
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(error);
+        }
+    }
+    
+    /**
      * 获取单个记录详情
      * 
      * @param id 记录ID

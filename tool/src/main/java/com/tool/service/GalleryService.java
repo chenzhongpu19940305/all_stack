@@ -52,6 +52,15 @@ public interface GalleryService {
     void deleteRecord(Long id);
     
     /**
+     * 更新记录
+     * 
+     * @param id 记录ID
+     * @param request 更新请求
+     * @return 更新后的记录
+     */
+    GalleryRecordDTO updateRecord(Long id, CreateRecordRequest request);
+    
+    /**
      * 上传图片
      * 
      * @param file 图片文件

@@ -27,6 +27,10 @@
           <span class="nav-icon">🤖</span>
           AI问答记录
         </router-link>
+        <router-link to="/code-gallery" class="nav-link" active-class="active">
+          <span class="nav-icon">💻</span>
+          代码片段管理
+        </router-link>
         <router-link to="/video-gallery" class="nav-link" active-class="active">
           <span class="nav-icon">🎬</span>
           哔哩哔哩

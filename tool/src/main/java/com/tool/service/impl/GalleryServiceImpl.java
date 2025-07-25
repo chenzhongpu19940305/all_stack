@@ -66,6 +66,8 @@ public class GalleryServiceImpl implements GalleryService {
     public GalleryRecordDTO createRecord(CreateRecordRequest request) {
         // 创建记录
         GalleryRecord record = new GalleryRecord(request.getTitle(), request.getDescription());
+        record.setCode(request.getCode());
+        record.setLanguage(request.getLanguage());
         recordMapper.insert(record);
         
         // 如果有图片，创建图片记录
@@ -97,6 +99,41 @@ public class GalleryServiceImpl implements GalleryService {
         
         // 删除记录
         recordMapper.deleteById(id);
+    }
+    
+    @Override
+    public GalleryRecordDTO updateRecord(Long id, CreateRecordRequest request) {
+        GalleryRecord record = recordMapper.selectById(id);
+        if (record == null) {
+            throw new RuntimeException("记录不存在: " + id);
+        }
+        
+        // 更新记录信息
+        record.setTitle(request.getTitle());
+        record.setDescription(request.getDescription());
+        record.setCode(request.getCode());
+        record.setLanguage(request.getLanguage());
+        record.setUpdatedAt(LocalDateTime.now());
+        
+        recordMapper.update(record);
+        
+        // 如果有新的图片，先删除旧的图片记录，再添加新的
+        if (request.getImages() != null && !request.getImages().isEmpty()) {
+            imageMapper.deleteByRecordId(id);
+            
+            for (GalleryImageDTO imageDTO : request.getImages()) {
+                GalleryImage image = new GalleryImage();
+                image.setName(imageDTO.getName());
+                image.setImageData(imageDTO.getImageData());
+                image.setFileSize(imageDTO.getFileSize());
+                image.setContentType(imageDTO.getContentType());
+                image.setRecordId(id);
+                imageMapper.insert(image);
+            }
+        }
+        
+        // 重新查询以获取完整的记录信息
+        return getRecordById(id);
     }
     
     @Override
@@ -143,6 +180,10 @@ public class GalleryServiceImpl implements GalleryService {
         
         // 设置描述
         dto.setDescription(record.getDescription());
+        
+        // 设置代码相关字段
+        dto.setCode(record.getCode());
+        dto.setLanguage(record.getLanguage());
         
         // 设置关联的图片（如果record中已经包含图片信息）
         if (record.getImages() != null && !record.getImages().isEmpty()) {

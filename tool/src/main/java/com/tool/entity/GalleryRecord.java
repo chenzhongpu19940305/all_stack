@@ -17,6 +17,10 @@ public class GalleryRecord {
     
     private String description;
     
+    // 代码片段相关字段
+    private String code;
+    private String language;
+    
     private LocalDateTime createdAt;
     
     private LocalDateTime updatedAt;
@@ -58,6 +62,22 @@ public class GalleryRecord {
     
     public void setDescription(String description) {
         this.description = description;
+    }
+    
+    public String getCode() {
+        return code;
+    }
+    
+    public void setCode(String code) {
+        this.code = code;
+    }
+    
+    public String getLanguage() {
+        return language;
+    }
+    
+    public void setLanguage(String language) {
+        this.language = language;
     }
     
     public LocalDateTime getCreatedAt() {

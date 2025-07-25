@@ -14,6 +14,8 @@ public class GalleryRecordDTO {
     private Long id;
     private String title;
     private String description;
+    private String code;
+    private String language;
     private LocalDateTime createdAt;
     private LocalDateTime updatedAt;
     private List<GalleryImageDTO> images;
@@ -50,6 +52,22 @@ public class GalleryRecordDTO {
     
     public void setDescription(String description) {
         this.description = description;
+    }
+    
+    public String getCode() {
+        return code;
+    }
+    
+    public void setCode(String code) {
+        this.code = code;
+    }
+    
+    public String getLanguage() {
+        return language;
+    }
+    
+    public void setLanguage(String language) {
+        this.language = language;
     }
     
     public LocalDateTime getCreatedAt() {
