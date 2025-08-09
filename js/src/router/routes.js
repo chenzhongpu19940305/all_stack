@@ -6,6 +6,7 @@ import MindMap from '../views/MindMap.vue'
 import EdrawMind from '../views/EdrawMind.vue'
 import RouteTest from '../views/RouteTest.vue'
 import EdrawMindHome from '../views/EdrawMindHome.vue'
+import Docs from '../views/Docs.vue'
 
 // 路由配置
 export const routes = [
@@ -47,6 +48,16 @@ export const routes = [
       title: '思维导图',
       icon: '🧠',
       description: '思维导图工具'
+    }
+  },
+  {
+    path: '/docs',
+    name: 'Docs',
+    component: Docs,
+    meta: {
+      title: '文档库',
+      icon: '📚',
+      description: 'Word/Excel/PDF/PPT 文档管理'
     }
   },
   {

@@ -16,18 +16,21 @@ public class WebConfig implements WebMvcConfigurer {
     
     @Override
     public void addResourceHandlers(ResourceHandlerRegistry registry) {
-        // 配置静态资源访问
+        // 静态资源与本地uploads映射
+        registry.addResourceHandler("/uploads/**")
+                .addResourceLocations("file:./uploads/");
         registry.addResourceHandler("/**")
                 .addResourceLocations("classpath:/static/", "file:./");
     }
     
     @Override
     public void addCorsMappings(CorsRegistry registry) {
-        // 配置全局CORS
+        // 全局CORS
         registry.addMapping("/**")
                 .allowedOriginPatterns("*")
                 .allowedMethods("GET", "POST", "PUT", "DELETE", "OPTIONS")
                 .allowedHeaders("*")
+                .exposedHeaders("Content-Disposition", "content-disposition")
                 .allowCredentials(false)
                 .maxAge(3600);
     }

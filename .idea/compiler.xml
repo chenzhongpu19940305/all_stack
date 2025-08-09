@@ -7,7 +7,6 @@
         <sourceOutputDir name="target/generated-sources/annotations" />
         <sourceTestOutputDir name="target/generated-test-sources/test-annotations" />
         <outputRelativeToContentRoot value="true" />
-        <module name="langchain-springboot" />
         <module name="algorithm" />
         <module name="tool-service" />
       </profile>
@@ -15,6 +14,7 @@
     <bytecodeTargetLevel>
       <module name="algorithm-service" target="17" />
       <module name="demo" target="1.8" />
+      <module name="langchain-springboot" target="17" />
     </bytecodeTargetLevel>
   </component>
   <component name="JavacSettings">
