@@ -17,6 +17,7 @@
         </div>
       </div>
       <div class="header-right">
+        <button @click="cleanOrphanImages" class="clean-btn">清理孤立图片</button>
         <button @click="showUploadModal = true" class="upload-btn">新增记录</button>
       </div>
     </div>
@@ -241,8 +242,9 @@ export default {
       try {
         const queryParams = new URLSearchParams(params)
         const url = `${API_ENDPOINTS.GET_RECORDS}?${queryParams}`
-        const data = await apiRequest(url)
-        images.value = data.records || []
+        const response = await apiRequest(url)
+        console.log('API响应:', response) // 调试日志
+        images.value = response.data?.records || []
         filteredImages.value = [...images.value]
       } catch (error) {
         console.error('加载记录失败:', error)
@@ -264,7 +266,8 @@ export default {
           method: 'POST',
           body: JSON.stringify({ query })
         })
-        filteredImages.value = response.records || []
+        console.log('搜索响应:', response) // 调试日志
+        filteredImages.value = response.data?.records || []
       } catch (error) {
         console.error('搜索失败:', error)
         // 如果搜索失败，使用本地过滤
@@ -350,11 +353,20 @@ export default {
       }
       
       try {
+        // 处理图片：移除isLocal标记，因为后端不需要这个字段
+        const processedImages = updateForm.images.map(img => ({
+          name: img.name,
+          imageData: img.imageData,
+          fileSize: img.fileSize,
+          contentType: img.contentType,
+          id: img.id // 保留已有图片的ID
+        }));
+        
         const url = API_ENDPOINTS.CREATE_RECORD.replace('/records', `/records/${updateForm.id}`)
         const recordData = {
           title: updateForm.title,
           description: updateForm.description,
-          images: updateForm.images
+          images: processedImages
         }
         
         await apiRequest(url, {
@@ -408,10 +420,21 @@ export default {
           const file = items[i].getAsFile();
           if (file && file.type.startsWith('image/')) {
             try {
-              const uploadedImage = await uploadImageToServer(file);
-              uploadForm.images.push(uploadedImage);
+              // 将图片转换为base64，暂存在本地，不立即上传
+              const reader = new FileReader();
+              reader.onload = (e) => {
+                const imageData = e.target.result;
+                uploadForm.images.push({
+                  name: file.name,
+                  imageData: imageData,
+                  fileSize: file.size,
+                  contentType: file.type,
+                  isLocal: true // 标记为本地图片，未上传
+                });
+              };
+              reader.readAsDataURL(file);
             } catch (error) {
-              alert('图片上传失败，请重试');
+              alert('图片处理失败，请重试');
             }
           }
         }
@@ -426,10 +449,21 @@ export default {
         const file = files[i];
         if (file.type.startsWith('image/')) {
           try {
-            const uploadedImage = await uploadImageToServer(file);
-            uploadForm.images.push(uploadedImage);
+            // 将图片转换为base64，暂存在本地，不立即上传
+            const reader = new FileReader();
+            reader.onload = (e) => {
+              const imageData = e.target.result;
+              uploadForm.images.push({
+                name: file.name,
+                imageData: imageData,
+                fileSize: file.size,
+                contentType: file.type,
+                isLocal: true // 标记为本地图片，未上传
+              });
+            };
+            reader.readAsDataURL(file);
           } catch (error) {
-            alert('图片上传失败，请重试');
+            alert('图片处理失败，请重试');
           }
         }
       }
@@ -453,10 +487,21 @@ export default {
           const file = items[i].getAsFile();
           if (file && file.type.startsWith('image/')) {
             try {
-              const uploadedImage = await uploadImageToServer(file);
-              updateForm.images.push(uploadedImage);
+              // 将图片转换为base64，暂存在本地，不立即上传
+              const reader = new FileReader();
+              reader.onload = (e) => {
+                const imageData = e.target.result;
+                updateForm.images.push({
+                  name: file.name,
+                  imageData: imageData,
+                  fileSize: file.size,
+                  contentType: file.type,
+                  isLocal: true // 标记为本地图片，未上传
+                });
+              };
+              reader.readAsDataURL(file);
             } catch (error) {
-              alert('图片上传失败，请重试');
+              alert('图片处理失败，请重试');
             }
           }
         }
@@ -471,10 +516,21 @@ export default {
         const file = files[i];
         if (file.type.startsWith('image/')) {
           try {
-            const uploadedImage = await uploadImageToServer(file);
-            updateForm.images.push(uploadedImage);
+            // 将图片转换为base64，暂存在本地，不立即上传
+            const reader = new FileReader();
+            reader.onload = (e) => {
+              const imageData = e.target.result;
+              updateForm.images.push({
+                name: file.name,
+                imageData: imageData,
+                fileSize: file.size,
+                contentType: file.type,
+                isLocal: true // 标记为本地图片，未上传
+              });
+            };
+            reader.readAsDataURL(file);
           } catch (error) {
-            alert('图片上传失败，请重试');
+            alert('图片处理失败，请重试');
           }
         }
       }
@@ -493,10 +549,18 @@ export default {
       }
       
       try {
+        // 处理图片：移除isLocal标记，因为后端不需要这个字段
+        const processedImages = uploadForm.images.map(img => ({
+          name: img.name,
+          imageData: img.imageData,
+          fileSize: img.fileSize,
+          contentType: img.contentType
+        }));
+        
         const recordData = {
           title: uploadForm.title,
           description: uploadForm.description,
-          images: uploadForm.images
+          images: processedImages
         }
         
         await createRecord(recordData);
@@ -507,6 +571,32 @@ export default {
         alert('新增记录失败，请重试');
       }
     }
+    
+    // 清理孤立图片
+    const cleanOrphanImages = async () => {
+      if (!confirm('确定要清理所有孤立图片吗？此操作不可撤销。')) {
+        return;
+      }
+      
+      try {
+        const response = await fetch('/api/gallery/images/orphan', {
+          method: 'DELETE',
+          headers: {
+            'Content-Type': 'application/json'
+          }
+        });
+        
+        if (response.ok) {
+          const result = await response.json();
+          alert(result.message);
+        } else {
+          throw new Error('清理失败');
+        }
+      } catch (error) {
+        alert('清理孤立图片失败，请重试');
+      }
+    }
+    
     onMounted(() => {
       loadRecords()
     })
@@ -542,7 +632,8 @@ export default {
       searchRecords,
       createRecord,
       deleteRecord,
-      uploadImageToServer
+      uploadImageToServer,
+      cleanOrphanImages
     }
   }
 }
@@ -617,6 +708,20 @@ export default {
 }
 .upload-btn:hover {
   background: #F57C00;
+}
+.clean-btn {
+  background: #f44336;
+  color: white;
+  border: none;
+  padding: 0.5rem 1rem;
+  border-radius: 6px;
+  cursor: pointer;
+  font-weight: 500;
+  margin-right: 0.5rem;
+  transition: background-color 0.3s ease;
+}
+.clean-btn:hover {
+  background: #d32f2f;
 }
 .main-content {
   display: flex;

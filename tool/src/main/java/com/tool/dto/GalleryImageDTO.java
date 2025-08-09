@@ -12,20 +12,21 @@ public class GalleryImageDTO {
     
     private Long id;
     private String name;
-    private String imageData;
+    private String imageData; // Base64编码的图片数据
     private Long fileSize;
     private String contentType;
     private LocalDateTime createdAt;
     
     public GalleryImageDTO() {}
     
-    public GalleryImageDTO(Long id, String name, String imageData) {
-        this.id = id;
+    public GalleryImageDTO(String name, String imageData, Long fileSize, String contentType) {
         this.name = name;
         this.imageData = imageData;
+        this.fileSize = fileSize;
+        this.contentType = contentType;
     }
     
-    // Getters and Setters
+    // Getter和Setter方法
     public Long getId() {
         return id;
     }
@@ -73,4 +74,4 @@ public class GalleryImageDTO {
     public void setCreatedAt(LocalDateTime createdAt) {
         this.createdAt = createdAt;
     }
-} 
+}

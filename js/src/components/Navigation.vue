@@ -19,40 +19,25 @@
           <span class="nav-text">AI问答记录</span>
         </router-link>
         
-        <router-link to="/code-gallery" class="nav-link" active-class="active">
-          <span class="nav-icon">💻</span>
-          <span class="nav-text">代码片段管理</span>
-        </router-link>
+
         
         <router-link to="/video-gallery" class="nav-link" active-class="active">
           <span class="nav-icon">🎥</span>
           <span class="nav-text">视频管理</span>
         </router-link>
         
-        <router-link to="/kibana-query" class="nav-link" active-class="active">
-          <span class="nav-icon">🔍</span>
-          <span class="nav-text">ES查询</span>
-        </router-link>
+
         
-        <router-link to="/es-field-search" class="nav-link" active-class="active">
-          <span class="nav-icon">📊</span>
-          <span class="nav-text">字段搜索</span>
-        </router-link>
+
         
-        <router-link to="/query-list" class="nav-link" active-class="active">
-          <span class="nav-icon">📋</span>
-          <span class="nav-text">查询列表</span>
-        </router-link>
+
         
         <router-link to="/mind-map" class="nav-link" active-class="active">
           <span class="nav-icon">🧠</span>
           <span class="nav-text">思维导图</span>
         </router-link>
         
-        <router-link to="/introduction" class="nav-link" active-class="active">
-          <span class="nav-icon">📖</span>
-          <span class="nav-text">使用说明</span>
-        </router-link>
+
       </div>
     </div>
   </nav>
@@ -198,4 +183,4 @@ export default {
     font-size: 0.7rem;
   }
 }
-</style> 
+</style>

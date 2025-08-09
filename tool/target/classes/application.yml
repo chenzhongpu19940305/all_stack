@@ -1,7 +1,7 @@
 server:
   port: 8080
   servlet:
-    context-path: /cpsc/privacy/testmock
+    context-path: /czp/tool
 
 spring:
   application:
@@ -13,21 +13,6 @@ spring:
     password: root
     driver-class-name: com.mysql.cj.jdbc.Driver
     
-  mybatis:
-    mapper-locations: classpath:mapper/*.xml
-    type-aliases-package: com.tool.entity
-    configuration:
-      map-underscore-to-camel-case: true
-      log-impl: org.apache.ibatis.logging.stdout.StdOutImpl
-      call-setters-on-nulls: true
-      lazy-loading-enabled: false
-      aggressive-lazy-loading: false
-      # 添加调试信息
-      log-prefix: "MyBatis: "
-      # 注册拦截器
-      plugins:
-        - com.tool.config.SimpleSqlLogInterceptor
-    
   servlet:
     multipart:
       max-file-size: 50MB
@@ -38,9 +23,25 @@ spring:
     date-format: yyyy-MM-dd HH:mm:ss
     time-zone: GMT+8
 
+mybatis:
+  mapper-locations: classpath:mapper/*.xml
+  type-aliases-package: com.tool.entity
+  configuration:
+    map-underscore-to-camel-case: true
+    log-impl: org.apache.ibatis.logging.stdout.StdOutImpl
+    call-setters-on-nulls: true
+    lazy-loading-enabled: false
+    aggressive-lazy-loading: false
+
 logging:
   level:
     com.tool: DEBUG
     org.springframework.web: DEBUG
+    org.mybatis: DEBUG
+    org.apache.ibatis: DEBUG
+    com.tool.mapper: DEBUG
+    org.springframework.boot.autoconfigure.jdbc: DEBUG
+    org.springframework.jdbc: DEBUG
+    org.springframework.transaction: DEBUG
   pattern:
-    console: "%d{yyyy-MM-dd HH:mm:ss} [%thread] %-5level %logger{36} - %msg%n" 
+    console: "%d{yyyy-MM-dd HH:mm:ss} [%thread] %-5level %logger{36} - %msg%n"

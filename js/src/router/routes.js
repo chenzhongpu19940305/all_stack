@@ -1,13 +1,9 @@
 // 路由配置文件
 import Home from '../views/Home.vue'
-import KibanaQuery from '../views/KibanaQuery.vue'
-import ESFieldSearch from '../views/ESFieldSearch.vue'
-import QueryList from '../views/QueryList.vue'
 import Gallery from '../views/Gallery.vue'
-import CodeGallery from '../views/CodeGallery.vue'
 import VideoGallery from '../views/VideoGallery.vue'
 import MindMap from '../views/MindMap.vue'
-import Introduction from '../views/Introduction.vue'
+import EdrawMind from '../views/EdrawMind.vue'
 import RouteTest from '../views/RouteTest.vue'
 
 // 路由配置
@@ -32,16 +28,7 @@ export const routes = [
       description: '智能问答知识库'
     }
   },
-  {
-    path: '/code-gallery',
-    name: 'CodeGallery',
-    component: CodeGallery,
-    meta: {
-      title: '代码片段管理',
-      icon: '💻',
-      description: '代码片段存储与分享'
-    }
-  },
+
   {
     path: '/video-gallery',
     name: 'VideoGallery',
@@ -52,36 +39,9 @@ export const routes = [
       description: '视频文件管理'
     }
   },
-  {
-    path: '/kibana-query',
-    name: 'KibanaQuery',
-    component: KibanaQuery,
-    meta: {
-      title: 'ES查询',
-      icon: '🔍',
-      description: 'Elasticsearch查询工具'
-    }
-  },
-  {
-    path: '/es-field-search',
-    name: 'ESFieldSearch',
-    component: ESFieldSearch,
-    meta: {
-      title: '字段搜索',
-      icon: '📊',
-      description: 'ES字段搜索工具'
-    }
-  },
-  {
-    path: '/query-list',
-    name: 'QueryList',
-    component: QueryList,
-    meta: {
-      title: '查询列表',
-      icon: '📋',
-      description: '查询历史记录'
-    }
-  },
+
+
+
   {
     path: '/mind-map',
     name: 'MindMap',
@@ -93,15 +53,16 @@ export const routes = [
     }
   },
   {
-    path: '/introduction',
-    name: 'Introduction',
-    component: Introduction,
+    path: '/edraw-mind',
+    name: 'EdrawMind',
+    component: EdrawMind,
     meta: {
-      title: '使用说明',
-      icon: '📖',
-      description: '系统使用说明'
+      title: 'EdrawMind专业版',
+      icon: '🎨',
+      description: '专业思维导图编辑器'
     }
   },
+
   {
     path: '/route-test',
     name: 'RouteTest',
@@ -133,4 +94,4 @@ export function getRouteByPath(path) {
 // 根据名称获取路由信息
 export function getRouteByName(name) {
   return routes.find(route => route.name === name)
-} 
+}

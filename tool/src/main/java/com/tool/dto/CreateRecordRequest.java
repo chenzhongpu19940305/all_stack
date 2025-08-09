@@ -3,7 +3,7 @@ package com.tool.dto;
 import java.util.List;
 
 /**
- * 创建Gallery记录的请求对象
+ * 创建记录请求对象
  * 
  * @author tool-service
  * @version 1.0.0
@@ -18,15 +18,13 @@ public class CreateRecordRequest {
     
     public CreateRecordRequest() {}
     
-    public CreateRecordRequest(String title, String description, String code, String language, List<GalleryImageDTO> images) {
+    public CreateRecordRequest(String title, String description, List<GalleryImageDTO> images) {
         this.title = title;
         this.description = description;
-        this.code = code;
-        this.language = language;
         this.images = images;
     }
     
-    // Getters and Setters
+    // Getter和Setter方法
     public String getTitle() {
         return title;
     }
@@ -66,4 +64,4 @@ public class CreateRecordRequest {
     public void setImages(List<GalleryImageDTO> images) {
         this.images = images;
     }
-} 
+}

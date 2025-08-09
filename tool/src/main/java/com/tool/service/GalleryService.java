@@ -1,9 +1,9 @@
 package com.tool.service;
 
-import com.tool.dto.*;
+import com.tool.dto.ApiResponse;
+import com.tool.dto.GalleryRecordDTO;
+import com.tool.dto.CreateRecordRequest;
 import org.springframework.web.multipart.MultipartFile;
-
-import java.util.List;
 
 /**
  * Gallery服务接口
@@ -14,57 +14,42 @@ import java.util.List;
 public interface GalleryService {
     
     /**
-     * 获取所有记录
-     * 
-     * @return 记录列表
+     * 获取记录列表
      */
-    List<GalleryRecordDTO> getAllRecords();
-    
-    /**
-     * 根据ID获取记录
-     * 
-     * @param id 记录ID
-     * @return 记录详情
-     */
-    GalleryRecordDTO getRecordById(Long id);
+    ApiResponse getRecords(Integer page, Integer size, String sort, String order);
     
     /**
      * 搜索记录
-     * 
-     * @param query 搜索关键词
-     * @return 匹配的记录列表
      */
-    List<GalleryRecordDTO> searchRecords(String query);
+    ApiResponse searchRecords(String query, Integer page, Integer size);
     
     /**
-     * 创建新记录
-     * 
-     * @param request 创建请求
-     * @return 创建的记录
+     * 创建记录
      */
-    GalleryRecordDTO createRecord(CreateRecordRequest request);
-    
-    /**
-     * 删除记录
-     * 
-     * @param id 记录ID
-     */
-    void deleteRecord(Long id);
+    ApiResponse createRecord(CreateRecordRequest request);
     
     /**
      * 更新记录
-     * 
-     * @param id 记录ID
-     * @param request 更新请求
-     * @return 更新后的记录
      */
-    GalleryRecordDTO updateRecord(Long id, CreateRecordRequest request);
+    ApiResponse updateRecord(Long id, CreateRecordRequest request);
+    
+    /**
+     * 删除记录
+     */
+    ApiResponse deleteRecord(Long id);
+    
+    /**
+     * 获取单个记录
+     */
+    ApiResponse getRecord(Long id);
     
     /**
      * 上传图片
-     * 
-     * @param file 图片文件
-     * @return 上传结果
      */
-    GalleryImageDTO uploadImage(MultipartFile file);
-} 
+    ApiResponse uploadImage(MultipartFile file);
+    
+    /**
+     * 清理孤立图片
+     */
+    ApiResponse cleanOrphanImages();
+}

@@ -13,36 +13,83 @@
         <result column="record_id" property="recordId" jdbcType="BIGINT"/>
     </resultMap>
     
-    <!-- 基础字段 -->
+    <!-- 基础SQL片段 -->
     <sql id="Base_Column_List">
         id, name, image_data, file_size, content_type, created_at, record_id
     </sql>
     
-    <!-- 根据记录ID获取图片 -->
+    <!-- 根据ID查询图片 -->
+    <select id="selectById" parameterType="java.lang.Long" resultMap="BaseResultMap">
+        SELECT <include refid="Base_Column_List"/>
+        FROM gallery_images
+        WHERE id = #{id}
+    </select>
+    
+    <!-- 根据记录ID查询图片列表 -->
     <select id="selectByRecordId" parameterType="java.lang.Long" resultMap="BaseResultMap">
-        SELECT 
-        <include refid="Base_Column_List"/>
+        SELECT <include refid="Base_Column_List"/>
         FROM gallery_images
         WHERE record_id = #{recordId}
         ORDER BY created_at ASC
     </select>
     
-    <!-- 插入新图片 -->
+    <!-- 查询所有图片 -->
+    <select id="selectAll" resultMap="BaseResultMap">
+        SELECT <include refid="Base_Column_List"/>
+        FROM gallery_images
+        ORDER BY created_at DESC
+    </select>
+    
+    <!-- 插入图片 -->
     <insert id="insert" parameterType="com.tool.entity.GalleryImage" useGeneratedKeys="true" keyProperty="id">
         INSERT INTO gallery_images (name, image_data, file_size, content_type, created_at, record_id)
-        VALUES (#{name,jdbcType=VARCHAR}, #{imageData,jdbcType=LONGVARCHAR}, #{fileSize,jdbcType=BIGINT}, #{contentType,jdbcType=VARCHAR}, #{createdAt,jdbcType=TIMESTAMP}, #{recordId,jdbcType=BIGINT})
+        VALUES (#{name}, #{imageData}, #{fileSize}, #{contentType}, #{createdAt}, #{recordId})
     </insert>
+    
+    <!-- 更新图片 -->
+    <update id="update" parameterType="com.tool.entity.GalleryImage">
+        UPDATE gallery_images
+        SET name = #{name},
+            image_data = #{imageData},
+            file_size = #{fileSize},
+            content_type = #{contentType}
+        WHERE id = #{id}
+    </update>
     
     <!-- 根据ID删除图片 -->
     <delete id="deleteById" parameterType="java.lang.Long">
-        DELETE FROM gallery_images
-        WHERE id = #{id}
+        DELETE FROM gallery_images WHERE id = #{id}
     </delete>
     
     <!-- 根据记录ID删除图片 -->
     <delete id="deleteByRecordId" parameterType="java.lang.Long">
-        DELETE FROM gallery_images
-        WHERE record_id = #{recordId}
+        DELETE FROM gallery_images WHERE record_id = #{recordId}
     </delete>
     
-</mapper> 
+    <!-- 批量插入图片 -->
+    <insert id="insertBatch" parameterType="java.util.List">
+        INSERT INTO gallery_images (name, image_data, file_size, content_type, created_at, record_id)
+        VALUES
+        <foreach collection="images" item="image" separator=",">
+            (#{image.name}, #{image.imageData}, #{image.fileSize}, #{image.contentType}, #{image.createdAt}, #{image.recordId})
+        </foreach>
+    </insert>
+    
+    <!-- 查询孤立图片（没有关联记录的图片） -->
+    <select id="selectOrphanImages" resultMap="BaseResultMap">
+        SELECT <include refid="Base_Column_List"/>
+        FROM gallery_images i
+        WHERE NOT EXISTS (
+            SELECT 1 FROM gallery_records r WHERE r.id = i.record_id
+        )
+    </select>
+    
+    <!-- 删除孤立图片 -->
+    <delete id="deleteOrphanImages">
+        DELETE FROM gallery_images
+        WHERE NOT EXISTS (
+            SELECT 1 FROM gallery_records r WHERE r.id = gallery_images.record_id
+        )
+    </delete>
+    
+</mapper>

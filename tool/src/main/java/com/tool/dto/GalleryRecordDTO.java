@@ -22,14 +22,12 @@ public class GalleryRecordDTO {
     
     public GalleryRecordDTO() {}
     
-    public GalleryRecordDTO(Long id, String title, LocalDateTime createdAt, LocalDateTime updatedAt) {
-        this.id = id;
+    public GalleryRecordDTO(String title, String description) {
         this.title = title;
-        this.createdAt = createdAt;
-        this.updatedAt = updatedAt;
+        this.description = description;
     }
     
-    // Getters and Setters
+    // Getter和Setter方法
     public Long getId() {
         return id;
     }
@@ -93,4 +91,4 @@ public class GalleryRecordDTO {
     public void setImages(List<GalleryImageDTO> images) {
         this.images = images;
     }
-} 
+}

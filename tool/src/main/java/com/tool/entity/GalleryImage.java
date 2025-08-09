@@ -3,7 +3,7 @@ package com.tool.entity;
 import java.time.LocalDateTime;
 
 /**
- * 图片实体类
+ * Gallery图片实体类
  * 
  * @author tool-service
  * @version 1.0.0
@@ -12,23 +12,26 @@ public class GalleryImage {
     
     private Long id;
     private String name;
-    private String imageData;
+    private String imageData; // Base64编码的图片数据
     private Long fileSize;
     private String contentType;
     private LocalDateTime createdAt;
-    private Long recordId;
+    private Long recordId; // 关联的记录ID
     
     public GalleryImage() {
         this.createdAt = LocalDateTime.now();
     }
     
-    public GalleryImage(String name, String imageData) {
+    public GalleryImage(String name, String imageData, Long fileSize, String contentType, Long recordId) {
         this();
         this.name = name;
         this.imageData = imageData;
+        this.fileSize = fileSize;
+        this.contentType = contentType;
+        this.recordId = recordId;
     }
     
-    // Getters and Setters
+    // Getter和Setter方法
     public Long getId() {
         return id;
     }
@@ -84,4 +87,4 @@ public class GalleryImage {
     public void setRecordId(Long recordId) {
         this.recordId = recordId;
     }
-} 
+}

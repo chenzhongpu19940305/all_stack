@@ -4,7 +4,7 @@ import java.time.LocalDateTime;
 import java.util.List;
 
 /**
- * AI问答记录实体类
+ * Gallery记录实体类
  * 
  * @author tool-service
  * @version 1.0.0
@@ -12,20 +12,12 @@ import java.util.List;
 public class GalleryRecord {
     
     private Long id;
-    
     private String title;
-    
     private String description;
-    
-    // 代码片段相关字段
     private String code;
     private String language;
-    
     private LocalDateTime createdAt;
-    
     private LocalDateTime updatedAt;
-    
-    // 关联的图片列表，用于查询时填充
     private List<GalleryImage> images;
     
     public GalleryRecord() {
@@ -39,7 +31,7 @@ public class GalleryRecord {
         this.description = description;
     }
     
-    // Getters and Setters
+    // Getter和Setter方法
     public Long getId() {
         return id;
     }
@@ -103,4 +95,4 @@ public class GalleryRecord {
     public void setImages(List<GalleryImage> images) {
         this.images = images;
     }
-} 
+}

@@ -11,26 +11,14 @@
           <span class="nav-icon">🏠</span>
           首页
         </router-link>
-        <router-link to="/kibana-query" class="nav-link" active-class="active">
-          <span class="nav-icon">🔍</span>
-          ES查询
-        </router-link>
-        <router-link to="/es-field-search" class="nav-link" active-class="active">
-          <span class="nav-icon">🔎</span>
-          ES字段搜索
-        </router-link>
-        <router-link to="/query-list" class="nav-link" active-class="active">
-          <span class="nav-icon">📋</span>
-          查询列表
-        </router-link>
+
+
+
         <router-link to="/gallery" class="nav-link" active-class="active">
           <span class="nav-icon">🤖</span>
           AI问答记录
         </router-link>
-        <router-link to="/code-gallery" class="nav-link" active-class="active">
-          <span class="nav-icon">💻</span>
-          代码片段管理
-        </router-link>
+
         <router-link to="/video-gallery" class="nav-link" active-class="active">
           <span class="nav-icon">🎬</span>
           哔哩哔哩
@@ -39,14 +27,12 @@
           <span class="nav-icon">🧠</span>
           思维导图
         </router-link>
-        <router-link to="/introduction" class="nav-link" active-class="active">
-          <span class="nav-icon">📖</span>
-          介绍模块
+        <router-link to="/edraw-mind" class="nav-link" active-class="active">
+          <span class="nav-icon">🎨</span>
+          EdrawMind专业版
         </router-link>
-        <router-link to="/contact" class="nav-link" active-class="active">
-          <span class="nav-icon">📞</span>
-          联系我们
-        </router-link>
+
+
       </div>
     </nav>
     

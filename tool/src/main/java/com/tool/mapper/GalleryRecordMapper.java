@@ -16,49 +16,57 @@ import java.util.List;
 public interface GalleryRecordMapper {
     
     /**
-     * 获取所有记录
-     * 
-     * @return 记录列表
-     */
-    List<GalleryRecord> selectAll();
-    
-    /**
-     * 根据ID获取记录
-     * 
-     * @param id 记录ID
-     * @return 记录
+     * 根据ID查询记录
      */
     GalleryRecord selectById(@Param("id") Long id);
     
     /**
+     * 查询所有记录
+     */
+    List<GalleryRecord> selectAll();
+    
+    /**
+     * 分页查询记录
+     */
+    List<GalleryRecord> selectByPage(@Param("offset") int offset, @Param("size") int size);
+    
+    /**
      * 根据标题搜索记录
-     * 
-     * @param title 标题关键词
-     * @return 匹配的记录列表
      */
     List<GalleryRecord> selectByTitle(@Param("title") String title);
     
     /**
-     * 插入新记录
-     * 
-     * @param record 记录
-     * @return 影响的行数
+     * 统计记录总数
+     */
+    int count();
+    
+    /**
+     * 根据标题统计记录数
+     */
+    int countByTitle(@Param("title") String title);
+    
+    /**
+     * 插入记录
      */
     int insert(GalleryRecord record);
     
     /**
      * 更新记录
-     * 
-     * @param record 记录
-     * @return 影响的行数
      */
     int update(GalleryRecord record);
     
     /**
-     * 删除记录
-     * 
-     * @param id 记录ID
-     * @return 影响的行数
+     * 根据ID删除记录
      */
     int deleteById(@Param("id") Long id);
-} 
+    
+    /**
+     * 查询记录及其关联的图片
+     */
+    GalleryRecord selectWithImages(@Param("id") Long id);
+    
+    /**
+     * 分页查询记录及其关联的图片
+     */
+    List<GalleryRecord> selectWithImagesByPage(@Param("offset") int offset, @Param("size") int size);
+}

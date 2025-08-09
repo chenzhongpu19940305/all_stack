@@ -4,9 +4,8 @@
     <div class="toolbar">
       <button @click="addNode" class="tool-btn">添加节点</button>
       <button @click="addConditionNode" class="tool-btn condition-btn">添加条件分支</button>
+      <button @click="addMultipleNodes" class="tool-btn multiple-btn">批量添加节点</button>
       <button @click="deleteSelectedNode" class="tool-btn">删除节点</button>
-      <button @click="toggleConnectionMode" :class="['tool-btn', 'connection-btn', { 'active': connectionMode }]">{{ connectionMode ? '退出连接模式' : '添加连接' }}</button>
-      <button v-if="selectedConnection !== null" @click="deleteSelectedConnection" class="tool-btn delete-connection-btn">删除连接</button>
       <button @click="clearMap" class="tool-btn">清空</button>
       <div v-if="selectedNode !== null" class="node-type-selector">
         <span>节点类型：</span>
@@ -15,8 +14,9 @@
           <option value="condition">条件分支</option>
         </select>
       </div>
-      <div v-if="connectionMode" class="connection-hint">
-        {{ connectionHint }}
+      <div v-if="selectedNode !== null" class="batch-input">
+        <span>批量添加数量：</span>
+        <input v-model.number="batchCount" type="number" min="1" max="10" class="batch-input-field">
       </div>
     </div>
     <div class="mind-map" ref="mindMapContainer">
@@ -44,18 +44,16 @@
       </div>
       <svg class="connections">
         <g 
-          v-for="connection in allConnections" 
+          v-for="connection in autoConnections" 
           :key="connection.id"
-          :class="['connection-group', { 'selected': selectedConnection === connection.id }]"
-          @click="selectConnection(connection.id, $event)"
         >
           <path 
             :d="getConnectionPath(connection)" 
-            :class="['connection-path', { 'custom-connection': connection.isCustom }]"
+            class="connection-path"
           />
           <polygon 
             :points="getArrowPoints(connection)" 
-            :class="['arrow-head', { 'custom-connection': connection.isCustom }]"
+            class="arrow-head"
           />
         </g>
       </svg>
@@ -80,14 +78,7 @@ export default {
     const nodeTextElements = ref([]);
     const originalText = ref('');
     const selectedNodeType = ref('normal');
-    
-    // 连接相关状态
-    const connectionMode = ref(false);
-    const connectionSource = ref(null);
-    const connectionHint = ref('请选择起始节点');
-    const customConnections = reactive([]);
-    const nextConnectionId = ref(1);
-    const selectedConnection = ref(null);
+    const batchCount = ref(3); // 批量添加节点数量
     
     // 计算自动连接线（父子节点之间）
     const autoConnections = computed(() => {
@@ -97,17 +88,11 @@ export default {
           result.push({
             id: `auto-${node.parentId}-${node.id}`,
             from: node.parentId,
-            to: node.id,
-            isCustom: false
+            to: node.id
           });
         }
       }
       return result;
-    });
-    
-    // 合并自动连接和自定义连接
-    const allConnections = computed(() => {
-      return [...autoConnections.value, ...customConnections];
     });
     
     // 添加根节点
@@ -127,6 +112,26 @@ export default {
       selectedNode.value = nodes[0].id;
     };
     
+    // 调整父节点位置，使其位于所有子节点的垂直中间
+    const adjustParentPosition = (parentId) => {
+      const parentNode = nodes.find(node => node.id === parentId);
+      if (!parentNode) return;
+      
+      const children = nodes.filter(node => node.parentId === parentId);
+      if (children.length === 0) return;
+      
+      // 计算所有子节点的Y坐标范围
+      const childrenYs = children.map(child => child.y);
+      const minY = Math.min(...childrenYs);
+      const maxY = Math.max(...childrenYs);
+      
+      // 将父节点位置调整到子节点的垂直中间
+      const newY = (minY + maxY) / 2;
+      
+      // 确保父节点Y坐标在合理范围内（避免负值或过大值）
+      parentNode.y = Math.max(50, Math.min(newY, mindMapContainer.value?.clientHeight - 100 || 1000));
+    };
+    
     // 添加普通子节点
     const addNode = () => {
       if (nodes.length === 0) {
@@ -142,21 +147,35 @@ export default {
       const parentNode = nodes.find(node => node.id === selectedNode.value);
       if (!parentNode) return;
       
-      // 计算新节点位置 - 在父节点右侧
-      const newX = parentNode.x + 150;
-      const newY = parentNode.y;
+      // 查找当前父节点的所有子节点
+      const siblings = nodes.filter(node => node.parentId === parentNode.id);
+      
+      // 计算新节点位置 - 在父节点右侧，垂直方向避免重叠
+      const baseX = parentNode.x + 150;
+      let newY = parentNode.y;
+      
+      // 如果已有子节点，计算合适的Y位置
+      if (siblings.length > 0) {
+        // 找到最下方的子节点位置
+        const maxY = Math.max(...siblings.map(node => node.y));
+        newY = maxY + 80; // 在最下方子节点下方80px处添加新节点
+      }
       
       // 添加新节点
       const newNode = {
         id: nextNodeId.value++,
         text: '新节点',
-        x: newX,
+        x: baseX,
         y: newY,
         parentId: parentNode.id,
         type: 'normal'
       };
       
       nodes.push(newNode);
+      
+      // 调整父节点位置
+      adjustParentPosition(parentNode.id);
+      
       selectedNode.value = newNode.id;
       selectedNodeType.value = 'normal';
     };
@@ -177,23 +196,91 @@ export default {
       const parentNode = nodes.find(node => node.id === selectedNode.value);
       if (!parentNode) return;
       
-      // 计算新节点位置 - 在父节点右侧稍下方
-      const newX = parentNode.x + 150;
-      const newY = parentNode.y + 30;
+      // 查找当前父节点的所有子节点
+      const siblings = nodes.filter(node => node.parentId === parentNode.id);
+      
+      // 计算新节点位置 - 在父节点右侧，垂直方向避免重叠
+      const baseX = parentNode.x + 150;
+      let newY = parentNode.y;
+      
+      // 如果已有子节点，计算合适的Y位置
+      if (siblings.length > 0) {
+        // 找到最下方的子节点位置
+        const maxY = Math.max(...siblings.map(node => node.y));
+        newY = maxY + 80; // 在最下方子节点下方80px处添加新节点
+      }
       
       // 添加条件分支节点
       const newNode = {
         id: nextNodeId.value++,
         text: '条件判断',
-        x: newX,
+        x: baseX,
         y: newY,
         parentId: parentNode.id,
         type: 'condition'
       };
       
       nodes.push(newNode);
+      
+      // 调整父节点位置
+      adjustParentPosition(parentNode.id);
+      
       selectedNode.value = newNode.id;
       selectedNodeType.value = 'condition';
+    };
+    
+    // 批量添加节点
+    const addMultipleNodes = () => {
+      if (nodes.length === 0) {
+        // 如果没有节点，先添加根节点
+        addRootNode();
+        return;
+      }
+      
+      if (selectedNode.value === null) {
+        alert('请先选择一个节点');
+        return;
+      }
+      
+      const parentNode = nodes.find(node => node.id === selectedNode.value);
+      if (!parentNode) return;
+      
+      const count = Math.min(Math.max(batchCount.value || 1, 1), 10); // 限制在1-10之间
+      
+      // 查找当前父节点的所有子节点
+      const siblings = nodes.filter(node => node.parentId === parentNode.id);
+      
+      // 计算起始Y位置
+      let startY = parentNode.y;
+      if (siblings.length > 0) {
+        const maxY = Math.max(...siblings.map(node => node.y));
+        startY = maxY + 80;
+      }
+      
+      // 计算节点布局 - 在父节点右侧垂直排列
+      for (let i = 0; i < count; i++) {
+        const newX = parentNode.x + 150;
+        const newY = startY + (i * 80);
+        
+        // 添加新节点
+        const newNode = {
+          id: nextNodeId.value++,
+          text: `节点${i + 1}`,
+          x: newX,
+          y: newY,
+          parentId: parentNode.id,
+          type: 'normal'
+        };
+        
+        nodes.push(newNode);
+      }
+      
+      // 调整父节点位置
+      adjustParentPosition(parentNode.id);
+      
+      // 选中最后一个添加的节点
+      selectedNode.value = nodes[nodes.length - 1].id;
+      selectedNodeType.value = 'normal';
     };
     
     // 更改节点类型
@@ -240,100 +327,24 @@ export default {
     // 清空思维导图
     const clearMap = () => {
       nodes.splice(0, nodes.length);
-      customConnections.splice(0, customConnections.length);
       selectedNode.value = null;
-      selectedConnection.value = null;
-      connectionSource.value = null;
       nextNodeId.value = 1;
-      nextConnectionId.value = 1;
-      
-      // 如果在连接模式，退出连接模式
-      if (connectionMode.value) {
-        connectionMode.value = false;
-      }
     };
     
     // 选择节点
     const selectNode = (nodeId, event) => {
       if (isDragging.value) return;
       
-      // 如果在连接模式下
-      if (connectionMode.value) {
-        // 如果还没有选择源节点
-        if (connectionSource.value === null) {
-          connectionSource.value = nodeId;
-          connectionHint.value = '请选择目标节点';
-        } else if (connectionSource.value !== nodeId) {
-          // 如果已经选择了源节点，且当前选择的是不同的节点
-          // 创建新的连接
-          createCustomConnection(connectionSource.value, nodeId);
-          // 重置连接源
-          connectionSource.value = null;
-          connectionHint.value = '连接已创建！请选择起始节点';
-        }
-      } else {
-        // 正常模式下选择节点
-        selectedNode.value = nodeId;
-        selectedConnection.value = null; // 取消选择连接
-        
-        // 更新选中节点类型
-        const node = nodes.find(n => n.id === nodeId);
-        if (node) {
-          selectedNodeType.value = node.type || 'normal';
-        }
+      // 正常模式下选择节点
+      selectedNode.value = nodeId;
+      
+      // 更新选中节点类型
+      const node = nodes.find(n => n.id === nodeId);
+      if (node) {
+        selectedNodeType.value = node.type || 'normal';
       }
       
       event.stopPropagation();
-    };
-    
-    // 创建自定义连接
-    const createCustomConnection = (fromId, toId) => {
-      // 检查是否已存在相同的连接
-      const existingConnection = customConnections.find(
-        conn => conn.from === fromId && conn.to === toId
-      );
-      
-      if (!existingConnection) {
-        customConnections.push({
-          id: `custom-${nextConnectionId.value++}`,
-          from: fromId,
-          to: toId,
-          isCustom: true
-        });
-      }
-    };
-    
-    // 切换连接模式
-    const toggleConnectionMode = () => {
-      connectionMode.value = !connectionMode.value;
-      connectionSource.value = null;
-      connectionHint.value = '请选择起始节点';
-      selectedNode.value = null;
-      selectedConnection.value = null;
-    };
-    
-    // 选择连接线
-    const selectConnection = (connectionId, event) => {
-      if (!connectionMode.value && !isDragging.value) {
-        selectedConnection.value = connectionId;
-        selectedNode.value = null; // 取消选择节点
-        event.stopPropagation();
-      }
-    };
-    
-    // 删除选中的连接
-    const deleteSelectedConnection = () => {
-      if (selectedConnection.value === null) return;
-      
-      // 只能删除自定义连接
-      const connectionIndex = customConnections.findIndex(
-        conn => conn.id === selectedConnection.value
-      );
-      
-      if (connectionIndex !== -1) {
-        customConnections.splice(connectionIndex, 1);
-        selectedConnection.value = null;
-      }
     };
     
     // 开始编辑节点
@@ -414,34 +425,22 @@ export default {
       
       if (!fromNode || !toNode) return '';
       
-      // 计算节点中心点
-      const fromX = fromNode.x + 60; // 节点宽度的一半
+      // 父节点右侧中心点作为起点
+      const fromX = fromNode.x + 120; // 节点右边缘
       const fromY = fromNode.y + 25; // 节点高度的一半
-      const toX = toNode.x + 60;
-      const toY = toNode.y + 25;
       
-      // 计算方向向量
-      const dx = toX - fromX;
-      const dy = toY - fromY;
-      const length = Math.sqrt(dx * dx + dy * dy);
+      // 子节点左侧中心点作为终点
+      const toX = toNode.x; // 节点左边缘
+      const toY = toNode.y + 25; // 节点高度的一半
       
-      // 单位向量
-      const unitDx = dx / length;
-      const unitDy = dy / length;
-      
-      // 调整起点和终点，使箭头不会直接连接到节点中心，而是连接到节点边缘
-      // 节点半径约为60px
-      const nodeRadius = 60;
       const arrowHeadLength = 15; // 箭头头部长度
       
-      // 调整后的起点和终点
-      const adjustedFromX = fromX + unitDx * nodeRadius;
-      const adjustedFromY = fromY + unitDy * nodeRadius;
-      const adjustedToX = toX - unitDx * (nodeRadius + arrowHeadLength);
-      const adjustedToY = toY - unitDy * (nodeRadius + arrowHeadLength);
+      // 连接线终点连接到箭头底部
+      const adjustedToX = toX - arrowHeadLength;
+      const adjustedToY = toY;
       
       // 生成路径
-      return `M ${adjustedFromX} ${adjustedFromY} L ${adjustedToX} ${adjustedToY}`;
+      return `M ${fromX} ${fromY} L ${adjustedToX} ${adjustedToY}`;
     };
     
     // 获取箭头点
@@ -451,43 +450,24 @@ export default {
       
       if (!fromNode || !toNode) return '';
       
-      // 计算节点中心点
-      const fromX = fromNode.x + 60;
-      const fromY = fromNode.y + 25;
-      const toX = toNode.x + 60;
-      const toY = toNode.y + 25;
-      
-      // 计算方向向量
-      const dx = toX - fromX;
-      const dy = toY - fromY;
-      const length = Math.sqrt(dx * dx + dy * dy);
-      
-      // 单位向量
-      const unitDx = dx / length;
-      const unitDy = dy / length;
-      
       // 箭头参数
       const arrowLength = 15;
       const arrowWidth = 8;
-      const nodeRadius = 60;
       
-      // 箭头尖端位置（在目标节点边缘）
-      const tipX = toX - unitDx * nodeRadius;
-      const tipY = toY - unitDy * nodeRadius;
+      // 箭头尖端位置（子节点左侧中心）
+      const tipX = toNode.x;
+      const tipY = toNode.y + 25;
       
-      // 计算垂直于方向的单位向量
-      const perpUnitDx = -unitDy;
-      const perpUnitDy = unitDx;
-      
+      // 箭头指向右侧（从父节点指向子节点），所以箭头的底部在左侧
       // 计算箭头的三个点
-      const point1X = tipX;
+      const point1X = tipX; // 箭头尖端
       const point1Y = tipY;
       
-      const point2X = tipX - arrowLength * unitDx + arrowWidth * perpUnitDx;
-      const point2Y = tipY - arrowLength * unitDy + arrowWidth * perpUnitDy;
+      const point2X = tipX - arrowLength; // 箭头底部上方
+      const point2Y = tipY - arrowWidth;
       
-      const point3X = tipX - arrowLength * unitDx - arrowWidth * perpUnitDx;
-      const point3Y = tipY - arrowLength * unitDy - arrowWidth * perpUnitDy;
+      const point3X = tipX - arrowLength; // 箭头底部下方
+      const point3Y = tipY + arrowWidth;
       
       return `${point1X},${point1Y} ${point2X},${point2Y} ${point3X},${point3Y}`;
     };
@@ -533,7 +513,7 @@ export default {
     onMounted(() => {
       // 点击空白区域取消选择和编辑
       mindMapContainer.value.addEventListener('click', (event) => {
-        // 确保点击的是空白区域，而不是节点或连接线
+        // 确保点击的是空白区域，而不是节点
         if (event.target === mindMapContainer.value || event.target.classList.contains('mind-map')) {
           if (editingNode.value !== null) {
             // 如果正在编辑，先完成编辑
@@ -547,14 +527,9 @@ export default {
                 }
               }
             }
-          } else if (connectionMode.value) {
-            // 在连接模式下，点击空白区域重置源节点
-            connectionSource.value = null;
-            connectionHint.value = '请选择起始节点';
           } else {
-            // 否则取消选择节点和连接
+            // 取消选择节点
             selectedNode.value = null;
-            selectedConnection.value = null;
           }
         }
       });
@@ -566,13 +541,12 @@ export default {
       selectedNode,
       editingNode,
       nodeTextElements,
-      allConnections,
+      autoConnections,
       selectedNodeType,
-      connectionMode,
-      connectionHint,
-      selectedConnection,
+      batchCount,
       addNode,
       addConditionNode,
+      addMultipleNodes,
       deleteSelectedNode,
       clearMap,
       selectNode,
@@ -580,9 +554,6 @@ export default {
       finishEditing,
       cancelEditing,
       changeNodeType,
-      toggleConnectionMode,
-      selectConnection,
-      deleteSelectedConnection,
       getNodeStyle,
       getConnectionPath,
       getArrowPoints,
@@ -637,32 +608,9 @@ export default {
   background-color: #F57C00;
 }
 
-.connection-btn {
-  background-color: #2196F3;
-}
 
-.connection-btn:hover,
-.connection-btn.active {
-  background-color: #1976D2;
-}
 
-.delete-connection-btn {
-  background-color: #F44336;
-}
 
-.delete-connection-btn:hover {
-  background-color: #D32F2F;
-}
-
-.connection-hint {
-  margin-left: 10px;
-  padding: 5px 10px;
-  background-color: #E3F2FD;
-  border-radius: 4px;
-  font-size: 14px;
-  color: #1976D2;
-  border: 1px solid #BBDEFB;
-}
 
 .node-type-selector {
   margin-left: 20px;
@@ -683,7 +631,7 @@ export default {
   position: relative;
   border: 1px solid #ddd;
   border-radius: 8px;
-  overflow: hidden;
+  overflow: auto;
   background-color: #f9f9f9;
   min-height: 500px;
 }
@@ -762,39 +710,18 @@ export default {
   width: 100%;
   height: 100%;
   pointer-events: none;
-  z-index: 0;
+  z-index: 10;
 }
 
 .connection-path {
   fill: none;
-  stroke: #aaa;
-  stroke-width: 2px;
-  stroke-dasharray: 5, 5;
-  cursor: pointer;
-}
-
-.connection-path.custom-connection {
-  stroke: #2196F3;
-  stroke-width: 2.5px;
-  stroke-dasharray: none;
-}
-
-.arrow-head {
-  fill: #aaa;
-  stroke: none;
-}
-
-.arrow-head.custom-connection {
-  fill: #2196F3;
-}
-
-.connection-group.selected .connection-path {
-  stroke: #FF4081;
+  stroke: #666;
   stroke-width: 3px;
 }
 
-.connection-group.selected .arrow-head {
-  fill: #FF4081;
+.arrow-head {
+  fill: #666;
+  stroke: none;
 }
 
 /* 条件节点特殊样式 */
