@@ -36,4 +36,16 @@ public interface MindMapMapper {
 
     @Delete("DELETE FROM mind_map_node WHERE map_id=#{mapId}")
     int deleteNodesByMapId(@Param("mapId") Long mapId);
+
+    // List all maps
+    @Select("SELECT id, title, layout, created_at as createdAt, updated_at as updatedAt FROM mind_map ORDER BY updated_at DESC")
+    List<MindMap> findAllMaps();
+
+    // Find root node for a map
+    @Select("SELECT id, map_id as mapId, parent_id as parentId, text, x, y, width, height, shape, background_color as backgroundColor, border_color as borderColor, font_size as FontSize, is_root as isRoot, collapsed, detail_record_id as detailRecordId, detail_record_title as detailRecordTitle FROM mind_map_node WHERE map_id=#{mapId} AND is_root=1 LIMIT 1")
+    MindMapNode findRootNodeByMapId(@Param("mapId") Long mapId);
+
+    // List all root nodes across maps (for homepage)
+    @Select("SELECT id, map_id as mapId, parent_id as parentId, text, x, y, width, height, shape, background_color as backgroundColor, border_color as borderColor, font_size as fontSize, is_root as isRoot, collapsed, detail_record_id as detailRecordId, detail_record_title as detailRecordTitle FROM mind_map_node WHERE (parent_id IS NULL OR is_root=1) ORDER BY id DESC")
+    List<MindMapNode> findAllRootNodes();
 } 

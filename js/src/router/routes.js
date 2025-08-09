@@ -5,6 +5,7 @@ import VideoGallery from '../views/VideoGallery.vue'
 import MindMap from '../views/MindMap.vue'
 import EdrawMind from '../views/EdrawMind.vue'
 import RouteTest from '../views/RouteTest.vue'
+import EdrawMindHome from '../views/EdrawMindHome.vue'
 
 // 路由配置
 export const routes = [
@@ -28,7 +29,6 @@ export const routes = [
       description: '智能问答知识库'
     }
   },
-
   {
     path: '/video-gallery',
     name: 'VideoGallery',
@@ -39,9 +39,6 @@ export const routes = [
       description: '视频文件管理'
     }
   },
-
-
-
   {
     path: '/mind-map',
     name: 'MindMap',
@@ -54,15 +51,24 @@ export const routes = [
   },
   {
     path: '/edraw-mind',
-    name: 'EdrawMind',
-    component: EdrawMind,
+    name: 'EdrawMindHome',
+    component: EdrawMindHome,
     meta: {
       title: 'EdrawMind专业版',
       icon: '🎨',
+      description: '专业思维导图首页'
+    }
+  },
+  {
+    path: '/edraw-mind/editor',
+    name: 'EdrawMind',
+    component: EdrawMind,
+    meta: {
+      title: 'EdrawMind编辑器',
+      icon: '🧩',
       description: '专业思维导图编辑器'
     }
   },
-
   {
     path: '/route-test',
     name: 'RouteTest',

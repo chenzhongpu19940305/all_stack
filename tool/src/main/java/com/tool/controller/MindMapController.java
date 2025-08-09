@@ -87,4 +87,29 @@ public class MindMapController {
         response.put("nodes", nodes);
         return ResponseEntity.ok(response);
     }
+
+    // EdrawMind首页：列出所有导图（仅元信息）
+    @GetMapping("/list")
+    public ResponseEntity<Map<String, Object>> listMaps() {
+        Map<String, Object> res = new HashMap<>();
+        res.put("success", true);
+        res.put("roots", mindMapService.listAllRootNodes());
+        return ResponseEntity.ok(res);
+    }
+
+    // 获取某导图根节点（首页展示）
+    @GetMapping("/{id}/root")
+    public ResponseEntity<Map<String, Object>> loadRoot(@PathVariable("id") Long id) {
+        Map<String, Object> res = new HashMap<>();
+        MindMap map = mindMapService.loadMindMap(id);
+        if (map == null) {
+            res.put("success", false);
+            res.put("error", "not_found");
+            return ResponseEntity.status(404).body(res);
+        }
+        res.put("success", true);
+        res.put("map", map);
+        res.put("root", mindMapService.loadRootNode(id));
+        return ResponseEntity.ok(res);
+    }
 } 

@@ -67,4 +67,16 @@ public class MindMapService {
     public List<MindMapNode> loadNodes(Long mapId) {
         return mindMapMapper.findNodesByMapId(mapId);
     }
+
+    public List<MindMap> listMaps() {
+        return mindMapMapper.findAllMaps();
+    }
+
+    public MindMapNode loadRootNode(Long mapId) {
+        return mindMapMapper.findRootNodeByMapId(mapId);
+    }
+
+    public List<MindMapNode> listAllRootNodes() {
+        return mindMapMapper.findAllRootNodes();
+    }
 } 

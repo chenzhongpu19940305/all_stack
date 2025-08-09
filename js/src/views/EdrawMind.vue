@@ -230,7 +230,8 @@
               { 
                 'selected': selectedNodeId === node.id,
                 'editing': editingNodeId === node.id,
-                'root': node.isRoot
+                'root': node.isRoot,
+                'has-detail': !!node.detailRecordId
               }
             ]"
             :style="getNodeStyle(node)"
@@ -324,6 +325,7 @@
 <script setup>
 import { ref, reactive, computed, onMounted, onUnmounted, nextTick, watch } from 'vue'
 import { useRouter } from 'vue-router'
+import { useRoute } from 'vue-router'
 
 // 响应式数据
 const nodes = ref([])
@@ -606,9 +608,41 @@ const canvasStyle = computed(() => ({
 }))
 
 // 初始化
-onMounted(() => {
-  createInitialMap()
+const route = useRoute()
+onMounted(async () => {
   setupEventListeners()
+  const qid = route.query.mapId
+  if (qid) {
+    // 从首页进入，加载指定导图
+    const id = Number(qid)
+    if (id) {
+      const res = await fetch(`${API_BASE}/api/mindmap/${id}`)
+      const data = await res.json()
+      if (data.success) {
+        currentMapId.value = data.map.id
+        mapTitle.value = data.map.title || '未命名导图'
+        currentLayout.value = data.map.layout || 'mindmap'
+        const loaded = (data.nodes || []).map(n => ({
+          id: n.id, text: n.text, x: n.x, y: n.y, isRoot: !!n.isRoot,
+          parentId: n.parentId ?? null, children: [], collapsed: !!n.collapsed,
+          shape: n.shape, backgroundColor: n.backgroundColor, borderColor: n.borderColor,
+          fontSize: n.fontSize, width: n.width, height: n.height,
+          detailRecordId: n.detailRecordId || null, detailRecordTitle: n.detailRecordTitle || null
+        }))
+        nodes.value = loaded
+        const idToNode = new Map(nodes.value.map(n => [n.id, n]))
+        nodes.value.forEach(n => { if (n.parentId) idToNode.get(n.parentId)?.children.push(n.id) })
+        selectedNodeId.value = nodes.value.find(n => n.isRoot)?.id || null
+        nextNodeId.value = (nodes.value.reduce((m, n) => Math.max(m, Number(n.id) || 0), 0) || 0) + 1
+        applyLayout()
+        updateConnections()
+        saveToHistory()
+        return
+      }
+    }
+  }
+  // 默认新建
+  createInitialMap()
 })
 
 // 创建初始思维导图
@@ -992,7 +1026,8 @@ function getNodeStyle(node) {
     top: node.y + 'px',
     width: node.width + 'px',
     height: node.height + 'px',
-    backgroundColor: node.backgroundColor,
+    backgroundColor: node.detailRecordId ? '#b71c1c' : node.backgroundColor,
+    color: node.detailRecordId ? '#ffffff' : undefined,
     borderColor: node.borderColor,
     fontSize: node.fontSize + 'px'
   }
@@ -1655,6 +1690,9 @@ function openDetailRecord(node) {
   box-shadow: 0 0 0 3px rgba(33, 150, 243, 0.2);
   z-index: 3;
 }
+
+/* 有详细说明的节点背景变红（浅红）由内联样式控制，这里可选保留轻微阴影 */
+.mind-node.has-detail { box-shadow: 0 2px 8px rgba(229,57,53,0.12); }
 
 .mind-node.editing {
   border-color: #FF9800;
