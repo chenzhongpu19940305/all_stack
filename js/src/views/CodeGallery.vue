@@ -225,7 +225,7 @@ export default {
     })
 
     // API接口配置 - 复用Gallery的接口
-    const API_BASE_URL = '/api/gallery'
+    const API_BASE_URL = 'http://localhost:8080/czp/tool/api/gallery'
     const API_ENDPOINTS = {
       // 获取代码片段列表
       GET_RECORDS: `${API_BASE_URL}/records`,
@@ -1211,4 +1211,4 @@ export default {
     gap: 0.5rem;
   }
 }
-</style> 
+</style>

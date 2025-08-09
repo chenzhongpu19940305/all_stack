@@ -197,7 +197,7 @@ export default {
     })
 
     // API接口配置
-    const API_BASE_URL = '/api/gallery'
+    const API_BASE_URL = 'http://localhost:8080/czp/tool/api/gallery'
     const API_ENDPOINTS = {
       // 获取AI问答记录列表
       GET_RECORDS: `${API_BASE_URL}/records`,

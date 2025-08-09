@@ -1,7 +1,7 @@
 server:
   port: 8080
   servlet:
-    context-path: /cpsc/privacy/testmock
+    context-path: /czp/tool
 
 spring:
   application:

@@ -6,6 +6,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
@@ -71,7 +72,9 @@ public class ContentController {
     public ResponseEntity<Map<String, String>> deleteContent(@PathVariable Long id) {
         boolean deleted = contentService.deleteContent(id);
         if (deleted) {
-            return ResponseEntity.ok(Map.of("message", "内容删除成功"));
+            Map<String, String> response = new HashMap<>();
+            response.put("message", "内容删除成功");
+            return ResponseEntity.ok(response);
         } else {
             return ResponseEntity.notFound().build();
         }
@@ -91,6 +94,9 @@ public class ContentController {
      */
     @GetMapping("/health")
     public ResponseEntity<Map<String, String>> health() {
-        return ResponseEntity.ok(Map.of("status", "OK", "message", "企业知识管理系统运行正常"));
+        Map<String, String> response = new HashMap<>();
+        response.put("status", "OK");
+        response.put("message", "企业知识管理系统运行正常");
+        return ResponseEntity.ok(response);
     }
-} 
+}

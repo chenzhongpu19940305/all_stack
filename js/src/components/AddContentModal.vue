@@ -125,7 +125,7 @@ export default {
         videoPreview: ''
       },
       submitting: false,
-      apiBaseUrl: 'http://localhost:8080/api',
+      apiBaseUrl: 'http://localhost:8080/czp/tool/api',
       // 录屏相关
       isRecording: false,
       canRecord: false,
@@ -689,4 +689,4 @@ export default {
     flex-direction: column;
   }
 }
-</style> 
+</style>

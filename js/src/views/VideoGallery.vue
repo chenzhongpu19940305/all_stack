@@ -201,7 +201,7 @@ export default {
     })
 
     // API接口配置
-    const API_BASE_URL = '/api/videogallery'
+    const API_BASE_URL = 'http://localhost:8080/czp/tool/api/videogallery'
     const API_ENDPOINTS = {
       // 获取AI视频记录列表
       GET_RECORDS: `${API_BASE_URL}/records`,
@@ -1037,4 +1037,4 @@ export default {
     height: 160px;
   }
 }
-</style> 
+</style>
