@@ -146,6 +146,37 @@
             >
             <span>{{ selectedNode.fontSize }}px</span>
           </div>
+
+          <div class="property-group">
+            <label>详细说明（AI问答记录）</label>
+            <div class="qa-search">
+              <input 
+                type="text"
+                v-model.trim="qaSearchKeyword"
+                @input="onQaSearchInput"
+                @focus="onQaSearchFocus"
+                @keydown.enter.prevent.stop="triggerQaSearch"
+                class="text-input"
+                placeholder="输入关键字搜索AI问答记录"
+              >
+              <div v-if="qaDropdownVisible && qaSearchResults.length" class="qa-dropdown">
+                <div 
+                  v-for="item in qaSearchResults" 
+                  :key="item.id" 
+                  class="qa-item"
+                  @click="selectQaRecord(item)"
+                  :title="item.title"
+                >
+                  <span class="qa-title">{{ item.title }}</span>
+                  <span class="qa-id">#{{ item.id }}</span>
+                </div>
+              </div>
+            </div>
+            <div v-if="selectedNode.detailRecordId" class="qa-selected">
+              已选择：<span class="qa-selected-title">{{ selectedNode.detailRecordTitle || ('记录 ' + selectedNode.detailRecordId) }}</span>
+              <button class="link-btn" @click="clearQaSelection">清除</button>
+            </div>
+          </div>
         </div>
       </div>
       
@@ -227,6 +258,13 @@
               <button @click.stop="showPropertyPanel = true" class="action-btn" title="属性设置">
                 ⚙️
               </button>
+              <button 
+                v-if="node.detailRecordId"
+                @click.stop="openDetailRecord(node)" 
+                class="action-btn" 
+                title="查看详细说明（AI问答记录）">
+                🔗
+              </button>
             </div>
 
             <!-- 折叠/展开同一小圆圈（折叠显示数量，展开显示箭头） -->
@@ -285,6 +323,7 @@
 
 <script setup>
 import { ref, reactive, computed, onMounted, onUnmounted, nextTick, watch } from 'vue'
+import { useRouter } from 'vue-router'
 
 // 响应式数据
 const nodes = ref([])
@@ -646,6 +685,10 @@ function addChildNode(parentId = selectedNodeId.value) {
   nodes.value.push(newNode)
   selectedNodeId.value = newNode.id
   
+  // 先重排当前父节点直系子节点，立刻拉开间距
+  layoutImmediateChildren(parent.id)
+  // 再根据当前布局全局重排，避免需要折叠/展开才生效
+  applyLayout()
   updateConnections()
   saveToHistory()
 }
@@ -875,36 +918,39 @@ function applyMindmapLayout() {
   const rootNode = nodes.value.find(node => node.isRoot)
   if (!rootNode) return
   
-  rootNode.x = 200
+  rootNode.x = 200  // 将根节点移到左侧，为右侧子节点留出空间
   rootNode.y = 300
   
   if (rootNode.children && rootNode.children.length > 0) {
-    const nodeSpacing = 100  // 增加节点间距
-    
     // 所有子节点都放在右侧
+    const yPositions = computeChildrenYPositionsSubtreeAware(rootNode)
     rootNode.children.forEach((childId, index) => {
       const child = nodes.value.find(n => n.id === childId)
       if (child) {
-        child.x = rootNode.x + 220  // 增加水平间距
-        child.y = rootNode.y - (rootNode.children.length - 1) * 50 + index * nodeSpacing
-        layoutSubtree(child, 1)
+        child.x = rootNode.x + NODE_HORIZONTAL_GAP
+        child.y = yPositions[index]
+        // 对于未折叠的子节点，继续布局其子树
+        if (!child.collapsed) {
+          layoutSubtree(child, 1)
+        }
       }
     })
   }
 }
 
 // 递归布局子树
-function layoutSubtree(node, direction = 1) {
+function layoutSubtree(node, direction = 1) {  // 默认方向为右侧
   if (!node.children || node.children.length === 0) return
   
-  const nodeSpacing = 100  // 增加节点间距
-  
+  const yPositions = computeChildrenYPositionsSubtreeAware(node)
   node.children.forEach((childId, index) => {
     const child = nodes.value.find(n => n.id === childId)
     if (child) {
-      child.x = node.x + 220  // 增加水平间距
-      child.y = node.y - (node.children.length - 1) * 50 + index * nodeSpacing
-      layoutSubtree(child, 1)
+      child.x = node.x + NODE_HORIZONTAL_GAP  // 固定向右一定像素
+      child.y = yPositions[index]
+      if (!child.collapsed) {
+        layoutSubtree(child, 1)  // 递归时也强制使用右侧方向
+      }
     }
   })
 }
@@ -959,6 +1005,67 @@ function updateNodeStyle() {
 }
 
 function updateNodeText() {
+  saveToHistory()
+}
+
+// AI问答记录选择
+const qaSearchKeyword = ref('')
+const qaSearchResults = ref([])
+const qaDropdownVisible = ref(false)
+let qaSearchTimer = null
+
+function onQaSearchFocus() {
+  if (qaSearchResults.value.length) qaDropdownVisible.value = true
+}
+
+function onQaSearchInput() {
+  if (qaSearchTimer) clearTimeout(qaSearchTimer)
+  qaSearchTimer = setTimeout(async () => {
+    const kw = qaSearchKeyword.value.trim()
+    if (!kw) {
+      qaSearchResults.value = []
+      qaDropdownVisible.value = false
+      return
+    }
+    try {
+      // 复用 tool 模块 GalleryController 的搜索接口
+      // POST /api/gallery/records/search  body: { query, page, size }
+      const res = await fetch(`${API_BASE}/api/gallery/records/search`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ query: kw, page: 1, size: 10 })
+      })
+      const data = await res.json()
+      const list = data?.data?.records || []
+      qaSearchResults.value = list.map((it) => ({ id: it.id, title: it.title || '' })).filter(it => it.id && it.title)
+      qaDropdownVisible.value = qaSearchResults.value.length > 0
+    } catch (e) {
+      qaSearchResults.value = []
+      qaDropdownVisible.value = false
+    }
+  }, 300)
+}
+
+function triggerQaSearch() {
+  // 立即触发一次查询
+  if (qaSearchTimer) clearTimeout(qaSearchTimer)
+  onQaSearchInput()
+}
+
+function selectQaRecord(item) {
+  if (!selectedNode.value) return
+  selectedNode.value.detailRecordId = item.id
+  selectedNode.value.detailRecordTitle = item.title
+  qaSearchKeyword.value = item.title
+  qaDropdownVisible.value = false
+  saveToHistory()
+}
+
+function clearQaSelection() {
+  if (!selectedNode.value) return
+  selectedNode.value.detailRecordId = null
+  selectedNode.value.detailRecordTitle = null
+  qaSearchKeyword.value = ''
   saveToHistory()
 }
 
@@ -1030,21 +1137,28 @@ async function createNewMap() {
 async function saveMap() {
   const payload = {
     map: { id: currentMapId.value, title: mapTitle.value, layout: currentLayout.value },
-    nodes: nodes.value.map(n => ({
-      id: n.id,
-      parentId: n.parentId,
-      text: n.text,
-      x: Math.round(n.x),
-      y: Math.round(n.y),
-      width: n.width,
-      height: n.height,
-      shape: n.shape,
-      backgroundColor: n.backgroundColor,
-      borderColor: n.borderColor,
-      fontSize: n.fontSize,
-      isRoot: !!n.isRoot,
-      collapsed: !!n.collapsed
-    }))
+    nodes: nodes.value.map(n => {
+      const base = {
+        id: n.id,
+        parentId: n.parentId,
+        text: n.text,
+        x: Math.round(n.x),
+        y: Math.round(n.y),
+        width: n.width,
+        height: n.height,
+        shape: n.shape,
+        backgroundColor: n.backgroundColor,
+        borderColor: n.borderColor,
+        fontSize: n.fontSize,
+        isRoot: !!n.isRoot,
+        collapsed: !!n.collapsed
+      }
+      if (n.detailRecordId) {
+        base.detailRecordId = n.detailRecordId
+        if (n.detailRecordTitle) base.detailRecordTitle = n.detailRecordTitle
+      }
+      return base
+    })
   }
   const res = await fetch(`${API_BASE}/api/mindmap/save`, {
     method: 'POST',
@@ -1088,7 +1202,9 @@ async function loadMap() {
     borderColor: n.borderColor,
     fontSize: n.fontSize,
     width: n.width,
-    height: n.height
+    height: n.height,
+    detailRecordId: n.detailRecordId || null,
+    detailRecordTitle: n.detailRecordTitle || null
   }))
   nodes.value = loaded
   // 重建 children 关系
@@ -1156,6 +1272,9 @@ function setupEventListeners() {
   document.addEventListener('click', (e) => {
     if (!e.target.closest('.mind-node') && !e.target.closest('.context-menu')) {
       contextMenu.show = false
+    }
+    if (!e.target.closest('.qa-search')) {
+      qaDropdownVisible.value = false
     }
   })
 }
@@ -1263,9 +1382,18 @@ function pasteNode() {
     saveToHistory()
   }
 }
+
+const router = useRouter()
+
+function openDetailRecord(node) {
+  if (!node?.detailRecordId) return
+  // 跳到AI问答记录页，并携带查询参数以便页面高亮该条
+  router.push({ path: '/gallery', query: { highlightId: String(node.detailRecordId) } })
+}
 </script>
 
 <style scoped>
+/* 将原有样式保持不变（此处只粘贴头部，完整样式已在文件原有位置） */
 .edraw-mind-container {
   display: flex;
   flex-direction: column;
@@ -1462,7 +1590,7 @@ function pasteNode() {
   position: relative;
   cursor: grab;
   transform-origin: 0 0;
-  overflow: visible; /* 允许内容溢出显示，防止箭头被裁剪 */
+  overflow: visible;
 }
 
 .canvas:active {
@@ -1489,7 +1617,7 @@ function pasteNode() {
   height: 100%;
   pointer-events: none;
   z-index: 1;
-  overflow: visible; /* 防止箭头在边界被裁剪 */
+  overflow: visible;
 }
 
 .connection-line {
@@ -1540,30 +1668,12 @@ function pasteNode() {
 }
 
 /* 节点形状 */
-.mind-node.rectangle {
-  border-radius: 4px;
-}
-
-.mind-node.rounded {
-  border-radius: 12px;
-}
-
-.mind-node.circle {
-  border-radius: 50%;
-}
-
-.mind-node.diamond {
-  border-radius: 0;
-  transform: rotate(45deg);
-}
-
-.mind-node.diamond .node-content {
-  transform: rotate(-45deg);
-}
-
-.mind-node.cloud {
-  border-radius: 50px 20px 50px 20px;
-}
+.mind-node.rectangle { border-radius: 4px; }
+.mind-node.rounded { border-radius: 12px; }
+.mind-node.circle { border-radius: 50%; }
+.mind-node.diamond { border-radius: 0; transform: rotate(45deg); }
+.mind-node.diamond .node-content { transform: rotate(-45deg); }
+.mind-node.cloud { border-radius: 50px 20px 50px 20px; }
 
 .node-content {
   padding: 10px;
@@ -1610,7 +1720,7 @@ function pasteNode() {
   border-color: #bbb;
 }
 
-/* 折叠/展开同一小圆圈（折叠显示数量，展开显示箭头） */
+/* 折叠/展开同一小圆圈 */
 .collapse-toggle {
   position: absolute;
   bottom: -10px;
@@ -1632,9 +1742,7 @@ function pasteNode() {
   z-index: 5;
 }
 
-.collapse-toggle:hover {
-  filter: brightness(0.95);
-}
+.collapse-toggle:hover { filter: brightness(0.95); }
 
 /* 小地图 */
 .minimap {
@@ -1662,11 +1770,7 @@ function pasteNode() {
   font-weight: 500;
 }
 
-.minimap-content {
-  height: calc(100% - 40px);
-  background: #fafafa;
-  border-radius: 0 0 8px 8px;
-}
+.minimap-content { height: calc(100% - 40px); background: #fafafa; border-radius: 0 0 8px 8px; }
 
 /* 右键菜单 */
 .context-menu {
@@ -1680,30 +1784,11 @@ function pasteNode() {
   overflow: hidden;
 }
 
-.menu-item {
-  padding: 10px 15px;
-  cursor: pointer;
-  font-size: 14px;
-  transition: background 0.2s;
-}
-
-.menu-item:hover {
-  background: #f0f0f0;
-}
-
-.menu-item.danger {
-  color: #f44336;
-}
-
-.menu-item.danger:hover {
-  background: #ffebee;
-}
-
-.menu-separator {
-  height: 1px;
-  background: #e0e0e0;
-  margin: 5px 0;
-}
+.menu-item { padding: 10px 15px; cursor: pointer; font-size: 14px; transition: background 0.2s; }
+.menu-item:hover { background: #f0f0f0; }
+.menu-item.danger { color: #f44336; }
+.menu-item.danger:hover { background: #ffebee; }
+.menu-separator { height: 1px; background: #e0e0e0; margin: 5px 0; }
 
 /* 状态栏 */
 .status-bar {
@@ -1718,67 +1803,52 @@ function pasteNode() {
 }
 
 /* 图标样式 */
-.icon {
-  font-size: 16px;
-}
+.icon { font-size: 16px; }
 
 /* 响应式设计 */
 @media (max-width: 768px) {
-  .toolbar {
-    padding: 8px 10px;
-    gap: 10px;
-  }
-  
-  .tool-btn {
-    padding: 6px 8px;
-    font-size: 12px;
-  }
-  
-  .property-panel {
-    width: 240px;
-  }
-  
-  .minimap {
-    width: 150px;
-    height: 100px;
-    bottom: 10px;
-    right: 10px;
-  }
+  .toolbar { padding: 8px 10px; gap: 10px; }
+  .tool-btn { padding: 6px 8px; font-size: 12px; }
+  .property-panel { width: 240px; }
+  .minimap { width: 150px; height: 100px; bottom: 10px; right: 10px; }
 }
 
 /* 动画效果 */
-@keyframes nodeAppear {
-  from {
-    opacity: 0;
-    transform: scale(0.8);
-  }
-  to {
-    opacity: 1;
-    transform: scale(1);
-  }
-}
-
-.mind-node {
-  animation: nodeAppear 0.3s ease-out;
-}
+@keyframes nodeAppear { from { opacity: 0; transform: scale(0.8); } to { opacity: 1; transform: scale(1); } }
+.mind-node { animation: nodeAppear 0.3s ease-out; }
 
 /* 滚动条样式 */
-::-webkit-scrollbar {
-  width: 8px;
-  height: 8px;
-}
+::-webkit-scrollbar { width: 8px; height: 8px; }
+::-webkit-scrollbar-track { background: #f1f1f1; border-radius: 4px; }
+::-webkit-scrollbar-thumb { background: #c1c1c1; border-radius: 4px; }
+::-webkit-scrollbar-thumb:hover { background: #a8a8a8; }
 
-::-webkit-scrollbar-track {
-  background: #f1f1f1;
-  border-radius: 4px;
+/* QA 搜索下拉 */
+.qa-search { position: relative; }
+.qa-dropdown {
+  position: absolute;
+  left: 0; right: 0;
+  top: calc(100% + 4px);
+  background: #fff;
+  border: 1px solid #ddd;
+  border-radius: 6px;
+  box-shadow: 0 6px 16px rgba(0,0,0,0.12);
+  max-height: 220px;
+  overflow: auto;
+  z-index: 20;
 }
-
-::-webkit-scrollbar-thumb {
-  background: #c1c1c1;
-  border-radius: 4px;
+.qa-item {
+  padding: 8px 10px;
+  display: flex;
+  justify-content: space-between;
+  gap: 10px;
+  cursor: pointer;
+  font-size: 13px;
 }
-
-::-webkit-scrollbar-thumb:hover {
-  background: #a8a8a8;
-}
+.qa-item:hover { background: #f6f6f6; }
+.qa-title { color: #333; flex: 1; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.qa-id { color: #999; font-variant-numeric: tabular-nums; }
+.qa-selected { margin-top: 6px; font-size: 12px; color: #555; display:flex; align-items:center; gap:8px; }
+.link-btn { background: none; border: none; color: #1976D2; cursor: pointer; padding: 0; }
+.link-btn:hover { text-decoration: underline; }
 </style>

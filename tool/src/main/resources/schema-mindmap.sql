@@ -22,6 +22,8 @@ CREATE TABLE IF NOT EXISTS mind_map_node (
   font_size INT NOT NULL DEFAULT 14,
   is_root TINYINT(1) NOT NULL DEFAULT 0,
   collapsed TINYINT(1) NOT NULL DEFAULT 0,
+  detail_record_id BIGINT NULL,
+  detail_record_title VARCHAR(255) NULL,
   CONSTRAINT fk_mind_map_node_map FOREIGN KEY (map_id) REFERENCES mind_map(id) ON DELETE CASCADE,
   INDEX idx_map_id (map_id),
   INDEX idx_parent_id (parent_id)

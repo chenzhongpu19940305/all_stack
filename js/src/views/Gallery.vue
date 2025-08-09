@@ -32,7 +32,7 @@
           <div v-else-if="filteredImages.length === 0" class="no-images">
             <p>暂无AI问答记录</p>
           </div>
-          <div v-else v-for="item in filteredImages" :key="item.id" class="image-card" @mouseenter="showCardActions(item.id)" @mouseleave="hideCardActions(item.id)">
+          <div v-else v-for="item in filteredImages" :key="item.id" :id="'record-' + item.id" :class="['image-card', { highlight: item.id === highlightedId }]" @mouseenter="showCardActions(item.id)" @mouseleave="hideCardActions(item.id)">
             <div class="image-title">{{ item.title }}</div>
             <div class="image-preview" @click="viewImage(item)">
               <img v-if="item.images && item.images.length > 0" :src="item.images[0].imageData" :alt="item.images[0].name" class="preview-image">
@@ -171,7 +171,8 @@
 </template>
 
 <script>
-import { ref, reactive, onMounted } from 'vue'
+import { ref, reactive, onMounted, nextTick, watch } from 'vue'
+import { useRoute } from 'vue-router'
 
 export default {
   name: 'Gallery',
@@ -185,6 +186,9 @@ export default {
     const searchQuery = ref('')
     const filteredImages = ref([])
     const hoveredCardId = ref(null)
+    const highlightedId = ref(null)
+    const route = useRoute()
+
     const uploadForm = reactive({
       title: '',
       description: '',
@@ -200,17 +204,11 @@ export default {
     // API接口配置
     const API_BASE_URL = 'http://localhost:8080/czp/tool/api/gallery'
     const API_ENDPOINTS = {
-      // 获取AI问答记录列表
       GET_RECORDS: `${API_BASE_URL}/records`,
-      // 搜索AI问答记录
       SEARCH_RECORDS: `${API_BASE_URL}/records/search`,
-      // 新增AI问答记录
       CREATE_RECORD: `${API_BASE_URL}/records`,
-      // 删除AI问答记录
       DELETE_RECORD: `${API_BASE_URL}/records/:id`,
-      // 获取单个记录详情
       GET_RECORD: `${API_BASE_URL}/records/:id`,
-      // 上传图片
       UPLOAD_IMAGE: `${API_BASE_URL}/upload`
     }
 
@@ -236,7 +234,6 @@ export default {
       }
     }
 
-    // 获取AI问答记录列表
     const loadRecords = async (params = {}) => {
       loading.value = true
       try {
@@ -254,7 +251,6 @@ export default {
       }
     }
 
-    // 搜索AI问答记录
     const searchRecords = async (query) => {
       if (!query.trim()) {
         filteredImages.value = [...images.value]
@@ -278,7 +274,6 @@ export default {
       }
     }
 
-    // 上传图片到服务器
     const uploadImageToServer = async (file) => {
       const formData = new FormData()
       formData.append('image', file)
@@ -305,7 +300,6 @@ export default {
       }
     }
 
-    // 新增AI问答记录
     const createRecord = async (recordData) => {
       try {
         const response = await apiRequest(API_ENDPOINTS.CREATE_RECORD, {
@@ -319,7 +313,6 @@ export default {
       }
     }
 
-    // 删除AI问答记录
     const deleteRecord = async (recordId) => {
       if (!confirm('确定要删除这条记录吗？')) {
         return
@@ -336,7 +329,6 @@ export default {
       }
     }
 
-    // 更新记录
     const updateRecord = (item) => {
       updateForm.id = item.id
       updateForm.title = item.title
@@ -345,7 +337,6 @@ export default {
       showUpdateModal.value = true
     }
 
-    // 提交更新
     const submitUpdate = async () => {
       if (!updateForm.title || updateForm.images.length === 0) {
         alert('请填写标题并添加图片')
@@ -596,10 +587,48 @@ export default {
         alert('清理孤立图片失败，请重试');
       }
     }
+
+    // 高亮并滚动到指定记录
+    const applyHighlight = async (id) => {
+      highlightedId.value = id
+      await nextTick()
+      const el = document.getElementById('record-' + id)
+      if (el) el.scrollIntoView({ behavior: 'smooth', block: 'center' })
+      // 一段时间后移除高亮
+      setTimeout(() => { if (highlightedId.value === id) highlightedId.value = null }, 3000)
+    }
+
+    const handleHighlightFromRoute = async () => {
+      const qid = route.query.highlightId
+      if (!qid) return
+      const id = Number(qid)
+      if (!id) return
+      // 尝试在当前列表中查找
+      const exists = filteredImages.value.some(it => it.id === id) || images.value.some(it => it.id === id)
+      if (!exists) {
+        // 拉取单个记录并加入列表顶部
+        try {
+          const url = API_ENDPOINTS.GET_RECORD.replace(':id', id)
+          const data = await apiRequest(url)
+          if (data?.data) {
+            const item = data.data
+            images.value.unshift(item)
+            filteredImages.value.unshift(item)
+          }
+        } catch (e) {}
+      }
+      await applyHighlight(id)
+    }
     
-    onMounted(() => {
-      loadRecords()
+    onMounted(async () => {
+      await loadRecords()
+      await handleHighlightFromRoute()
     })
+
+    watch(() => route.query.highlightId, async () => {
+      await handleHighlightFromRoute()
+    })
+    
     return {
       showImageModal,
       showUploadModal,
@@ -610,6 +639,7 @@ export default {
       searchQuery,
       filteredImages,
       hoveredCardId,
+      highlightedId,
       uploadForm,
       updateForm,
       viewImage,
@@ -633,7 +663,9 @@ export default {
       createRecord,
       deleteRecord,
       uploadImageToServer,
-      cleanOrphanImages
+      cleanOrphanImages,
+      applyHighlight,
+      handleHighlightFromRoute
     }
   }
 }
@@ -761,6 +793,7 @@ export default {
   box-shadow: 0 8px 25px rgba(0,0,0,0.12);
   transform: translateY(-2px);
 }
+.image-card.highlight { box-shadow: 0 0 0 3px rgba(33,150,243,0.5); border-color: #2196F3; }
 .image-title {
   font-size: 0.9rem;
   font-weight: bold;

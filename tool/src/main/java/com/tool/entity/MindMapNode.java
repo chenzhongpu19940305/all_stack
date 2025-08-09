@@ -22,6 +22,10 @@ public class MindMapNode {
     private Boolean isRoot;
     private Boolean collapsed;
 
+    // 详细说明关联（来自AI问答记录）
+    private Long detailRecordId;
+    private String detailRecordTitle;
+
     public Long getId() { return id; }
     public void setId(Long id) { this.id = id; }
 
@@ -63,4 +67,10 @@ public class MindMapNode {
 
     public Boolean getCollapsed() { return collapsed; }
     public void setCollapsed(Boolean collapsed) { this.collapsed = collapsed; }
+
+    public Long getDetailRecordId() { return detailRecordId; }
+    public void setDetailRecordId(Long detailRecordId) { this.detailRecordId = detailRecordId; }
+
+    public String getDetailRecordTitle() { return detailRecordTitle; }
+    public void setDetailRecordTitle(String detailRecordTitle) { this.detailRecordTitle = detailRecordTitle; }
 } 

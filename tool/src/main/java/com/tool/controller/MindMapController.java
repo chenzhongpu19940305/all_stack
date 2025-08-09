@@ -50,6 +50,14 @@ public class MindMapController {
                 node.setFontSize(((Number) n.getOrDefault("fontSize", 14)).intValue());
                 node.setIsRoot((Boolean) n.getOrDefault("isRoot", false));
                 node.setCollapsed((Boolean) n.getOrDefault("collapsed", false));
+                if (n.get("detailRecordId") != null) {
+                    Object v = n.get("detailRecordId");
+                    if (v instanceof Number) node.setDetailRecordId(((Number) v).longValue());
+                    else if (v instanceof String && !((String) v).isEmpty()) node.setDetailRecordId(Long.parseLong((String) v));
+                }
+                if (n.get("detailRecordTitle") != null) {
+                    node.setDetailRecordTitle((String) n.get("detailRecordTitle"));
+                }
                 return node;
             }).collect(Collectors.toList());
 
