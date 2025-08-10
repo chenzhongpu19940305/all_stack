@@ -1,0 +1,104 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.tool.mapper.CodeSnippetTagMapper">
+    
+    <!-- 结果映射 -->
+    <resultMap id="BaseResultMap" type="com.tool.entity.CodeSnippetTag">
+        <id column="id" property="id" jdbcType="BIGINT"/>
+        <result column="record_id" property="recordId" jdbcType="BIGINT"/>
+        <result column="tag_name" property="tagName" jdbcType="VARCHAR"/>
+        <result column="created_at" property="createdAt" jdbcType="TIMESTAMP"/>
+    </resultMap>
+    
+    <!-- 基础SQL片段 -->
+    <sql id="Base_Column_List">
+        id, record_id, tag_name, created_at
+    </sql>
+    
+    <!-- 根据ID查询标签 -->
+    <select id="selectById" parameterType="java.lang.Long" resultMap="BaseResultMap">
+        SELECT <include refid="Base_Column_List"/>
+        FROM code_snippet_tags
+        WHERE id = #{id}
+    </select>
+    
+    <!-- 根据记录ID查询标签列表 -->
+    <select id="selectByRecordId" parameterType="java.lang.Long" resultMap="BaseResultMap">
+        SELECT <include refid="Base_Column_List"/>
+        FROM code_snippet_tags
+        WHERE record_id = #{recordId}
+        ORDER BY created_at ASC
+    </select>
+    
+    <!-- 查询所有标签 -->
+    <select id="selectAll" resultMap="BaseResultMap">
+        SELECT <include refid="Base_Column_List"/>
+        FROM code_snippet_tags
+        ORDER BY created_at DESC
+    </select>
+    
+    <!-- 根据标签名查询标签 -->
+    <select id="selectByTagName" parameterType="java.lang.String" resultMap="BaseResultMap">
+        SELECT <include refid="Base_Column_List"/>
+        FROM code_snippet_tags
+        WHERE tag_name = #{tagName}
+        ORDER BY created_at DESC
+    </select>
+    
+    <!-- 插入标签 -->
+    <insert id="insert" parameterType="com.tool.entity.CodeSnippetTag" useGeneratedKeys="true" keyProperty="id">
+        INSERT INTO code_snippet_tags (record_id, tag_name, created_at)
+        VALUES (#{recordId}, #{tagName}, #{createdAt})
+    </insert>
+    
+    <!-- 更新标签 -->
+    <update id="update" parameterType="com.tool.entity.CodeSnippetTag">
+        UPDATE code_snippet_tags
+        SET tag_name = #{tagName}
+        WHERE id = #{id}
+    </update>
+    
+    <!-- 根据ID删除标签 -->
+    <delete id="deleteById" parameterType="java.lang.Long">
+        DELETE FROM code_snippet_tags WHERE id = #{id}
+    </delete>
+    
+    <!-- 根据记录ID删除标签 -->
+    <delete id="deleteByRecordId" parameterType="java.lang.Long">
+        DELETE FROM code_snippet_tags WHERE record_id = #{recordId}
+    </delete>
+    
+    <!-- 批量插入标签 -->
+    <insert id="insertBatch" parameterType="java.util.List">
+        INSERT INTO code_snippet_tags (record_id, tag_name, created_at)
+        VALUES
+        <foreach collection="tags" item="tag" separator=",">
+            (#{tag.recordId}, #{tag.tagName}, #{tag.createdAt})
+        </foreach>
+    </insert>
+    
+    <!-- 查询孤立标签（没有关联记录的标签） -->
+    <select id="selectOrphanTags" resultMap="BaseResultMap">
+        SELECT <include refid="Base_Column_List"/>
+        FROM code_snippet_tags t
+        WHERE NOT EXISTS (
+            SELECT 1 FROM code_snippet_records r WHERE r.id = t.record_id
+        )
+    </select>
+    
+    <!-- 删除孤立标签 -->
+    <delete id="deleteOrphanTags">
+        DELETE FROM code_snippet_tags
+        WHERE NOT EXISTS (
+            SELECT 1 FROM code_snippet_records r WHERE r.id = code_snippet_tags.record_id
+        )
+    </delete>
+    
+    <!-- 获取所有不重复的标签名 -->
+    <select id="selectDistinctTagNames" resultType="java.lang.String">
+        SELECT DISTINCT tag_name
+        FROM code_snippet_tags
+        ORDER BY tag_name ASC
+    </select>
+    
+</mapper>

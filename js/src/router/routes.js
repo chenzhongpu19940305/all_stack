@@ -2,6 +2,7 @@
 import Home from '../views/Home.vue'
 import Gallery from '../views/Gallery.vue'
 import VideoGallery from '../views/VideoGallery.vue'
+import CodeSnippets from '../views/CodeSnippets.vue'
 import MindMap from '../views/MindMap.vue'
 import EdrawMind from '../views/EdrawMind.vue'
 import RouteTest from '../views/RouteTest.vue'
@@ -38,6 +39,16 @@ export const routes = [
       title: '视频管理',
       icon: '🎥',
       description: '视频文件管理'
+    }
+  },
+  {
+    path: '/code-snippets',
+    name: 'CodeSnippets',
+    component: CodeSnippets,
+    meta: {
+      title: '代码片段库',
+      icon: '💻',
+      description: '代码片段管理'
     }
   },
   {

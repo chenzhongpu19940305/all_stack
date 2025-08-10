@@ -1,0 +1,143 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.tool.mapper.CodeSnippetRecordMapper">
+    
+    <!-- 基础结果映射 -->
+    <resultMap id="BaseResultMap" type="com.tool.entity.CodeSnippetRecord">
+        <id column="id" property="id" jdbcType="BIGINT"/>
+        <result column="title" property="title" jdbcType="VARCHAR"/>
+        <result column="description" property="description" jdbcType="LONGVARCHAR"/>
+        <result column="code" property="code" jdbcType="LONGVARCHAR"/>
+        <result column="language" property="language" jdbcType="VARCHAR"/>
+        <result column="created_at" property="createdAt" jdbcType="TIMESTAMP"/>
+        <result column="updated_at" property="updatedAt" jdbcType="TIMESTAMP"/>
+    </resultMap>
+    
+    <!-- 包含标签的结果映射 -->
+    <resultMap id="RecordWithTagsResultMap" type="com.tool.entity.CodeSnippetRecord" extends="BaseResultMap">
+        <collection property="tags" ofType="com.tool.entity.CodeSnippetTag">
+            <id column="tag_id" property="id" jdbcType="BIGINT"/>
+            <result column="tag_record_id" property="recordId" jdbcType="BIGINT"/>
+            <result column="tag_name" property="tagName" jdbcType="VARCHAR"/>
+            <result column="tag_created_at" property="createdAt" jdbcType="TIMESTAMP"/>
+        </collection>
+    </resultMap>
+    
+    <!-- 基础SQL片段 -->
+    <sql id="Base_Column_List">
+        id, title, description, code, language, created_at, updated_at
+    </sql>
+    
+    <!-- 根据ID查询记录 -->
+    <select id="selectById" parameterType="java.lang.Long" resultMap="BaseResultMap">
+        SELECT <include refid="Base_Column_List"/>
+        FROM code_snippet_records
+        WHERE id = #{id}
+    </select>
+    
+    <!-- 查询所有记录 -->
+    <select id="selectAll" resultMap="BaseResultMap">
+        SELECT <include refid="Base_Column_List"/>
+        FROM code_snippet_records
+        ORDER BY created_at DESC
+    </select>
+    
+    <!-- 分页查询记录 -->
+    <select id="selectByPage" resultMap="BaseResultMap">
+        SELECT <include refid="Base_Column_List"/>
+        FROM code_snippet_records
+        ORDER BY created_at DESC
+        LIMIT #{size} OFFSET #{offset}
+    </select>
+    
+    <!-- 根据标题搜索记录 -->
+    <select id="selectByTitle" parameterType="java.lang.String" resultMap="BaseResultMap">
+        SELECT <include refid="Base_Column_List"/>
+        FROM code_snippet_records
+        WHERE title LIKE CONCAT('%', #{title}, '%')
+        ORDER BY created_at DESC
+    </select>
+    
+    <!-- 根据语言搜索记录 -->
+    <select id="selectByLanguage" parameterType="java.lang.String" resultMap="BaseResultMap">
+        SELECT <include refid="Base_Column_List"/>
+        FROM code_snippet_records
+        WHERE language = #{language}
+        ORDER BY created_at DESC
+    </select>
+    
+    <!-- 根据关键词搜索记录 -->
+    <select id="selectByKeyword" parameterType="java.lang.String" resultMap="BaseResultMap">
+        SELECT <include refid="Base_Column_List"/>
+        FROM code_snippet_records
+        WHERE title LIKE CONCAT('%', #{keyword}, '%')
+           OR description LIKE CONCAT('%', #{keyword}, '%')
+           OR code LIKE CONCAT('%', #{keyword}, '%')
+           OR language LIKE CONCAT('%', #{keyword}, '%')
+        ORDER BY created_at DESC
+    </select>
+    
+    <!-- 统计记录总数 -->
+    <select id="count" resultType="int">
+        SELECT COUNT(*) FROM code_snippet_records
+    </select>
+    
+    <!-- 根据标题统计记录数 -->
+    <select id="countByTitle" parameterType="java.lang.String" resultType="int">
+        SELECT COUNT(*) FROM code_snippet_records
+        WHERE title LIKE CONCAT('%', #{title}, '%')
+    </select>
+    
+    <!-- 根据关键词统计记录数 -->
+    <select id="countByKeyword" parameterType="java.lang.String" resultType="int">
+        SELECT COUNT(*) FROM code_snippet_records
+        WHERE title LIKE CONCAT('%', #{keyword}, '%')
+           OR description LIKE CONCAT('%', #{keyword}, '%')
+           OR code LIKE CONCAT('%', #{keyword}, '%')
+           OR language LIKE CONCAT('%', #{keyword}, '%')
+    </select>
+    
+    <!-- 插入记录 -->
+    <insert id="insert" parameterType="com.tool.entity.CodeSnippetRecord" useGeneratedKeys="true" keyProperty="id">
+        INSERT INTO code_snippet_records (title, description, code, language, created_at, updated_at)
+        VALUES (#{title}, #{description}, #{code}, #{language}, #{createdAt}, #{updatedAt})
+    </insert>
+    
+    <!-- 更新记录 -->
+    <update id="update" parameterType="com.tool.entity.CodeSnippetRecord">
+        UPDATE code_snippet_records
+        SET title = #{title},
+            description = #{description},
+            code = #{code},
+            language = #{language},
+            updated_at = #{updatedAt}
+        WHERE id = #{id}
+    </update>
+    
+    <!-- 根据ID删除记录 -->
+    <delete id="deleteById" parameterType="java.lang.Long">
+        DELETE FROM code_snippet_records WHERE id = #{id}
+    </delete>
+    
+    <!-- 查询记录及其关联的标签 -->
+    <select id="selectWithTags" parameterType="java.lang.Long" resultMap="RecordWithTagsResultMap">
+        SELECT 
+            r.id, r.title, r.description, r.code, r.language, r.created_at, r.updated_at,
+            t.id as tag_id, t.record_id as tag_record_id, t.tag_name, t.created_at as tag_created_at
+        FROM code_snippet_records r
+        LEFT JOIN code_snippet_tags t ON r.id = t.record_id
+        WHERE r.id = #{id}
+    </select>
+    
+    <!-- 分页查询记录及其关联的标签 -->
+    <select id="selectWithTagsByPage" resultMap="RecordWithTagsResultMap">
+        SELECT 
+            r.id, r.title, r.description, r.code, r.language, r.created_at, r.updated_at,
+            t.id as tag_id, t.record_id as tag_record_id, t.tag_name, t.created_at as tag_created_at
+        FROM code_snippet_records r
+        LEFT JOIN code_snippet_tags t ON r.id = t.record_id
+        ORDER BY r.created_at DESC
+        LIMIT #{size} OFFSET #{offset}
+    </select>
+    
+</mapper>

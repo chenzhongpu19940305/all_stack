@@ -1,27 +1,39 @@
 <template>
   <div class="docs-container">
-    <div class="header">
-      <h2>文档库（Word/Excel/PDF/PPT）</h2>
-      <div class="actions">
+    <div class="top-section">
+      <div class="search-section">
+        <div class="search-controls">
+          <input v-model.trim="searchKw" placeholder="搜索标题..." class="search-input" @input="debouncedSearch" />
+          <button class="tool-btn" @click="doSearch">搜索</button>
+        </div>
+        <h2>文档库（Word/Excel/PDF/PPT）</h2>
+      </div>
+      <div class="upload-section">
         <input v-model="uploadTitle" placeholder="输入文档组标题" class="title-input" />
         <input type="file" multiple @change="onPickFiles" :accept="acceptTypes" />
         <button class="tool-btn primary" @click="uploadDocs" :disabled="!canUpload">上传</button>
-        <input v-model.trim="searchKw" placeholder="搜索标题..." class="title-input" @input="debouncedSearch" />
-        <button class="tool-btn" @click="doSearch">搜索</button>
       </div>
     </div>
 
     <div class="list">
       <div v-for="r in records" :key="r.id" class="doc-card">
-        <div class="doc-title">{{ r.title }}</div>
+        <div class="doc-header">
+          <div class="doc-title">{{ r.title }}</div>
+          <button class="tool-btn danger" @click="deleteRecord(r)">删除记录</button>
+        </div>
         <div class="doc-meta">创建: {{ formatTime(r.createdAt) }}｜更新: {{ formatTime(r.updatedAt) }}</div>
         <div class="files" v-if="filesByRecord[r.id]">
           <div class="file-item" v-for="f in filesByRecord[r.id]" :key="f.id">
-            <span class="file-icon">{{ iconFor(f.mimeType) }}</span>
-            <span class="file-name" :title="f.name">{{ f.name }}</span>
-            <span class="file-size">{{ prettySize(f.size) }}</span>
-            <button class="tool-btn" @click="previewFile(f)">预览</button>
-            <button class="tool-btn" @click="downloadFile(f)">下载</button>
+            <div class="file-info">
+              <span class="file-icon">{{ iconFor(f.mimeType) }}</span>
+              <span class="file-name" :title="f.name">{{ f.name }}</span>
+              <span class="file-size">{{ prettySize(f.size) }}</span>
+            </div>
+            <div class="file-actions">
+              <button class="tool-btn small" @click="previewFile(f)">预览</button>
+              <button class="tool-btn small" @click="downloadFile(f)">下载</button>
+              <button class="tool-btn small danger" @click="deleteFile(f)">删除</button>
+            </div>
           </div>
         </div>
         <div class="files" v-else>
@@ -162,24 +174,303 @@ function prettySize(s) {
   return `${(s/1024/1024/1024).toFixed(1)} GB`
 }
 
+async function deleteRecord(record) {
+  if (!confirm(`确定要删除文档记录"${record.title}"吗？这将删除该记录下的所有文件。`)) {
+    return
+  }
+  
+  try {
+    const res = await fetch(`${API_BASE}/api/docs/records/${record.id}`, {
+      method: 'DELETE'
+    })
+    const data = await res.json()
+    
+    if (data.success) {
+      alert('删除成功')
+      await loadRecords()
+      // 清除该记录的文件缓存
+      delete filesByRecord.value[record.id]
+    } else {
+      alert('删除失败: ' + (data.message || '未知错误'))
+    }
+  } catch (e) {
+    alert('删除失败: ' + e.message)
+  }
+}
+
+async function deleteFile(file) {
+  if (!confirm(`确定要删除文件"${file.name}"吗？`)) {
+    return
+  }
+  
+  try {
+    const res = await fetch(`${API_BASE}/api/docs/files/${file.id}`, {
+      method: 'DELETE'
+    })
+    const data = await res.json()
+    
+    if (data.success) {
+      alert('文件删除成功')
+      // 重新加载该记录的文件列表
+      await loadFiles(file.recordId || findRecordIdByFile(file))
+    } else {
+      alert('删除失败: ' + (data.message || '未知错误'))
+    }
+  } catch (e) {
+    alert('删除失败: ' + e.message)
+  }
+}
+
+function findRecordIdByFile(file) {
+  for (const [recordId, files] of Object.entries(filesByRecord.value)) {
+    if (files.some(f => f.id === file.id)) {
+      return recordId
+    }
+  }
+  return null
+}
+
 onMounted(loadRecords)
 </script>
 
 <style scoped>
-.docs-container { padding: 20px; }
-.header { display:flex; justify-content: space-between; align-items:center; margin-bottom: 16px; }
-.actions { display:flex; gap:8px; align-items:center; }
-.title-input { padding:6px 10px; border:1px solid #ddd; border-radius:6px; }
-.tool-btn { display:inline-flex; align-items:center; gap:6px; padding:6px 10px; border:1px solid #ddd; background:#fff; border-radius:6px; cursor:pointer; }
-.tool-btn.primary { background:#2196F3; color:#fff; border-color:#1976D2; }
-.list { display:grid; grid-template-columns: repeat(auto-fill, minmax(300px, 1fr)); gap:12px; }
-.doc-card { background:#fff; border:1px solid #eee; border-radius:8px; padding:12px; }
-.doc-title { font-weight:600; margin-bottom:6px; }
-.doc-meta { color:#666; font-size:12px; margin-bottom:8px; }
-.file-item { display:flex; gap:8px; align-items:center; padding:6px 0; border-top:1px dashed #eee; }
-.file-icon { width:22px; text-align:center; }
-.file-name { flex:1; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }
-.file-size { color:#999; font-size:12px; }
-.link-btn { color:#1976D2; text-decoration:none; }
-.link-btn:hover { text-decoration:underline; }
-</style> 
+.docs-container { 
+  padding: 24px; 
+  background: linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%);
+  min-height: 100vh;
+}
+
+/* 顶部区域布局 */
+.top-section { 
+  margin-bottom: 32px; 
+  background: rgba(255, 255, 255, 0.9);
+  padding: 20px;
+  border-radius: 16px;
+  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.1);
+  backdrop-filter: blur(10px);
+}
+.search-section { 
+  display: flex; 
+  justify-content: space-between; 
+  align-items: center; 
+  margin-bottom: 16px; 
+}
+.search-section h2 { 
+  margin: 0; 
+  order: 2; 
+  color: #2c3e50;
+  font-size: 24px;
+  font-weight: 700;
+  background: linear-gradient(45deg, #667eea 0%, #764ba2 100%);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+}
+.search-controls { 
+  display: flex; 
+  gap: 12px; 
+  align-items: center; 
+  order: 1; 
+}
+.search-input { 
+  padding: 12px 16px; 
+  border: 2px solid #e1e8ed; 
+  border-radius: 12px; 
+  width: 240px;
+  font-size: 14px;
+  transition: all 0.3s ease;
+  background: rgba(255, 255, 255, 0.8);
+}
+.search-input:focus {
+  outline: none;
+  border-color: #667eea;
+  box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
+  background: white;
+}
+.upload-section { 
+  display: flex; 
+  gap: 12px; 
+  align-items: center; 
+  justify-content: flex-end; 
+  padding-top: 16px;
+  border-top: 1px solid #e1e8ed;
+}
+.title-input { 
+  padding: 12px 16px; 
+  border: 2px solid #e1e8ed; 
+  border-radius: 12px;
+  font-size: 14px;
+  transition: all 0.3s ease;
+  background: rgba(255, 255, 255, 0.8);
+}
+.title-input:focus {
+  outline: none;
+  border-color: #667eea;
+  box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
+  background: white;
+}
+
+/* 按钮样式 */
+.tool-btn { 
+  display: inline-flex; 
+  align-items: center; 
+  gap: 8px; 
+  padding: 12px 20px; 
+  border: none; 
+  background: linear-gradient(45deg, #667eea 0%, #764ba2 100%); 
+  color: white;
+  border-radius: 12px; 
+  cursor: pointer; 
+  font-size: 14px;
+  font-weight: 600;
+  transition: all 0.3s ease;
+  box-shadow: 0 4px 15px rgba(102, 126, 234, 0.3);
+}
+.tool-btn:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 6px 20px rgba(102, 126, 234, 0.4);
+}
+.tool-btn.small { 
+  padding: 8px 16px; 
+  font-size: 12px;
+  box-shadow: 0 2px 8px rgba(102, 126, 234, 0.2);
+}
+.tool-btn.small:hover {
+  transform: translateY(-1px);
+  box-shadow: 0 4px 12px rgba(102, 126, 234, 0.3);
+}
+.tool-btn.primary { 
+  background: linear-gradient(45deg, #4facfe 0%, #00f2fe 100%); 
+  box-shadow: 0 4px 15px rgba(79, 172, 254, 0.3);
+}
+.tool-btn.primary:hover {
+  box-shadow: 0 6px 20px rgba(79, 172, 254, 0.4);
+}
+.tool-btn.danger { 
+  background: linear-gradient(45deg, #ff6b6b 0%, #ee5a52 100%); 
+  box-shadow: 0 4px 15px rgba(255, 107, 107, 0.3);
+}
+.tool-btn.danger:hover { 
+  box-shadow: 0 6px 20px rgba(255, 107, 107, 0.4);
+}
+
+/* 文档列表 */
+.list { 
+  display: grid; 
+  grid-template-columns: repeat(auto-fill, minmax(380px, 1fr)); 
+  gap: 20px; 
+}
+.doc-card { 
+  background: rgba(255, 255, 255, 0.95); 
+  border: none;
+  border-radius: 20px; 
+  padding: 24px; 
+  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.1);
+  backdrop-filter: blur(10px);
+  transition: all 0.3s ease;
+  position: relative;
+  overflow: hidden;
+}
+.doc-card::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 4px;
+  background: linear-gradient(90deg, #667eea 0%, #764ba2 100%);
+}
+.doc-card:hover {
+  transform: translateY(-5px);
+  box-shadow: 0 15px 40px rgba(0, 0, 0, 0.15);
+}
+.doc-header { 
+  display: flex; 
+  justify-content: space-between; 
+  align-items: center; 
+  margin-bottom: 12px; 
+}
+.doc-title { 
+  font-weight: 700; 
+  flex: 1; 
+  color: #2c3e50;
+  font-size: 18px;
+}
+.doc-meta { 
+  color: #7f8c8d; 
+  font-size: 13px; 
+  margin-bottom: 16px;
+  font-weight: 500;
+}
+
+/* 文件项布局 */
+.file-item { 
+  display: flex; 
+  flex-direction: column; 
+  gap: 12px; 
+  padding: 16px 0; 
+  border-top: 2px dashed #e8f4fd;
+  transition: all 0.3s ease;
+}
+.file-item:hover {
+  background: rgba(102, 126, 234, 0.05);
+  border-radius: 12px;
+  padding: 16px 12px;
+  margin: 0 -12px;
+}
+.file-info { 
+  display: flex; 
+  gap: 12px; 
+  align-items: center; 
+}
+.file-icon { 
+  width: 28px; 
+  height: 28px;
+  text-align: center; 
+  background: linear-gradient(45deg, #667eea 0%, #764ba2 100%);
+  color: white;
+  border-radius: 8px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-weight: bold;
+  font-size: 12px;
+}
+.file-name { 
+  flex: 1; 
+  overflow: hidden; 
+  text-overflow: ellipsis; 
+  white-space: nowrap; 
+  font-weight: 600;
+  color: #2c3e50;
+  font-size: 15px;
+}
+.file-size { 
+  color: #95a5a6; 
+  font-size: 12px; 
+  min-width: 70px;
+  font-weight: 500;
+  background: #ecf0f1;
+  padding: 4px 8px;
+  border-radius: 6px;
+}
+.file-actions { 
+  display: flex; 
+  gap: 8px; 
+  justify-content: flex-end; 
+}
+
+.link-btn { 
+  color: #667eea; 
+  text-decoration: none;
+  font-weight: 600;
+  transition: all 0.3s ease;
+  padding: 4px 8px;
+  border-radius: 6px;
+}
+.link-btn:hover { 
+  background: rgba(102, 126, 234, 0.1);
+  color: #764ba2;
+  text-decoration: none;
+}
+</style>

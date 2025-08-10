@@ -40,4 +40,10 @@ public interface DocumentMapper {
 
     @Delete("DELETE FROM document_file WHERE id=#{id}")
     int deleteFile(@Param("id") Long id);
-} 
+
+    @Delete("DELETE FROM document_record WHERE id=#{id}")
+    int deleteRecord(@Param("id") Long id);
+
+    @Delete("DELETE FROM document_file WHERE record_id=#{recordId}")
+    int deleteFilesByRecordId(@Param("recordId") Long recordId);
+}

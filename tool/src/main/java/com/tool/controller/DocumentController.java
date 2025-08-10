@@ -137,6 +137,74 @@ public class DocumentController {
                 .body(resource);
     }
 
+    @DeleteMapping("/records/{id}")
+    public ResponseEntity<Map<String, Object>> deleteRecord(@PathVariable("id") Long id) {
+        Map<String, Object> res = new HashMap<>();
+        try {
+            // 先获取记录关联的文件，删除物理文件
+            List<DocumentFile> files = documentMapper.listFiles(id);
+            for (DocumentFile file : files) {
+                File physicalFile = new File(file.getStoragePath());
+                if (physicalFile.exists()) {
+                    physicalFile.delete();
+                }
+            }
+            
+            // 删除数据库中的文件记录
+            documentMapper.deleteFilesByRecordId(id);
+            
+            // 删除记录
+            int deleted = documentMapper.deleteRecord(id);
+            
+            if (deleted > 0) {
+                res.put("success", true);
+                res.put("message", "删除成功");
+            } else {
+                res.put("success", false);
+                res.put("message", "记录不存在");
+            }
+        } catch (Exception e) {
+            res.put("success", false);
+            res.put("message", "删除失败: " + e.getMessage());
+        }
+        return ResponseEntity.ok(res);
+    }
+
+    @DeleteMapping("/files/{fileId}")
+    public ResponseEntity<Map<String, Object>> deleteFile(@PathVariable("fileId") Long fileId) {
+        Map<String, Object> res = new HashMap<>();
+        try {
+            // 先获取文件信息
+            DocumentFile file = documentMapper.findFileById(fileId);
+            if (file == null) {
+                res.put("success", false);
+                res.put("message", "文件不存在");
+                return ResponseEntity.ok(res);
+            }
+            
+            // 删除物理文件
+            File physicalFile = new File(file.getStoragePath());
+            if (physicalFile.exists()) {
+                physicalFile.delete();
+            }
+            
+            // 删除数据库记录
+            int deleted = documentMapper.deleteFile(fileId);
+            
+            if (deleted > 0) {
+                res.put("success", true);
+                res.put("message", "文件删除成功");
+            } else {
+                res.put("success", false);
+                res.put("message", "删除失败");
+            }
+        } catch (Exception e) {
+            res.put("success", false);
+            res.put("message", "删除失败: " + e.getMessage());
+        }
+        return ResponseEntity.ok(res);
+    }
+
     private static String sha256(byte[] data) throws Exception {
         MessageDigest digest = MessageDigest.getInstance("SHA-256");
         byte[] hash = digest.digest(data);
@@ -148,4 +216,4 @@ public class DocumentController {
         }
         return hexString.toString();
     }
-} 
+}
