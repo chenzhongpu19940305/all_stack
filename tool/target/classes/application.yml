@@ -8,7 +8,7 @@ spring:
     name: tool-service
   
   datasource:
-    url: jdbc:mysql://localhost:3307/czp_java?useUnicode=true&characterEncoding=utf8&useSSL=false&serverTimezone=Asia/Shanghai
+    url: jdbc:mysql://localhost:3307/czp_java?useUnicode=true&characterEncoding=utf8&&allowPublicKeyRetrieval=true&useSSL=false&serverTimezone=Asia/Shanghai
     username: root
     password: root
     driver-class-name: com.mysql.cj.jdbc.Driver
