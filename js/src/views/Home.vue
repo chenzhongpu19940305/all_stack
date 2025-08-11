@@ -14,48 +14,29 @@
         </div>
     </div>
     
-    <div class="demo-section">
-      <h2>快速体验</h2>
-      <div class="counter-demo">
-        <button @click="decrement" class="demo-btn">-</button>
-        <span class="demo-count">{{ count }}</span>
-        <button @click="increment" class="demo-btn">+</button>
-      </div>
-      <p class="demo-tip">点击按钮体验响应式数据绑定</p>
-    </div>
+
   </div>
 </template>
 
 <script>
-import { reactive, ref } from 'vue'
+import { reactive } from 'vue'
 import { getNavigationMenu } from '../router/routes'
 
 export default {
   name: 'Home',
   setup() {
-    // 使用ref()管理简单响应式数据
-    var count = ref(0);
+
     
     // 使用reactive()管理复杂响应式对象
     var state = reactive({
       actions: getNavigationMenu().filter(route => route.path !== '/')
     });
 
-    // 方法定义
-    function increment() {
-      count.value = count.value + 1;
-    }
 
-    function decrement() {
-      count.value = count.value - 1;
-    }
 
     // 返回响应式数据和方法
     return {
-      count: count,
-      actions: state.actions,
-      increment: increment,
-      decrement: decrement
+      actions: state.actions
     }
   }
 }
@@ -141,59 +122,7 @@ export default {
   background: #3aa876;
 }
 
-.demo-section {
-  background: white;
-  padding: 2rem;
-  border-radius: 12px;
-  box-shadow: 0 4px 20px rgba(0,0,0,0.1);
-  text-align: center;
-  max-width: 500px;
-  margin: 0 auto;
-}
 
-.demo-section h2 {
-  color: #2c3e50;
-  margin-bottom: 1.5rem;
-  font-size: 1.8rem;
-}
-
-.counter-demo {
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  gap: 1rem;
-  margin-bottom: 1rem;
-}
-
-.demo-btn {
-  background: #42b883;
-  color: white;
-  border: none;
-  padding: 0.75rem 1rem;
-  border-radius: 6px;
-  cursor: pointer;
-  font-size: 1.2rem;
-  transition: background-color 0.3s ease;
-  min-width: 50px;
-}
-
-.demo-btn:hover {
-  background: #3aa876;
-}
-
-.demo-count {
-  font-size: 2.5rem;
-  font-weight: bold;
-  color: #2c3e50;
-  min-width: 4rem;
-  display: inline-block;
-}
-
-.demo-tip {
-  color: #666;
-  font-size: 0.9rem;
-  margin-top: 1rem;
-}
 
 @media (max-width: 768px) {
   .home {
