@@ -8,6 +8,8 @@ import EdrawMind from '../views/EdrawMind.vue'
 import RouteTest from '../views/RouteTest.vue'
 import EdrawMindHome from '../views/EdrawMindHome.vue'
 import Docs from '../views/Docs.vue'
+import DocumentEditor from '../views/DocumentEditor.vue'
+import DocumentEditorEdit from '../views/DocumentEditorEdit.vue'
 
 // 路由配置
 export const routes = [
@@ -69,6 +71,27 @@ export const routes = [
       title: '文档库',
       icon: '📚',
       description: 'Word/Excel/PDF/PPT 文档管理'
+    }
+  },
+  {
+    path: '/document-editor',
+    name: 'DocumentEditor',
+    component: DocumentEditor,
+    meta: {
+      title: '文档管理',
+      icon: '📝',
+      description: '文档管理中心，查看和管理所有文档'
+    }
+  },
+  {
+    path: '/document-editor/edit/:id?',
+    name: 'DocumentEditorEdit',
+    component: DocumentEditorEdit,
+    meta: {
+      title: '文档编辑器',
+      icon: '✏️',
+      description: '类似Word的简单文档编辑器，支持文字编辑和图片粘贴',
+      hideFromMenu: true
     }
   },
   {

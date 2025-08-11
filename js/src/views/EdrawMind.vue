@@ -556,7 +556,8 @@ function layoutImmediateChildren(parentId) {
   const childrenNodes = parent.children
     .map(id => nodes.value.find(n => n.id === id))
     .filter(Boolean)
-  const baseX = parent.x + NODE_HORIZONTAL_GAP
+  // 基于父节点的实际宽度计算子节点位置，确保子节点在父节点右侧
+  const baseX = parent.x + parent.width + 50 // 父节点宽度 + 50px间距
   const yPositions = computeChildrenYPositionsSubtreeAware(parent)
   childrenNodes.forEach((child, index) => {
     child.x = baseX
@@ -650,6 +651,14 @@ function createInitialMap() {
   const centerX = 400
   const centerY = 300
   
+  // 计算根节点的自适应尺寸
+  const textSize = calculateTextSize('中心主题', 16)
+  const minWidth = 80
+  const minHeight = 40
+  const maxWidth = 300
+  const adaptiveWidth = Math.max(minWidth, Math.min(maxWidth, textSize.width + 20))
+  const adaptiveHeight = Math.max(minHeight, textSize.height + 10)
+  
   const rootNode = {
     id: nextNodeId.value++,
     text: '中心主题',
@@ -663,8 +672,8 @@ function createInitialMap() {
     backgroundColor: '#4CAF50',
     borderColor: '#45a049',
     fontSize: 16,
-    width: 120,
-    height: 60
+    width: adaptiveWidth,
+    height: adaptiveHeight
   }
   
   nodes.value = [rootNode]
@@ -681,9 +690,12 @@ function addChildNode(parentId = selectedNodeId.value) {
   const parent = nodes.value.find(node => node.id === parentId)
   if (!parent) return
   
-  // 优化：所有子节点都在父节点右侧，增加间距
+  // 优化：所有子节点都在父节点右侧，基于父节点实际宽度计算位置
   let newX, newY
   const nodeSpacing = 100  // 增加节点间距从80到100
+  
+  // 基于父节点的实际宽度计算子节点的X坐标
+  newX = parent.x + parent.width + 50  // 父节点宽度 + 50px间距
   
   if (parent.isRoot) {
     // 根节点的所有子节点都放在右侧
@@ -692,13 +704,19 @@ function addChildNode(parentId = selectedNodeId.value) {
     ).filter(Boolean)
     
     // 所有子节点都在右侧，垂直排列，增加间距
-    newX = parent.x + 220  // 增加水平间距
     newY = parent.y - (existingChildren.length * 50) + existingChildren.length * nodeSpacing
   } else {
     // 非根节点，继续保持在右侧
-    newX = parent.x + 220  // 增加水平间距
     newY = parent.y + parent.children.length * nodeSpacing
   }
+  
+  // 计算新节点的自适应尺寸
+  const textSize = calculateTextSize('新节点', 14)
+  const minWidth = 80
+  const minHeight = 40
+  const maxWidth = 300
+  const adaptiveWidth = Math.max(minWidth, Math.min(maxWidth, textSize.width + 20))
+  const adaptiveHeight = Math.max(minHeight, textSize.height + 10)
   
   const newNode = {
     id: nextNodeId.value++,
@@ -711,8 +729,8 @@ function addChildNode(parentId = selectedNodeId.value) {
     backgroundColor: '#2196F3',
     borderColor: '#1976D2',
     fontSize: 14,
-    width: 100,
-    height: 50
+    width: adaptiveWidth,
+    height: adaptiveHeight
   }
   
   parent.children.push(newNode.id)
@@ -803,6 +821,28 @@ function finishEditing() {
     const node = nodes.value.find(n => n.id === editingNodeId.value)
     if (node) {
       node.text = nodeElement.textContent.trim() || '新节点'
+      
+      // 重新计算节点尺寸
+      const textSize = calculateTextSize(node.text, node.fontSize)
+      const minWidth = 80
+      const minHeight = 40
+      const maxWidth = 300
+      
+      node.width = Math.max(minWidth, Math.min(maxWidth, textSize.width + 20))
+      node.height = Math.max(minHeight, textSize.height + 10)
+      
+      // 如果节点有父节点，重新布局其子节点
+      if (node.parentId) {
+        const parent = nodes.value.find(n => n.id === node.parentId)
+        if (parent) {
+          layoutImmediateChildren(parent.id)
+        }
+      } else if (node.children && node.children.length > 0) {
+        // 如果是根节点或有子节点，重新布局子节点
+        layoutImmediateChildren(node.id)
+      }
+      
+      updateConnections()
       saveToHistory()
     }
   }
@@ -961,7 +1001,7 @@ function applyMindmapLayout() {
     rootNode.children.forEach((childId, index) => {
       const child = nodes.value.find(n => n.id === childId)
       if (child) {
-        child.x = rootNode.x + NODE_HORIZONTAL_GAP
+        child.x = rootNode.x + rootNode.width + 50  // 基于根节点实际宽度 + 50px间距
         child.y = yPositions[index]
         // 对于未折叠的子节点，继续布局其子树
         if (!child.collapsed) {
@@ -980,7 +1020,7 @@ function layoutSubtree(node, direction = 1) {  // 默认方向为右侧
   node.children.forEach((childId, index) => {
     const child = nodes.value.find(n => n.id === childId)
     if (child) {
-      child.x = node.x + NODE_HORIZONTAL_GAP  // 固定向右一定像素
+      child.x = node.x + node.width + 50  // 基于父节点实际宽度 + 50px间距
       child.y = yPositions[index]
       if (!child.collapsed) {
         layoutSubtree(child, 1)  // 递归时也强制使用右侧方向
@@ -1019,13 +1059,51 @@ function applyRightSideLayout() {
   updateConnections()
 }
 
+// 计算文本尺寸的辅助函数
+function calculateTextSize(text, fontSize) {
+  // 创建临时元素来测量文本尺寸
+  const tempElement = document.createElement('div')
+  tempElement.style.position = 'absolute'
+  tempElement.style.visibility = 'hidden'
+  tempElement.style.fontSize = fontSize + 'px'
+  tempElement.style.fontFamily = "'Segoe UI', Tahoma, Geneva, Verdana, sans-serif"
+  tempElement.style.padding = '10px'
+  tempElement.style.lineHeight = '1.4'
+  tempElement.style.wordBreak = 'break-word'
+  tempElement.style.wordWrap = 'break-word'
+  tempElement.style.whiteSpace = 'pre-wrap'
+  tempElement.style.maxWidth = '280px' // 设置最大宽度以支持换行
+  tempElement.textContent = text || '新节点'
+  
+  document.body.appendChild(tempElement)
+  const width = tempElement.offsetWidth
+  const height = tempElement.offsetHeight
+  document.body.removeChild(tempElement)
+  
+  return { width, height }
+}
+
 // 获取节点样式
 function getNodeStyle(node) {
+  // 计算自适应尺寸
+  const textSize = calculateTextSize(node.text, node.fontSize)
+  const minWidth = 80
+  const minHeight = 40
+  const maxWidth = 300
+  
+  // 自适应宽度和高度，但设置最小值和最大值
+  const adaptiveWidth = Math.max(minWidth, Math.min(maxWidth, textSize.width + 20))
+  const adaptiveHeight = Math.max(minHeight, textSize.height + 10)
+  
+  // 更新节点的实际尺寸（用于布局计算）
+  node.width = adaptiveWidth
+  node.height = adaptiveHeight
+  
   return {
     left: node.x + 'px',
     top: node.y + 'px',
-    width: node.width + 'px',
-    height: node.height + 'px',
+    width: adaptiveWidth + 'px',
+    height: adaptiveHeight + 'px',
     backgroundColor: node.detailRecordId ? '#b71c1c' : node.backgroundColor,
     color: node.detailRecordId ? '#ffffff' : undefined,
     borderColor: node.borderColor,
@@ -1035,11 +1113,57 @@ function getNodeStyle(node) {
 
 // 更新节点样式
 function updateNodeStyle() {
+  if (selectedNode.value) {
+    // 重新计算节点尺寸（特别是字体大小改变时）
+    const textSize = calculateTextSize(selectedNode.value.text, selectedNode.value.fontSize)
+    const minWidth = 80
+    const minHeight = 40
+    const maxWidth = 300
+    
+    selectedNode.value.width = Math.max(minWidth, Math.min(maxWidth, textSize.width + 20))
+    selectedNode.value.height = Math.max(minHeight, textSize.height + 10)
+    
+    // 如果节点有父节点，重新布局其子节点
+    if (selectedNode.value.parentId) {
+      const parent = nodes.value.find(n => n.id === selectedNode.value.parentId)
+      if (parent) {
+        layoutImmediateChildren(parent.id)
+      }
+    } else if (selectedNode.value.children && selectedNode.value.children.length > 0) {
+      // 如果是根节点或有子节点，重新布局子节点
+      layoutImmediateChildren(selectedNode.value.id)
+    }
+    
+    updateConnections()
+  }
   // 样式更新会通过响应式数据自动触发
   saveToHistory()
 }
 
 function updateNodeText() {
+  if (selectedNode.value) {
+    // 重新计算节点尺寸
+    const textSize = calculateTextSize(selectedNode.value.text, selectedNode.value.fontSize)
+    const minWidth = 80
+    const minHeight = 40
+    const maxWidth = 300
+    
+    selectedNode.value.width = Math.max(minWidth, Math.min(maxWidth, textSize.width + 20))
+    selectedNode.value.height = Math.max(minHeight, textSize.height + 10)
+    
+    // 如果节点有父节点，重新布局其子节点
+    if (selectedNode.value.parentId) {
+      const parent = nodes.value.find(n => n.id === selectedNode.value.parentId)
+      if (parent) {
+        layoutImmediateChildren(parent.id)
+      }
+    } else if (selectedNode.value.children && selectedNode.value.children.length > 0) {
+      // 如果是根节点或有子节点，重新布局子节点
+      layoutImmediateChildren(selectedNode.value.id)
+    }
+    
+    updateConnections()
+  }
   saveToHistory()
 }
 
@@ -1401,7 +1525,7 @@ function pasteNode() {
       ...copiedNode,
       id: nextNodeId.value++,
       parentId: selectedNodeId.value,
-      x: selectedNode.value.x + NODE_HORIZONTAL_GAP,
+      x: selectedNode.value.x + selectedNode.value.width + 50,  // 基于父节点实际宽度 + 50px间距
       y: selectedNode.value.y,
       children: []
     }
@@ -1717,12 +1841,16 @@ function openDetailRecord(node) {
   padding: 10px;
   text-align: center;
   word-break: break-word;
+  word-wrap: break-word;
+  white-space: pre-wrap;
   outline: none;
   width: 100%;
   height: 100%;
   display: flex;
   align-items: center;
   justify-content: center;
+  overflow: hidden;
+  line-height: 1.4;
 }
 
 .node-content[contenteditable="true"] {
