@@ -52,6 +52,19 @@ public class GalleryController {
     }
     
     /**
+     * 搜索记录（GET方法，兼容前端调用）
+     */
+    @GetMapping("/records/search")
+    public ResponseEntity<ApiResponse> searchRecordsGet(
+            @RequestParam("query") String query,
+            @RequestParam(value = "page", required = false) Integer page,
+            @RequestParam(value = "size", required = false) Integer size) {
+        
+        ApiResponse response = galleryService.searchRecords(query, page, size);
+        return ResponseEntity.ok(response);
+    }
+    
+    /**
      * 创建记录
      */
     @PostMapping("/records")

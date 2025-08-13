@@ -23,10 +23,7 @@
           <span class="nav-icon">🎬</span>
           哔哩哔哩
         </router-link>
-        <router-link to="/mind-map" class="nav-link" active-class="active">
-          <span class="nav-icon">🧠</span>
-          思维导图
-        </router-link>
+
         <router-link to="/edraw-mind" class="nav-link" active-class="active">
           <span class="nav-icon">🎨</span>
           EdrawMind专业版

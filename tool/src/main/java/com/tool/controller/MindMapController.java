@@ -58,6 +58,40 @@ public class MindMapController {
                 if (n.get("detailRecordTitle") != null) {
                     node.setDetailRecordTitle((String) n.get("detailRecordTitle"));
                 }
+                
+                // 处理文档关联字段
+                if (n.get("docRecordId") != null) {
+                    Object v = n.get("docRecordId");
+                    if (v instanceof String && !((String) v).isEmpty()) {
+                        node.setDocRecordId((String) v);
+                    } else if (v instanceof Number) {
+                        node.setDocRecordId(String.valueOf(v));
+                    }
+                }
+                if (n.get("docRecordTitle") != null) {
+                    node.setDocRecordTitle((String) n.get("docRecordTitle"));
+                }
+                
+                // 处理代码片段关联字段
+                if (n.get("codeRecordId") != null) {
+                    Object v = n.get("codeRecordId");
+                    if (v instanceof Number) {
+                        node.setCodeRecordId(((Number) v).longValue());
+                    } else if (v instanceof String && !((String) v).isEmpty()) {
+                        try {
+                            // 尝试解析为数字ID
+                            node.setCodeRecordId(Long.parseLong((String) v));
+                        } catch (NumberFormatException e) {
+                            // 如果是UUID格式，暂时跳过，或者可以记录日志
+                            System.out.println("Warning: codeRecordId is UUID format, skipping: " + v);
+                            node.setCodeRecordId(null);
+                        }
+                    }
+                }
+                if (n.get("codeRecordTitle") != null) {
+                    node.setCodeRecordTitle((String) n.get("codeRecordTitle"));
+                }
+                
                 return node;
             }).collect(Collectors.toList());
 

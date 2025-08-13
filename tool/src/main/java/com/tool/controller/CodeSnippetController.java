@@ -55,6 +55,22 @@ public class CodeSnippetController {
     }
     
     /**
+     * 简化搜索代码片段记录（兼容前端调用）
+     * 
+     * @param q 搜索关键词
+     * @param page 页码
+     * @param size 每页大小
+     * @return 搜索结果
+     */
+    @GetMapping("/search")
+    public ApiResponse searchRecordsSimple(
+            @RequestParam("q") String q,
+            @RequestParam(value = "page", required = false) Integer page,
+            @RequestParam(value = "size", required = false) Integer size) {
+        return codeSnippetService.searchRecords(q, page, size);
+    }
+    
+    /**
      * 根据ID获取代码片段记录
      * 
      * @param id 记录ID

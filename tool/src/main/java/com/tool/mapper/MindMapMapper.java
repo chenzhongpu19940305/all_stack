@@ -23,15 +23,15 @@ public interface MindMapMapper {
     int deleteMap(@Param("id") Long id);
 
     // MindMapNode CRUD
-    @Insert("INSERT INTO mind_map_node(map_id, parent_id, text, x, y, width, height, shape, background_color, border_color, font_size, is_root, collapsed, detail_record_id, detail_record_title) " +
-            "VALUES(#{mapId}, #{parentId}, #{text}, #{x}, #{y}, #{width}, #{height}, #{shape}, #{backgroundColor}, #{borderColor}, #{fontSize}, #{isRoot}, #{collapsed}, #{detailRecordId}, #{detailRecordTitle})")
+    @Insert("INSERT INTO mind_map_node(map_id, parent_id, text, x, y, width, height, shape, background_color, border_color, font_size, is_root, collapsed, detail_record_id, detail_record_title, doc_record_id, doc_record_title, code_record_id, code_record_title) " +
+            "VALUES(#{mapId}, #{parentId}, #{text}, #{x}, #{y}, #{width}, #{height}, #{shape}, #{backgroundColor}, #{borderColor}, #{fontSize}, #{isRoot}, #{collapsed}, #{detailRecordId}, #{detailRecordTitle}, #{docRecordId}, #{docRecordTitle}, #{codeRecordId}, #{codeRecordTitle})")
     @Options(useGeneratedKeys = true, keyProperty = "id")
     int insertNode(MindMapNode node);
 
-    @Update("UPDATE mind_map_node SET parent_id=#{parentId}, text=#{text}, x=#{x}, y=#{y}, width=#{width}, height=#{height}, shape=#{shape}, background_color=#{backgroundColor}, border_color=#{borderColor}, font_size=#{fontSize}, is_root=#{isRoot}, collapsed=#{collapsed}, detail_record_id=#{detailRecordId}, detail_record_title=#{detailRecordTitle} WHERE id=#{id}")
+    @Update("UPDATE mind_map_node SET parent_id=#{parentId}, text=#{text}, x=#{x}, y=#{y}, width=#{width}, height=#{height}, shape=#{shape}, background_color=#{backgroundColor}, border_color=#{borderColor}, font_size=#{fontSize}, is_root=#{isRoot}, collapsed=#{collapsed}, detail_record_id=#{detailRecordId}, detail_record_title=#{detailRecordTitle}, doc_record_id=#{docRecordId}, doc_record_title=#{docRecordTitle}, code_record_id=#{codeRecordId}, code_record_title=#{codeRecordTitle} WHERE id=#{id}")
     int updateNode(MindMapNode node);
 
-    @Select("SELECT id, map_id as mapId, parent_id as parentId, text, x, y, width, height, shape, background_color as backgroundColor, border_color as borderColor, font_size as fontSize, is_root as isRoot, collapsed, detail_record_id as detailRecordId, detail_record_title as detailRecordTitle FROM mind_map_node WHERE map_id=#{mapId}")
+    @Select("SELECT id, map_id as mapId, parent_id as parentId, text, x, y, width, height, shape, background_color as backgroundColor, border_color as borderColor, font_size as fontSize, is_root as isRoot, collapsed, detail_record_id as detailRecordId, detail_record_title as detailRecordTitle, doc_record_id as docRecordId, doc_record_title as docRecordTitle, code_record_id as codeRecordId, code_record_title as codeRecordTitle FROM mind_map_node WHERE map_id=#{mapId}")
     List<MindMapNode> findNodesByMapId(@Param("mapId") Long mapId);
 
     @Delete("DELETE FROM mind_map_node WHERE map_id=#{mapId}")
@@ -42,10 +42,10 @@ public interface MindMapMapper {
     List<MindMap> findAllMaps();
 
     // Find root node for a map
-    @Select("SELECT id, map_id as mapId, parent_id as parentId, text, x, y, width, height, shape, background_color as backgroundColor, border_color as borderColor, font_size as FontSize, is_root as isRoot, collapsed, detail_record_id as detailRecordId, detail_record_title as detailRecordTitle FROM mind_map_node WHERE map_id=#{mapId} AND is_root=1 LIMIT 1")
+    @Select("SELECT id, map_id as mapId, parent_id as parentId, text, x, y, width, height, shape, background_color as backgroundColor, border_color as borderColor, font_size as FontSize, is_root as isRoot, collapsed, detail_record_id as detailRecordId, detail_record_title as detailRecordTitle, doc_record_id as docRecordId, doc_record_title as docRecordTitle, code_record_id as codeRecordId, code_record_title as codeRecordTitle FROM mind_map_node WHERE map_id=#{mapId} AND is_root=1 LIMIT 1")
     MindMapNode findRootNodeByMapId(@Param("mapId") Long mapId);
 
     // List all root nodes across maps (for homepage)
-    @Select("SELECT id, map_id as mapId, parent_id as parentId, text, x, y, width, height, shape, background_color as backgroundColor, border_color as borderColor, font_size as fontSize, is_root as isRoot, collapsed, detail_record_id as detailRecordId, detail_record_title as detailRecordTitle FROM mind_map_node WHERE (parent_id IS NULL OR is_root=1) ORDER BY id DESC")
+    @Select("SELECT id, map_id as mapId, parent_id as parentId, text, x, y, width, height, shape, background_color as backgroundColor, border_color as borderColor, font_size as fontSize, is_root as isRoot, collapsed, detail_record_id as detailRecordId, detail_record_title as detailRecordTitle, doc_record_id as docRecordId, doc_record_title as docRecordTitle, code_record_id as codeRecordId, code_record_title as codeRecordTitle FROM mind_map_node WHERE (parent_id IS NULL OR is_root=1) ORDER BY id DESC")
     List<MindMapNode> findAllRootNodes();
 } 

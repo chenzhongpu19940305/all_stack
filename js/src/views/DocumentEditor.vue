@@ -74,21 +74,32 @@ export default {
     const hoveredCardId = ref(null)
     const highlightedId = ref(null)
     
-    // 搜索过滤
+    // 搜索过滤 - 改为服务端搜索
     const filteredDocuments = computed(() => {
-      if (!searchQuery.value) {
-        return documents.value
-      }
-      return documents.value.filter(doc => 
-        doc.title.toLowerCase().includes(searchQuery.value.toLowerCase()) ||
-        getDocumentPreview(doc.content).toLowerCase().includes(searchQuery.value.toLowerCase())
-      )
+      return documents.value
     })
     
-    // 搜索处理
-    const handleSearch = () => {
-      // 搜索逻辑已通过computed实现
+    // 防抖函数
+    const debounce = (func, wait) => {
+      let timeout
+      return function executedFunction(...args) {
+        const later = () => {
+          clearTimeout(timeout)
+          func(...args)
+        }
+        clearTimeout(timeout)
+        timeout = setTimeout(later, wait)
+      }
     }
+    
+    // 搜索处理 - 改为服务端搜索
+    const handleSearch = async () => {
+      console.log('搜索被触发，搜索词:', searchQuery.value)
+      await loadDocuments(searchQuery.value)
+    }
+    
+    // 防抖搜索
+    const debouncedSearch = debounce(handleSearch, 300)
     
     // 卡片悬停效果
     const showCardActions = (id) => {
@@ -131,12 +142,18 @@ export default {
     }
     
     // 加载文档列表
-    const loadDocuments = async () => {
+    const loadDocuments = async (searchQuery = '') => {
       try {
         loading.value = true
-        const result = await getDocuments({ page: 1, size: 100 })
+        const params = { page: 1, size: 100 }
+        if (searchQuery && searchQuery.trim()) {
+          params.q = searchQuery.trim()
+        }
+        console.log('调用API，参数:', params)
+        const result = await getDocuments(params)
         if (result.success) {
           documents.value = result.documents || []
+          console.log('API调用成功，返回文档数量:', documents.value.length)
         } else {
           console.error('获取文档列表失败:', result.message)
         }
@@ -162,7 +179,7 @@ export default {
     }
     
     onMounted(() => {
-      loadDocuments()
+      loadDocuments('')
     })
     
     return {

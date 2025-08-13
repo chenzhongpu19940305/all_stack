@@ -25,6 +25,14 @@ public class MindMapNode {
     // 详细说明关联（来自AI问答记录）
     private Long detailRecordId;
     private String detailRecordTitle;
+    
+    // 关联代码片段
+    private Long codeRecordId;
+    private String codeRecordTitle;
+    
+    // 关联文档
+    private String docRecordId;
+    private String docRecordTitle;
 
     public Long getId() { return id; }
     public void setId(Long id) { this.id = id; }
@@ -73,4 +81,16 @@ public class MindMapNode {
 
     public String getDetailRecordTitle() { return detailRecordTitle; }
     public void setDetailRecordTitle(String detailRecordTitle) { this.detailRecordTitle = detailRecordTitle; }
+    
+    public Long getCodeRecordId() { return codeRecordId; }
+    public void setCodeRecordId(Long codeRecordId) { this.codeRecordId = codeRecordId; }
+    
+    public String getCodeRecordTitle() { return codeRecordTitle; }
+    public void setCodeRecordTitle(String codeRecordTitle) { this.codeRecordTitle = codeRecordTitle; }
+    
+    public String getDocRecordId() { return docRecordId; }
+    public void setDocRecordId(String docRecordId) { this.docRecordId = docRecordId; }
+    
+    public String getDocRecordTitle() { return docRecordTitle; }
+    public void setDocRecordTitle(String docRecordTitle) { this.docRecordTitle = docRecordTitle; }
 } 

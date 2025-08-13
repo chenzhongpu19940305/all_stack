@@ -177,6 +177,68 @@
               <button class="link-btn" @click="clearQaSelection">清除</button>
             </div>
           </div>
+
+          <div class="property-group">
+            <label>关联文档</label>
+            <div class="doc-search">
+              <input 
+                type="text"
+                v-model.trim="docSearchKeyword"
+                @input="onDocSearchInput"
+                @focus="onDocSearchFocus"
+                @keydown.enter.prevent.stop="triggerDocSearch"
+                class="text-input"
+                placeholder="输入关键字搜索文档"
+              >
+              <div v-if="docDropdownVisible && docSearchResults.length" class="doc-dropdown">
+                <div 
+                  v-for="item in docSearchResults" 
+                  :key="item.id" 
+                  class="doc-item"
+                  @click="selectDocRecord(item)"
+                  :title="item.title"
+                >
+                  <span class="doc-title">{{ item.title }}</span>
+                  <span class="doc-id">#{{ item.id }}</span>
+                </div>
+              </div>
+            </div>
+                    <div v-if="selectedNode.docRecordId" class="doc-selected">
+          已选择：<span class="doc-selected-title">{{ selectedNode.docRecordTitle || ('文档 ' + selectedNode.docRecordId) }}</span>
+              <button class="link-btn" @click="clearDocSelection">清除</button>
+            </div>
+          </div>
+
+          <div class="property-group">
+            <label>关联代码片段</label>
+            <div class="code-search">
+              <input 
+                type="text"
+                v-model.trim="codeSearchKeyword"
+                @input="onCodeSearchInput"
+                @focus="onCodeSearchFocus"
+                @keydown.enter.prevent.stop="triggerCodeSearch"
+                class="text-input"
+                placeholder="输入关键字搜索代码片段"
+              >
+              <div v-if="codeDropdownVisible && codeSearchResults.length" class="code-dropdown">
+                <div 
+                  v-for="item in codeSearchResults" 
+                  :key="item.id" 
+                  class="code-item"
+                  @click="selectCodeRecord(item)"
+                  :title="item.title"
+                >
+                  <span class="code-title">{{ item.title }}</span>
+                  <span class="code-id">#{{ item.id }}</span>
+                </div>
+              </div>
+            </div>
+                    <div v-if="selectedNode.codeRecordId" class="code-selected">
+          已选择：<span class="code-selected-title">{{ selectedNode.codeRecordTitle || ('代码片段 ' + selectedNode.codeRecordId) }}</span>
+              <button class="link-btn" @click="clearCodeSelection">清除</button>
+            </div>
+          </div>
         </div>
       </div>
       
@@ -231,7 +293,9 @@
                 'selected': selectedNodeId === node.id,
                 'editing': editingNodeId === node.id,
                 'root': node.isRoot,
-                'has-detail': !!node.detailRecordId
+                'has-detail': !!node.detailRecordId,
+                        'has-doc': !!node.docRecordId,
+        'has-code': !!node.codeRecordId
               }
             ]"
             :style="getNodeStyle(node)"
@@ -265,6 +329,20 @@
                 class="action-btn" 
                 title="查看详细说明（AI问答记录）">
                 🔗
+              </button>
+              <button 
+                v-if="node.docRecordId"
+                @click.stop="openDetailDoc(node)" 
+                class="action-btn" 
+                title="查看关联文档">
+                📄
+              </button>
+              <button 
+                v-if="node.codeRecordId"
+                @click.stop="openDetailCode(node)" 
+                class="action-btn" 
+                title="查看关联代码片段">
+                💻
               </button>
             </div>
 
@@ -628,7 +706,9 @@ onMounted(async () => {
           parentId: n.parentId ?? null, children: [], collapsed: !!n.collapsed,
           shape: n.shape, backgroundColor: n.backgroundColor, borderColor: n.borderColor,
           fontSize: n.fontSize, width: n.width, height: n.height,
-          detailRecordId: n.detailRecordId || null, detailRecordTitle: n.detailRecordTitle || null
+          detailRecordId: n.detailRecordId || null, detailRecordTitle: n.detailRecordTitle || null,
+                  docRecordId: n.docRecordId || null, docRecordTitle: n.docRecordTitle || null,
+        codeRecordId: n.codeRecordId || null, codeRecordTitle: n.codeRecordTitle || null
         }))
         nodes.value = loaded
         const idToNode = new Map(nodes.value.map(n => [n.id, n]))
@@ -673,7 +753,13 @@ function createInitialMap() {
     borderColor: '#45a049',
     fontSize: 16,
     width: adaptiveWidth,
-    height: adaptiveHeight
+    height: adaptiveHeight,
+    detailRecordId: null,
+    detailRecordTitle: null,
+    docRecordId: null,
+    docRecordTitle: null,
+    codeRecordId: null,
+    codeRecordTitle: null
   }
   
   nodes.value = [rootNode]
@@ -730,7 +816,13 @@ function addChildNode(parentId = selectedNodeId.value) {
     borderColor: '#1976D2',
     fontSize: 14,
     width: adaptiveWidth,
-    height: adaptiveHeight
+    height: adaptiveHeight,
+    detailRecordId: null,
+    detailRecordTitle: null,
+    docRecordId: null,
+    docRecordTitle: null,
+    codeRecordId: null,
+    codeRecordTitle: null
   }
   
   parent.children.push(newNode.id)
@@ -1228,6 +1320,116 @@ function clearQaSelection() {
   saveToHistory()
 }
 
+// 文档选择
+const docSearchKeyword = ref('')
+const docSearchResults = ref([])
+const docDropdownVisible = ref(false)
+let docSearchTimer = null
+
+function onDocSearchFocus() {
+  if (docSearchResults.value.length) docDropdownVisible.value = true
+}
+
+function onDocSearchInput() {
+  if (docSearchTimer) clearTimeout(docSearchTimer)
+  docSearchTimer = setTimeout(async () => {
+    const kw = docSearchKeyword.value.trim()
+    if (!kw) {
+      docSearchResults.value = []
+      docDropdownVisible.value = false
+      return
+    }
+    try {
+      // 调用文档编辑器搜索接口
+      const res = await fetch(`${API_BASE}/api/document-editor/documents?q=${encodeURIComponent(kw)}&page=1&size=10`)
+      const data = await res.json()
+      const list = data?.documents || []
+      docSearchResults.value = list.map((it) => ({ id: it.id, title: it.title || '' })).filter(it => it.id && it.title)
+      docDropdownVisible.value = docSearchResults.value.length > 0
+    } catch (e) {
+      docSearchResults.value = []
+      docDropdownVisible.value = false
+    }
+  }, 300)
+}
+
+function triggerDocSearch() {
+  if (docSearchTimer) clearTimeout(docSearchTimer)
+  onDocSearchInput()
+}
+
+function selectDocRecord(item) {
+  if (!selectedNode.value) return
+          selectedNode.value.docRecordId = item.id
+        selectedNode.value.docRecordTitle = item.title
+  docSearchKeyword.value = item.title
+  docDropdownVisible.value = false
+  saveToHistory()
+}
+
+function clearDocSelection() {
+  if (!selectedNode.value) return
+          selectedNode.value.docRecordId = null
+        selectedNode.value.docRecordTitle = null
+  docSearchKeyword.value = ''
+  saveToHistory()
+}
+
+// 代码片段选择
+const codeSearchKeyword = ref('')
+const codeSearchResults = ref([])
+const codeDropdownVisible = ref(false)
+let codeSearchTimer = null
+
+function onCodeSearchFocus() {
+  if (codeSearchResults.value.length) codeDropdownVisible.value = true
+}
+
+function onCodeSearchInput() {
+  if (codeSearchTimer) clearTimeout(codeSearchTimer)
+  codeSearchTimer = setTimeout(async () => {
+    const kw = codeSearchKeyword.value.trim()
+    if (!kw) {
+      codeSearchResults.value = []
+      codeDropdownVisible.value = false
+      return
+    }
+    try {
+      // 调用代码片段搜索接口
+      const res = await fetch(`${API_BASE}/api/code-snippets/search?q=${encodeURIComponent(kw)}&page=1&size=10`)
+      const data = await res.json()
+      const list = data?.data?.records || []
+      codeSearchResults.value = list.map((it) => ({ id: it.id, title: it.title || '' })).filter(it => it.id && it.title)
+      codeDropdownVisible.value = codeSearchResults.value.length > 0
+    } catch (e) {
+      codeSearchResults.value = []
+      codeDropdownVisible.value = false
+    }
+  }, 300)
+}
+
+function triggerCodeSearch() {
+  if (codeSearchTimer) clearTimeout(codeSearchTimer)
+  onCodeSearchInput()
+}
+
+function selectCodeRecord(item) {
+  if (!selectedNode.value) return
+          selectedNode.value.codeRecordId = item.id
+        selectedNode.value.codeRecordTitle = item.title
+  codeSearchKeyword.value = item.title
+  codeDropdownVisible.value = false
+  saveToHistory()
+}
+
+function clearCodeSelection() {
+  if (!selectedNode.value) return
+          selectedNode.value.codeRecordId = null
+        selectedNode.value.codeRecordTitle = null
+  codeSearchKeyword.value = ''
+  saveToHistory()
+}
+
 // 缩放功能
 function zoomIn() {
   zoomLevel.value = Math.min(zoomLevel.value * 1.2, 3)
@@ -1316,6 +1518,14 @@ async function saveMap() {
         base.detailRecordId = n.detailRecordId
         if (n.detailRecordTitle) base.detailRecordTitle = n.detailRecordTitle
       }
+      if (n.docRecordId) {
+        base.docRecordId = n.docRecordId
+        if (n.docRecordTitle) base.docRecordTitle = n.docRecordTitle
+      }
+      if (n.codeRecordId) {
+        base.codeRecordId = n.codeRecordId
+        if (n.codeRecordTitle) base.codeRecordTitle = n.codeRecordTitle
+      }
       return base
     })
   }
@@ -1363,7 +1573,11 @@ async function loadMap() {
     width: n.width,
     height: n.height,
     detailRecordId: n.detailRecordId || null,
-    detailRecordTitle: n.detailRecordTitle || null
+    detailRecordTitle: n.detailRecordTitle || null,
+    docRecordId: n.docRecordId || null,
+    docRecordTitle: n.docRecordTitle || null,
+    codeRecordId: n.codeRecordId || null,
+    codeRecordTitle: n.codeRecordTitle || null
   }))
   nodes.value = loaded
   // 重建 children 关系
@@ -1548,6 +1762,18 @@ function openDetailRecord(node) {
   if (!node?.detailRecordId) return
   // 跳到AI问答记录页，并携带查询参数以便页面高亮该条
   router.push({ path: '/gallery', query: { highlightId: String(node.detailRecordId) } })
+}
+
+function openDetailDoc(node) {
+  if (!node?.docRecordId) return
+  // 跳到文档编辑器页，并携带查询参数以便页面高亮该条
+  router.push({ path: '/document-editor', query: { highlightId: String(node.docRecordId) } })
+}
+
+function openDetailCode(node) {
+  if (!node?.codeRecordId) return
+  // 跳到代码片段页，并携带查询参数以便页面高亮该条
+  router.push({ path: '/code-snippets', query: { highlightId: String(node.codeRecordId) } })
 }
 </script>
 
@@ -1817,6 +2043,8 @@ function openDetailRecord(node) {
 
 /* 有详细说明的节点背景变红（浅红）由内联样式控制，这里可选保留轻微阴影 */
 .mind-node.has-detail { box-shadow: 0 2px 8px rgba(229,57,53,0.12); }
+.mind-node.has-doc { box-shadow: 0 2px 8px rgba(33,150,243,0.12); }
+.mind-node.has-code { box-shadow: 0 2px 8px rgba(76,175,80,0.12); }
 
 .mind-node.editing {
   border-color: #FF9800;
@@ -2017,4 +2245,58 @@ function openDetailRecord(node) {
 .qa-selected { margin-top: 6px; font-size: 12px; color: #555; display:flex; align-items:center; gap:8px; }
 .link-btn { background: none; border: none; color: #1976D2; cursor: pointer; padding: 0; }
 .link-btn:hover { text-decoration: underline; }
+
+/* 文档搜索下拉 */
+.doc-search { position: relative; }
+.doc-dropdown {
+  position: absolute;
+  left: 0; right: 0;
+  top: calc(100% + 4px);
+  background: #fff;
+  border: 1px solid #ddd;
+  border-radius: 6px;
+  box-shadow: 0 6px 16px rgba(0,0,0,0.12);
+  max-height: 220px;
+  overflow: auto;
+  z-index: 20;
+}
+.doc-item {
+  padding: 8px 10px;
+  display: flex;
+  justify-content: space-between;
+  gap: 10px;
+  cursor: pointer;
+  font-size: 13px;
+}
+.doc-item:hover { background: #f6f6f6; }
+.doc-title { color: #333; flex: 1; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.doc-id { color: #999; font-variant-numeric: tabular-nums; }
+.doc-selected { margin-top: 6px; font-size: 12px; color: #555; display:flex; align-items:center; gap:8px; }
+
+/* 代码片段搜索下拉 */
+.code-search { position: relative; }
+.code-dropdown {
+  position: absolute;
+  left: 0; right: 0;
+  top: calc(100% + 4px);
+  background: #fff;
+  border: 1px solid #ddd;
+  border-radius: 6px;
+  box-shadow: 0 6px 16px rgba(0,0,0,0.12);
+  max-height: 220px;
+  overflow: auto;
+  z-index: 20;
+}
+.code-item {
+  padding: 8px 10px;
+  display: flex;
+  justify-content: space-between;
+  gap: 10px;
+  cursor: pointer;
+  font-size: 13px;
+}
+.code-item:hover { background: #f6f6f6; }
+.code-title { color: #333; flex: 1; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.code-id { color: #999; font-variant-numeric: tabular-nums; }
+.code-selected { margin-top: 6px; font-size: 12px; color: #555; display:flex; align-items:center; gap:8px; }
 </style>

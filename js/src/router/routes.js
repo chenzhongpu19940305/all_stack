@@ -3,7 +3,7 @@ import Home from '../views/Home.vue'
 import Gallery from '../views/Gallery.vue'
 import VideoGallery from '../views/VideoGallery.vue'
 import CodeSnippets from '../views/CodeSnippets.vue'
-import MindMap from '../views/MindMap.vue'
+
 import EdrawMind from '../views/EdrawMind.vue'
 import RouteTest from '../views/RouteTest.vue'
 import EdrawMindHome from '../views/EdrawMindHome.vue'
@@ -53,16 +53,7 @@ export const routes = [
       description: '代码片段管理'
     }
   },
-  {
-    path: '/mind-map',
-    name: 'MindMap',
-    component: MindMap,
-    meta: {
-      title: '思维导图',
-      icon: '🧠',
-      description: '思维导图工具'
-    }
-  },
+
   {
     path: '/docs',
     name: 'Docs',
