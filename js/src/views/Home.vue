@@ -6,7 +6,7 @@
     </div>
     
     <div class="quick-actions">
-      <div class="action-card" v-for="action in state.actions">
+      <div class="action-card" v-for="action in state.actions" :key="action.name">
         <div class="action-icon">{{ action.icon }}</div>
         <h3>{{ action.title }}</h3>
         <p>{{ action.description }}</p>
@@ -70,7 +70,9 @@ import { getNavigationMenu } from '../router/routes'
 
 // 使用reactive()管理复杂响应式对象
 const state = reactive({
-  actions: getNavigationMenu().filter(route => route.path !== '/')
+  actions: getNavigationMenu()
+    .filter(route => route.path !== '/')
+    .filter(route => route.name !== 'EdrawMind') // 在首页不显示EdrawMind编辑器
 });
 
 // 使用ref()管理简单响应式数据

@@ -79,4 +79,28 @@ public class MindMapService {
     public List<MindMapNode> listAllRootNodes() {
         return mindMapMapper.findAllRootNodes();
     }
+    
+    /**
+     * 删除思维导图及其所有节点
+     * @param mapId 思维导图ID
+     * @return 是否删除成功
+     */
+    @Transactional
+    public boolean deleteMindMap(Long mapId) {
+        try {
+            // 先删除所有节点（外键约束，必须先删除子表数据）
+            int deletedNodes = mindMapMapper.deleteNodesByMapId(mapId);
+            System.out.println("删除了 " + deletedNodes + " 个节点，MapID: " + mapId);
+            
+            // 再删除思维导图
+            int deletedMaps = mindMapMapper.deleteMap(mapId);
+            System.out.println("删除了 " + deletedMaps + " 个思维导图，ID: " + mapId);
+            
+            return deletedMaps > 0;
+        } catch (Exception e) {
+            System.err.println("删除思维导图失败，MapID: " + mapId + ", 错误: " + e.getMessage());
+            e.printStackTrace();
+            throw e; // 重新抛出异常，让事务回滚
+        }
+    }
 } 

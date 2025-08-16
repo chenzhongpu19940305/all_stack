@@ -167,8 +167,10 @@
                   @click="selectQaRecord(item)"
                   :title="item.title"
                 >
-                  <span class="qa-title">{{ item.title }}</span>
-                  <span class="qa-id">#{{ item.id }}</span>
+                  <div class="qa-item-content">
+                    <span class="qa-title">{{ item.title || '无标题记录' }}</span>
+                    <span class="qa-id">ID: {{ item.id }}</span>
+                  </div>
                 </div>
               </div>
             </div>
@@ -198,8 +200,10 @@
                   @click="selectDocRecord(item)"
                   :title="item.title"
                 >
-                  <span class="doc-title">{{ item.title }}</span>
-                  <span class="doc-id">#{{ item.id }}</span>
+                  <div class="doc-item-content">
+                    <span class="doc-title">{{ item.title || '无标题文档' }}</span>
+                    <span class="doc-id">ID: {{ item.id }}</span>
+                  </div>
                 </div>
               </div>
             </div>
@@ -229,8 +233,10 @@
                   @click="selectCodeRecord(item)"
                   :title="item.title"
                 >
-                  <span class="code-title">{{ item.title }}</span>
-                  <span class="code-id">#{{ item.id }}</span>
+                  <div class="code-item-content">
+                    <span class="code-title">{{ item.title || '无标题代码片段' }}</span>
+                    <span class="code-id">ID: {{ item.id }}</span>
+                  </div>
                 </div>
               </div>
             </div>
@@ -489,7 +495,7 @@ function computeChildrenYPositions(parent) {
 function isNodeVisible(nodeId) {
   const node = nodes.value.find(n => n.id === nodeId)
   if (!node) return false
-  // 仅检查祖先，不检查自身；自身折叠表示“折叠其子孙”，不隐藏自己
+  // 仅检查祖先，不检查自身；自身折叠表示"折叠其子孙"，不隐藏自己
   let current = nodes.value.find(n => n.id === node.parentId)
   while (current) {
     if (current.collapsed) return false
@@ -1344,9 +1350,21 @@ function onDocSearchInput() {
       const res = await fetch(`${API_BASE}/api/document-editor/documents?q=${encodeURIComponent(kw)}&page=1&size=10`)
       const data = await res.json()
       const list = data?.documents || []
-      docSearchResults.value = list.map((it) => ({ id: it.id, title: it.title || '' })).filter(it => it.id && it.title)
+      
+      console.log('文档搜索结果:', { 
+        query: kw, 
+        total: list.length, 
+        documents: list.map(d => ({ id: d.id, title: d.title, idType: typeof d.id }))
+      })
+      
+      docSearchResults.value = list.map((it) => ({ 
+        id: it.id, 
+        title: it.title || '' 
+      })).filter(it => it.id && it.title)
+      
       docDropdownVisible.value = docSearchResults.value.length > 0
     } catch (e) {
+      console.error('文档搜索失败:', e)
       docSearchResults.value = []
       docDropdownVisible.value = false
     }
@@ -1360,11 +1378,28 @@ function triggerDocSearch() {
 
 function selectDocRecord(item) {
   if (!selectedNode.value) return
-          selectedNode.value.docRecordId = item.id
-        selectedNode.value.docRecordTitle = item.title
-  docSearchKeyword.value = item.title
+  
+  // 确保文档ID正确传递
+  const docId = item.id
+  const docTitle = item.title
+  
+  console.log('选择文档记录:', { id: docId, title: docTitle, type: typeof docId })
+  
+  // 设置文档关联信息
+  selectedNode.value.docRecordId = docId
+  selectedNode.value.docRecordTitle = docTitle
+  
+  // 更新搜索关键词和UI状态
+  docSearchKeyword.value = docTitle
   docDropdownVisible.value = false
+  
+  // 保存到历史记录
   saveToHistory()
+  
+  console.log('节点文档关联已更新:', {
+    docRecordId: selectedNode.value.docRecordId,
+    docRecordTitle: selectedNode.value.docRecordTitle
+  })
 }
 
 function clearDocSelection() {
@@ -1521,6 +1556,7 @@ async function saveMap() {
       if (n.docRecordId) {
         base.docRecordId = n.docRecordId
         if (n.docRecordTitle) base.docRecordTitle = n.docRecordTitle
+        console.log('保存节点文档关联:', { nodeId: n.id, docRecordId: n.docRecordId, docRecordTitle: n.docRecordTitle })
       }
       if (n.codeRecordId) {
         base.codeRecordId = n.codeRecordId
@@ -1529,6 +1565,15 @@ async function saveMap() {
       return base
     })
   }
+  
+  console.log('保存思维导图，包含文档关联的节点:', 
+    payload.nodes.filter(n => n.docRecordId).map(n => ({ 
+      nodeId: n.id, 
+      docRecordId: n.docRecordId, 
+      docRecordTitle: n.docRecordTitle 
+    }))
+  )
+  
   const res = await fetch(`${API_BASE}/api/mindmap/save`, {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
@@ -1766,8 +1811,37 @@ function openDetailRecord(node) {
 
 function openDetailDoc(node) {
   if (!node?.docRecordId) return
-  // 跳到文档编辑器页，并携带查询参数以便页面高亮该条
-  router.push({ path: '/document-editor', query: { highlightId: String(node.docRecordId) } })
+  
+  console.log('查看关联文档:', { 
+    nodeId: node.id, 
+    docRecordId: node.docRecordId, 
+    docRecordTitle: node.docRecordTitle 
+  })
+  
+  // 发送请求获取特定文档内容
+  fetch(`${API_BASE}/api/document-editor/documents/${node.docRecordId}`)
+    .then(res => res.json())
+    .then(data => {
+      if (data.success) {
+        console.log('获取到文档内容:', data.document)
+        // 这里可以显示文档内容，或者跳转到文档编辑器页面
+        // 跳转到文档编辑器页面，并携带文档ID以便页面高亮该条
+        router.push({ 
+          path: '/document-editor', 
+          query: { 
+            highlightId: String(node.docRecordId),
+            documentId: String(node.docRecordId)
+          } 
+        })
+      } else {
+        console.error('获取文档失败:', data.error)
+        alert('获取文档失败: ' + (data.error || '未知错误'))
+      }
+    })
+    .catch(error => {
+      console.error('请求文档失败:', error)
+      alert('请求文档失败，请检查网络连接')
+    })
 }
 
 function openDetailCode(node) {
@@ -2233,15 +2307,29 @@ function openDetailCode(node) {
 }
 .qa-item {
   padding: 8px 10px;
-  display: flex;
-  justify-content: space-between;
-  gap: 10px;
   cursor: pointer;
   font-size: 13px;
+  border-bottom: 1px solid #f0f0f0;
 }
+.qa-item:last-child { border-bottom: none; }
 .qa-item:hover { background: #f6f6f6; }
-.qa-title { color: #333; flex: 1; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
-.qa-id { color: #999; font-variant-numeric: tabular-nums; }
+.qa-item-content {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+.qa-title { 
+  color: #333; 
+  font-weight: 500;
+  white-space: nowrap; 
+  overflow: hidden; 
+  text-overflow: ellipsis; 
+}
+.qa-id { 
+  color: #999; 
+  font-size: 11px;
+  font-variant-numeric: tabular-nums; 
+}
 .qa-selected { margin-top: 6px; font-size: 12px; color: #555; display:flex; align-items:center; gap:8px; }
 .link-btn { background: none; border: none; color: #1976D2; cursor: pointer; padding: 0; }
 .link-btn:hover { text-decoration: underline; }
@@ -2262,15 +2350,29 @@ function openDetailCode(node) {
 }
 .doc-item {
   padding: 8px 10px;
-  display: flex;
-  justify-content: space-between;
-  gap: 10px;
   cursor: pointer;
   font-size: 13px;
+  border-bottom: 1px solid #f0f0f0;
 }
+.doc-item:last-child { border-bottom: none; }
 .doc-item:hover { background: #f6f6f6; }
-.doc-title { color: #333; flex: 1; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
-.doc-id { color: #999; font-variant-numeric: tabular-nums; }
+.doc-item-content {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+.doc-title { 
+  color: #333; 
+  font-weight: 500;
+  white-space: nowrap; 
+  overflow: hidden; 
+  text-overflow: ellipsis; 
+}
+.doc-id { 
+  color: #999; 
+  font-size: 11px;
+  font-variant-numeric: tabular-nums; 
+}
 .doc-selected { margin-top: 6px; font-size: 12px; color: #555; display:flex; align-items:center; gap:8px; }
 
 /* 代码片段搜索下拉 */
@@ -2289,14 +2391,28 @@ function openDetailCode(node) {
 }
 .code-item {
   padding: 8px 10px;
-  display: flex;
-  justify-content: space-between;
-  gap: 10px;
   cursor: pointer;
   font-size: 13px;
+  border-bottom: 1px solid #f0f0f0;
 }
+.code-item:last-child { border-bottom: none; }
 .code-item:hover { background: #f6f6f6; }
-.code-title { color: #333; flex: 1; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
-.code-id { color: #999; font-variant-numeric: tabular-nums; }
+.code-item-content {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+.code-title { 
+  color: #333; 
+  font-weight: 500;
+  white-space: nowrap; 
+  overflow: hidden; 
+  text-overflow: ellipsis; 
+}
+.code-id { 
+  color: #999; 
+  font-size: 11px;
+  font-variant-numeric: tabular-nums; 
+}
 .code-selected { margin-top: 6px; font-size: 12px; color: #555; display:flex; align-items:center; gap:8px; }
 </style>

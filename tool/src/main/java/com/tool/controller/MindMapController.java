@@ -63,9 +63,19 @@ public class MindMapController {
                 if (n.get("docRecordId") != null) {
                     Object v = n.get("docRecordId");
                     if (v instanceof String && !((String) v).isEmpty()) {
-                        node.setDocRecordId((String) v);
+                        // 验证文档ID格式
+                        String docId = (String) v;
+                        if (isValidUUID(docId) || isValidLong(docId)) {
+                            node.setDocRecordId(docId);
+                        } else {
+                            System.out.println("Warning: Invalid docRecordId format: " + docId);
+                            node.setDocRecordId(null);
+                        }
                     } else if (v instanceof Number) {
                         node.setDocRecordId(String.valueOf(v));
+                    } else {
+                        System.out.println("Warning: Invalid docRecordId type: " + v.getClass().getSimpleName());
+                        node.setDocRecordId(null);
                     }
                 }
                 if (n.get("docRecordTitle") != null) {
@@ -145,5 +155,60 @@ public class MindMapController {
         res.put("map", map);
         res.put("root", mindMapService.loadRootNode(id));
         return ResponseEntity.ok(res);
+    }
+    
+    // 删除思维导图
+    @DeleteMapping("/delete/{id}")
+    public ResponseEntity<Map<String, Object>> deleteMindMap(@PathVariable("id") Long id) {
+        Map<String, Object> response = new HashMap<>();
+        try {
+            // 先检查思维导图是否存在
+            MindMap existingMap = mindMapService.loadMindMap(id);
+            if (existingMap == null) {
+                response.put("success", false);
+                response.put("error", "思维导图不存在");
+                return ResponseEntity.status(404).body(response);
+            }
+            
+            // 删除思维导图及其所有节点
+            boolean deleted = mindMapService.deleteMindMap(id);
+            if (deleted) {
+                response.put("success", true);
+                response.put("message", "思维导图删除成功");
+                response.put("deletedId", id);
+                System.out.println("思维导图删除成功，ID: " + id);
+                return ResponseEntity.ok(response);
+            } else {
+                response.put("success", false);
+                response.put("error", "删除失败，请稍后重试");
+                return ResponseEntity.status(500).body(response);
+            }
+        } catch (Exception e) {
+            System.err.println("删除思维导图时发生错误，ID: " + id + ", 错误: " + e.getMessage());
+            e.printStackTrace();
+            response.put("success", false);
+            response.put("error", "删除过程中发生错误: " + e.getMessage());
+            return ResponseEntity.status(500).body(response);
+        }
+    }
+    
+    // 验证UUID格式的辅助方法
+    private boolean isValidUUID(String uuid) {
+        try {
+            java.util.UUID.fromString(uuid);
+            return true;
+        } catch (IllegalArgumentException e) {
+            return false;
+        }
+    }
+    
+    // 验证Long格式的辅助方法
+    private boolean isValidLong(String value) {
+        try {
+            Long.parseLong(value);
+            return true;
+        } catch (NumberFormatException e) {
+            return false;
+        }
     }
 } 
