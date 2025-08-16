@@ -102,6 +102,24 @@ public class MindMapController {
                     node.setCodeRecordTitle((String) n.get("codeRecordTitle"));
                 }
                 
+                // 处理超链接字段
+                if (n.get("hyperlink") != null) {
+                    String hyperlink = (String) n.get("hyperlink");
+                    if (hyperlink != null && !hyperlink.trim().isEmpty()) {
+                        // 验证URL格式（简单验证）
+                        if (hyperlink.startsWith("http://") || hyperlink.startsWith("https://") || 
+                            hyperlink.startsWith("ftp://") || hyperlink.startsWith("mailto:") ||
+                            hyperlink.startsWith("tel:") || hyperlink.startsWith("#")) {
+                            node.setHyperlink(hyperlink.trim());
+                        } else {
+                            System.out.println("Warning: Invalid hyperlink format: " + hyperlink);
+                            node.setHyperlink(null);
+                        }
+                    } else {
+                        node.setHyperlink(null);
+                    }
+                }
+                
                 return node;
             }).collect(Collectors.toList());
 

@@ -148,7 +148,7 @@
           </div>
 
           <div class="property-group">
-            <label>详细说明（AI问答记录）</label>
+            <label>关联AI问答记录</label>
             <div class="qa-search">
               <input 
                 type="text"
@@ -245,6 +245,21 @@
               <button class="link-btn" @click="clearCodeSelection">清除</button>
             </div>
           </div>
+
+          <div class="property-group">
+            <label>超链接地址</label>
+            <input 
+              type="url"
+              v-model="selectedNode.hyperlink"
+              @input="updateNodeHyperlink"
+              class="text-input"
+              placeholder="输入完整的URL地址（如：https://example.com）"
+            >
+            <div v-if="selectedNode.hyperlink" class="hyperlink-selected">
+              已设置：<span class="hyperlink-url">{{ selectedNode.hyperlink }}</span>
+              <button class="link-btn" @click="clearHyperlink">清除</button>
+            </div>
+          </div>
         </div>
       </div>
       
@@ -301,7 +316,8 @@
                 'root': node.isRoot,
                 'has-detail': !!node.detailRecordId,
                         'has-doc': !!node.docRecordId,
-        'has-code': !!node.codeRecordId
+        'has-code': !!node.codeRecordId,
+                'has-hyperlink': !!node.hyperlink
               }
             ]"
             :style="getNodeStyle(node)"
@@ -349,6 +365,13 @@
                 class="action-btn" 
                 title="查看关联代码片段">
                 💻
+              </button>
+              <button 
+                v-if="node.hyperlink"
+                @click.stop="openHyperlink(node)" 
+                class="action-btn hyperlink-action" 
+                title="打开超链接">
+                🌐
               </button>
             </div>
 
@@ -714,7 +737,8 @@ onMounted(async () => {
           fontSize: n.fontSize, width: n.width, height: n.height,
           detailRecordId: n.detailRecordId || null, detailRecordTitle: n.detailRecordTitle || null,
                   docRecordId: n.docRecordId || null, docRecordTitle: n.docRecordTitle || null,
-        codeRecordId: n.codeRecordId || null, codeRecordTitle: n.codeRecordTitle || null
+        codeRecordId: n.codeRecordId || null, codeRecordTitle: n.codeRecordTitle || null,
+          hyperlink: n.hyperlink || null
         }))
         nodes.value = loaded
         const idToNode = new Map(nodes.value.map(n => [n.id, n]))
@@ -765,7 +789,8 @@ function createInitialMap() {
     docRecordId: null,
     docRecordTitle: null,
     codeRecordId: null,
-    codeRecordTitle: null
+    codeRecordTitle: null,
+    hyperlink: null
   }
   
   nodes.value = [rootNode]
@@ -828,7 +853,8 @@ function addChildNode(parentId = selectedNodeId.value) {
     docRecordId: null,
     docRecordTitle: null,
     codeRecordId: null,
-    codeRecordTitle: null
+    codeRecordTitle: null,
+    hyperlink: null
   }
   
   parent.children.push(newNode.id)
@@ -1204,7 +1230,7 @@ function getNodeStyle(node) {
     height: adaptiveHeight + 'px',
     backgroundColor: node.detailRecordId ? '#b71c1c' : node.backgroundColor,
     color: node.detailRecordId ? '#ffffff' : undefined,
-    borderColor: node.borderColor,
+    borderColor: node.hyperlink ? '#FF9800' : node.borderColor,
     fontSize: node.fontSize + 'px'
   }
 }
@@ -1562,6 +1588,9 @@ async function saveMap() {
         base.codeRecordId = n.codeRecordId
         if (n.codeRecordTitle) base.codeRecordTitle = n.codeRecordTitle
       }
+      if (n.hyperlink) {
+        base.hyperlink = n.hyperlink
+      }
       return base
     })
   }
@@ -1622,7 +1651,8 @@ async function loadMap() {
     docRecordId: n.docRecordId || null,
     docRecordTitle: n.docRecordTitle || null,
     codeRecordId: n.codeRecordId || null,
-    codeRecordTitle: n.codeRecordTitle || null
+    codeRecordTitle: n.codeRecordTitle || null,
+    hyperlink: n.hyperlink || null
   }))
   nodes.value = loaded
   // 重建 children 关系
@@ -1786,7 +1816,8 @@ function pasteNode() {
       parentId: selectedNodeId.value,
       x: selectedNode.value.x + selectedNode.value.width + 50,  // 基于父节点实际宽度 + 50px间距
       y: selectedNode.value.y,
-      children: []
+      children: [],
+      hyperlink: copiedNode.hyperlink || null
     }
     
     selectedNode.value.children.push(newNode.id)
@@ -1848,6 +1879,46 @@ function openDetailCode(node) {
   if (!node?.codeRecordId) return
   // 跳到代码片段页，并携带查询参数以便页面高亮该条
   router.push({ path: '/code-snippets', query: { highlightId: String(node.codeRecordId) } })
+}
+
+function updateNodeHyperlink() {
+  if (selectedNode.value) {
+    // 重新计算节点尺寸
+    const textSize = calculateTextSize(selectedNode.value.text, selectedNode.value.fontSize)
+    const minWidth = 80
+    const minHeight = 40
+    const maxWidth = 300
+    
+    selectedNode.value.width = Math.max(minWidth, Math.min(maxWidth, textSize.width + 20))
+    selectedNode.value.height = Math.max(minHeight, textSize.height + 10)
+    
+    // 如果节点有父节点，重新布局其子节点
+    if (selectedNode.value.parentId) {
+      const parent = nodes.value.find(n => n.id === selectedNode.value.parentId)
+      if (parent) {
+        layoutImmediateChildren(parent.id)
+      }
+    } else if (selectedNode.value.children && selectedNode.value.children.length > 0) {
+      // 如果是根节点或有子节点，重新布局子节点
+      layoutImmediateChildren(selectedNode.value.id)
+    }
+    
+    updateConnections()
+  }
+  saveToHistory()
+}
+
+function clearHyperlink() {
+  if (selectedNode.value) {
+    selectedNode.value.hyperlink = null
+    updateNodeHyperlink()
+  }
+}
+
+function openHyperlink(node) {
+  if (node.hyperlink) {
+    window.open(node.hyperlink, '_blank')
+  }
 }
 </script>
 
@@ -2119,6 +2190,7 @@ function openDetailCode(node) {
 .mind-node.has-detail { box-shadow: 0 2px 8px rgba(229,57,53,0.12); }
 .mind-node.has-doc { box-shadow: 0 2px 8px rgba(33,150,243,0.12); }
 .mind-node.has-code { box-shadow: 0 2px 8px rgba(76,175,80,0.12); }
+.mind-node.has-hyperlink { box-shadow: 0 2px 8px rgba(255,152,0,0.12); }
 
 .mind-node.editing {
   border-color: #FF9800;
@@ -2186,6 +2258,17 @@ function openDetailCode(node) {
 .action-btn:hover {
   background: #f0f0f0;
   border-color: #bbb;
+}
+
+.action-btn.hyperlink-action {
+  background: #FF9800;
+  color: white;
+  border-color: #F57C00;
+}
+
+.action-btn.hyperlink-action:hover {
+  background: #F57C00;
+  border-color: #E65100;
 }
 
 /* 折叠/展开同一小圆圈 */
@@ -2415,4 +2498,24 @@ function openDetailCode(node) {
   font-variant-numeric: tabular-nums; 
 }
 .code-selected { margin-top: 6px; font-size: 12px; color: #555; display:flex; align-items:center; gap:8px; }
+
+.hyperlink-selected {
+  margin-top: 6px;
+  font-size: 12px;
+  color: #555;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.hyperlink-url {
+  color: #1976D2;
+  cursor: pointer;
+}
+
+.hyperlink-url:hover {
+  text-decoration: underline;
+}
+
+
 </style>

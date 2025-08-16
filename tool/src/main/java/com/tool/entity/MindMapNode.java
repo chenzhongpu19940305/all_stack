@@ -33,6 +33,9 @@ public class MindMapNode {
     // 关联文档
     private String docRecordId;
     private String docRecordTitle;
+    
+    // 超链接地址
+    private String hyperlink;
 
     public Long getId() { return id; }
     public void setId(Long id) { this.id = id; }
@@ -93,4 +96,7 @@ public class MindMapNode {
     
     public String getDocRecordTitle() { return docRecordTitle; }
     public void setDocRecordTitle(String docRecordTitle) { this.docRecordTitle = docRecordTitle; }
+
+    public String getHyperlink() { return hyperlink; }
+    public void setHyperlink(String hyperlink) { this.hyperlink = hyperlink; }
 } 
