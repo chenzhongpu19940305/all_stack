@@ -134,33 +134,42 @@ onMounted(async () => {
 .card-meta { display:flex; justify-content:space-between; color:#666; font-size:12px; }
 .tool-btn { display:inline-flex; align-items:center; gap:6px; padding:6px 10px; border:1px solid #ddd; background:#fff; border-radius:6px; cursor:pointer; }
 .tool-btn.primary { background:#2196F3; color:#fff; border-color:#1976D2; }
-.delete-btn { 
-  position: absolute; 
-  top: 8px; 
-  right: 8px; 
-  background: #f44336; 
-  border: none; 
-  border-radius: 50%; 
-  width: 28px; 
-  height: 28px; 
-  cursor: pointer; 
-  font-size: 14px; 
-  color: white; 
-  display: flex; 
-  align-items: center; 
-  justify-content: center; 
-  transition: all 0.3s ease; 
-  box-shadow: 0 2px 6px rgba(244, 67, 54, 0.3);
+.delete-btn {
+  position: absolute;
+  top: 0.5rem;
+  right: 0.5rem;
+  background-color: #f44336;
+  color: white;
+  border: none;
+  border-radius: 50%;
+  width: 32px;
+  height: 32px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  font-size: 14px;
   z-index: 10;
+  transition: all 0.3s ease;
+  box-shadow: 0 2px 8px rgba(244, 67, 54, 0.3);
+  opacity: 0;
+  visibility: hidden;
+  transform: scale(0.8);
 }
 
-.delete-btn:hover { 
-  background: #d32f2f; 
-  transform: scale(1.1); 
+.card:hover .delete-btn {
+  opacity: 1;
+  visibility: visible;
+  transform: scale(1);
+}
+
+.delete-btn:hover {
+  background-color: #d32f2f;
+  transform: scale(1.1);
   box-shadow: 0 4px 12px rgba(244, 67, 54, 0.4);
 }
 
-.delete-btn:active { 
-  transform: scale(0.95); 
+.delete-btn:active {
+  transform: scale(0.95);
 }
 </style> 
