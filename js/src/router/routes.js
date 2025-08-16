@@ -24,37 +24,6 @@ export const routes = [
     }
   },
   {
-    path: '/gallery',
-    name: 'Gallery',
-    component: Gallery,
-    meta: {
-      title: 'AI问答记录',
-      icon: '🤖',
-      description: '智能问答知识库'
-    }
-  },
-  {
-    path: '/video-gallery',
-    name: 'VideoGallery',
-    component: VideoGallery,
-    meta: {
-      title: '视频管理',
-      icon: '🎥',
-      description: '视频文件管理'
-    }
-  },
-  {
-    path: '/code-snippets',
-    name: 'CodeSnippets',
-    component: CodeSnippets,
-    meta: {
-      title: '代码片段库',
-      icon: '💻',
-      description: '代码片段管理'
-    }
-  },
-
-  {
     path: '/docs',
     name: 'Docs',
     component: Docs,
@@ -83,6 +52,36 @@ export const routes = [
       icon: '✏️',
       description: '类似Word的简单文档编辑器，支持文字编辑和图片粘贴',
       hideFromMenu: true
+    }
+  },
+  {
+    path: '/gallery',
+    name: 'Gallery',
+    component: Gallery,
+    meta: {
+      title: 'AI问答记录',
+      icon: '🤖',
+      description: '智能问答知识库'
+    }
+  },
+  {
+    path: '/video-gallery',
+    name: 'VideoGallery',
+    component: VideoGallery,
+    meta: {
+      title: '视频管理',
+      icon: '🎥',
+      description: '视频文件管理'
+    }
+  },
+  {
+    path: '/code-snippets',
+    name: 'CodeSnippets',
+    component: CodeSnippets,
+    meta: {
+      title: '代码片段库',
+      icon: '💻',
+      description: '代码片段管理'
     }
   },
   {
@@ -119,13 +118,15 @@ export const routes = [
 
 // 获取导航菜单数据
 export function getNavigationMenu() {
-  return routes.map(route => ({
-    path: route.path,
-    name: route.name,
-    title: route.meta.title,
-    icon: route.meta.icon,
-    description: route.meta.description
-  }))
+  return routes
+    .filter(route => !route.meta.hideFromMenu) // 过滤掉隐藏的菜单项
+    .map(route => ({
+      path: route.path,
+      name: route.name,
+      title: route.meta.title,
+      icon: route.meta.icon,
+      description: route.meta.description
+    }))
 }
 
 // 根据路径获取路由信息
